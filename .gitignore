@@ -1,0 +1,29 @@
+# Secrets and tokens
+.env
+.env.*
+*.pem
+*.key
+*_token
+*token.txt
+.modal.toml
+.netrc
+secrets/
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+ENV/
+
+# Model weights and archives (large, fetched at runtime)
+*.tar
+params/
+
+# OS cruft
+.DS_Store
