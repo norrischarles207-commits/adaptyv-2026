@@ -105,3 +105,7 @@ The working brief's "92% domain III identity" does not reconcile with these iden
 - Liu et al. 2022, Mol Ther Oncolytics (numbering evidence): https://www.sciencedirect.com/science/article/pii/S237277052200136X
 - WO2024109709A1 (numbering evidence): https://patents.google.com/patent/WO2024109709A1/en
 - Adaptyv blog po104 (organiser-advised epitope): https://www.adaptyvbio.com/blog/po104/
+
+## 8. Liu 2022 interface residues vs the measured 24 (added 2026-09-29)
+
+Liu et al. 2022 / WO2024109709A1 name H370, H433, R377, L406, Q435 and K489 as EGFR interface residues in the G5V2 model (precursor numbering, confirmed in section 1). **Five of the six (H433, R377, L406, Q435, K489) are in the measured 24; H370 is not.** This is weak convergent evidence only: the model was manually docked using cetuximab:EGFR (1YY9) as template, so overlap with the cetuximab contact set is expected by construction, and it is not an independent epitope measurement [summ]. Source: https://www.sciencedirect.com/science/article/pii/S237277052200136X ; https://patents.google.com/patent/WO2024109709A1/en
