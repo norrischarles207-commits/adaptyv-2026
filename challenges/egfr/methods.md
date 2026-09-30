@@ -985,3 +985,47 @@ unengaged in all designs (≥6.5 Å; only seed 7 marginal at 6.53 Å), consisten
 poor free-receptor accessibility (§3). The proper use of Filter 3 is therefore on the
 *pH-biased* redesign arm, where an acid is deliberately placed, and always read against
 this null (H409's rank among interface residues), not as an absolute distance.
+
+## 2026-09-30 — Operational notes and pre-registered submission decisions
+
+### Structures vendored into the repo
+
+The 7 v3c core complex PDBs used for Filters 2 & 3 are now committed under
+`challenges/egfr/structures/v3c-core/`, with filenames matching the `pdb_file`
+column of `v3c-core-filters.csv` so that column resolves locally. Reason: the
+Modal volume has been unreachable twice today (spend-limit stops), and every
+downstream structural analysis depends on these files — they should not live
+only in ephemeral session scratch or behind a volume that can disappear.
+
+### Modal volume / target naming (recorded to avoid a recurring dead end)
+
+The design outputs live on the Modal **volume named `adaptyv-designs`**, not
+`designs`. Running `modal volume ls designs …` (e.g. against environment `main`)
+returns **`Volume 'designs' not found`**, which reads like a missing/empty volume
+but is actually a **wrong-name (wrong-target) error** — the data is fine, the
+name is wrong. Always use `adaptyv-designs`. Confirmed working:
+`python3 -m modal volume ls adaptyv-designs /egfr/attempts/phase1-v3c-core`.
+
+### PRE-COMMITMENT — submission decisions (recorded BEFORE Stage 1 & Stage 2 results)
+
+**Pre-registered. Written before any co-fold cross-reactivity or full-length
+pass/fail numbers are seen, so the decision cannot be reverse-fitted to the
+outcome.** Two contingencies:
+
+**(a) If Stage 1 shows a real human-vs-mouse ipSAE_min gap across all 7 designs**
+(a "real" gap being one larger than the per-complex diffusion-sample range, per
+the fixed interpretation rule): **we submit anyway rather than redesigning.**
+Reasoning: (i) mouse cross-reactivity is Adaptyv's *second-ranked* criterion of
+three, a ranking factor, not a pass/fail gate; (ii) the Challenge 1 deadline is
+**2026-10-04**, and (iii) redesigning against a mouse-variant target would leave
+no time to validate the redesign. The cross-reactivity weakness will be **stated
+explicitly in the submission**, not hidden.
+
+**(b) If fewer than 3 designs pass the d94a8d4 criteria at Stage 2**
+(ipSAE_min ≥ 0.60 AND SC ≥ 0.58): **we submit the passers plus the next-best by
+the composite ranking, each labelled pass or sub-threshold, and we do NOT fill
+all 20 slots.** Reasoning: an unused slot scores zero, so *some* padding beyond
+the strict passers is rational — but Track 2 and Track 3 share a single 384-well
+plate allocated by a workflow that reads the submissions, so a large tail of
+weakly justified designs plausibly costs more in selection than it gains in
+coverage. Submit the defensible set, labelled honestly; do not pad to 20.
