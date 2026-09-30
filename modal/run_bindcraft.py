@@ -203,6 +203,7 @@ def design_one(
     run_tag: str = "default",
     advanced_preset: str = DEFAULT_ADVANCED_PRESET,
     lengths: str = DEFAULT_LENGTHS,
+    target_residue_range: str = "",
 ):
     """Run exactly one BindCraft trajectory attempt against `target`.
 
@@ -218,6 +219,10 @@ def design_one(
         current implementation assumes RCSB.
       target_chains: comma-separated chain IDs to keep from the source PDB
         (e.g. "V,W" for the VEGF dimer in 1FLT). Everything else is stripped.
+      target_residue_range: optional "START-END" of author residue numbers
+        (e.g. "311-514") to keep from every kept chain. AF2 memory scales
+        ~N^2, so a full receptor ECD can OOM an A10G -- slicing to the one
+        domain the hotspots sit in is what makes the run fit.
       hotspots: comma-separated chain-prefixed hotspot residues in
         ColabDesign's prep_pos() format (e.g. "V21,V25,V48"). Must all be
         present in the cleaned target; a missing hotspot fails fast.
@@ -256,6 +261,10 @@ def design_one(
     if not keep_chains:
         raise RuntimeError(f"--target-chains yielded no chains: {target_chains!r}")
 
+    res_lo, res_hi = None, None
+    if target_residue_range:
+        res_lo, res_hi = (int(x) for x in target_residue_range.split("-"))
+
     design_path = f"/designs/{target}/attempts/{run_tag}/{seed}"
     targets_dir = f"/designs/{target}/targets"
     os.makedirs(design_path, exist_ok=True)
@@ -273,7 +282,11 @@ def design_one(
 
         def accept_residue(self, residue):
             # drop waters and heteroatoms, keep standard residues
-            return residue.id[0] == " "
+            if residue.id[0] != " ":
+                return False
+            if res_lo is not None and not (res_lo <= residue.id[1] <= res_hi):
+                return False
+            return True
 
     structure = PDBParser(QUIET=True).get_structure(pdb_id, raw_pdb)
     io = PDBIO()
@@ -489,6 +502,7 @@ def main(
     run_tag: str = "default",
     advanced_preset: str = DEFAULT_ADVANCED_PRESET,
     lengths: str = DEFAULT_LENGTHS,
+    target_residue_range: str = "",
 ):
     """Fan out N independent design_one attempts in parallel across A10Gs.
 
@@ -516,7 +530,8 @@ def main(
     # early each result surfaces.
     results = list(design_one.starmap(
         [(s, target, pdb_id, target_chains, hotspots,
-          i_ptm_threshold, run_tag, advanced_preset, lengths) for s in seeds],
+          i_ptm_threshold, run_tag, advanced_preset, lengths,
+          target_residue_range) for s in seeds],
         order_outputs=False,
     ))
     for r in results:

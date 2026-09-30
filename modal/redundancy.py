@@ -908,3 +908,283 @@ def _write_outputs(target, ok, errors, smoke, skipped=None, mode="run"):
     path = _persist_table.remote(target, buf.getvalue(), md_text, prefix)
     print(f"\nwrote cross-validation table to {path} (on adaptyv-designs volume)")
     print("\n--- methods.md-appendable block ---\n" + md_text)
+
+
+# --------------------------------------------------------------------------- #
+# Full-length co-fold: re-predict a binder against an arbitrary target SEQUENCE
+# --------------------------------------------------------------------------- #
+# crossval_boltz() takes its target from the design PDB, so it can only ever
+# re-predict against whatever target the design was made on. When a design was
+# built against a SLICED target (see run_bindcraft.py --target-residue-range),
+# the honest check is a co-fold against the untruncated receptor: the slice's
+# cut faces are artificial exposed surface a binder can score well against.
+# These entrypoints take the target as an explicit sequence so that check is
+# possible without touching the design-time path.
+
+# pyrosetta is not in `image`, and the burial-fraction proxy in _compute_sc_proxy
+# is NOT Lawrence-Colman SC, so it cannot be compared to SC_PASS. This image adds
+# pyrosetta so the real ShapeComplementarityFilter value is available.
+sc_image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .apt_install("wget")
+    .pip_install("biopython", "numpy<2")
+    .pip_install(
+        "pyrosetta",
+        find_links="https://west.rosettacommons.org/pyrosetta/quarterly/release.cxx11thread.serialization",
+    )
+)
+
+
+@app.function(
+    gpu="A100-40GB",
+    image=image,
+    volumes={"/designs": designs, BOLTZ_CACHE: boltz_weights},
+    timeout=7200,
+)
+def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str):
+    """Co-fold `binder_seq` against `target_seq` with Boltz-2; score iPTM + ipSAE_min.
+
+    Args:
+      run_id: label for logs and the output filenames.
+      target_seq: the target chain, as one gapless sequence -> Boltz chain A.
+      binder_seq: the binder -> Boltz chain B.
+      save_rel: path under /designs to persist the predicted PDB + arrays to,
+        so SC/contacts can be scored later on CPU without re-paying for a GPU.
+
+    Returns the metric dict. SC is deliberately NOT computed here (no pyrosetta
+    in this image) -- sc_and_contacts() does that on the persisted PDB.
+    """
+    import glob
+    import json
+    import os
+    import shutil
+    import subprocess
+
+    import yaml
+
+    os.environ["BOLTZ_CACHE"] = BOLTZ_CACHE
+
+    yaml_doc = {"version": 1, "sequences": [
+        {"protein": {"id": "A", "sequence": target_seq}},
+        {"protein": {"id": "B", "sequence": binder_seq}},
+    ]}
+    work = f"/tmp/{run_id}"
+    os.makedirs(work, exist_ok=True)
+    yaml_path = f"{work}/{run_id}.yaml"
+    with open(yaml_path, "w") as fh:
+        yaml.safe_dump(yaml_doc, fh, sort_keys=False)
+    print(f"{run_id}: target {len(target_seq)} aa (chain A), binder {len(binder_seq)} aa (chain B)")
+
+    out_dir = f"{work}/out"
+    cmd = [
+        "boltz", "predict", yaml_path,
+        "--out_dir", out_dir,
+        "--cache", BOLTZ_CACHE,
+        "--use_msa_server",
+        "--write_full_pae",
+        "--accelerator", "gpu",
+        "--devices", "1",
+        "--override",
+        "--output_format", "pdb",
+    ]
+    print("running:", " ".join(cmd))
+    subprocess.run(cmd, check=True, env={**os.environ, "BOLTZ_CACHE": BOLTZ_CACHE})
+
+    pae, plddt, conf, pred_dir = _load_boltz_arrays(out_dir)
+    n_expected = len(target_seq) + len(binder_seq)
+    if pae.shape[0] != n_expected:
+        raise RuntimeError(
+            f"PAE dim {pae.shape[0]} != {n_expected} (target+binder); token order unexpected"
+        )
+
+    slices = _chain_slices_for([target_seq], binder_seq)
+    ipsae = _compute_ipsae(pae, plddt, slices)
+    iptm = float(conf["iptm"]) if conf.get("iptm") is not None else None
+
+    save_dir = f"/designs/{save_rel}"
+    os.makedirs(save_dir, exist_ok=True)
+    saved_pdb = None
+    for f in os.listdir(pred_dir):
+        if f.endswith(".pdb") or f.startswith("confidence_"):
+            dst = os.path.join(save_dir, f)
+            shutil.copy(os.path.join(pred_dir, f), dst)
+            if f.endswith(".pdb"):
+                saved_pdb = dst
+    for pattern in ("pae_*_model_0.npz", "plddt_*_model_0.npz"):
+        for src in glob.glob(os.path.join(out_dir, "**", pattern), recursive=True):
+            shutil.copy(src, os.path.join(save_dir, os.path.basename(src)))
+
+    result = {
+        "run_id": run_id,
+        "target_len": len(target_seq),
+        "binder_len": len(binder_seq),
+        "iptm": round(iptm, 4) if iptm is not None else None,
+        "ptm": round(float(conf["ptm"]), 4) if conf.get("ptm") is not None else None,
+        "complex_plddt": (round(float(conf["complex_plddt"]), 4)
+                          if conf.get("complex_plddt") is not None else None),
+        "ipsae_min": ipsae["ipsae_min"],
+        "ipsae_pass": (ipsae["ipsae_min"] is not None
+                       and ipsae["ipsae_min"] >= IPSAE_MIN_PASS),
+        "ipsae_pairs": ipsae["pairs"],
+        "saved_pdb": saved_pdb,
+    }
+    with open(os.path.join(save_dir, "cofold_result.json"), "w") as fh:
+        json.dump(result, fh, indent=2)
+    designs.commit()
+    print("RESULT:", json.dumps({k: v for k, v in result.items() if k != "ipsae_pairs"}))
+    return result
+
+
+@app.function(image=sc_image, volumes={"/designs": designs}, timeout=1800)
+def sc_and_contacts(
+    run_id: str,
+    pdb_rel: str,
+    resnum_offset: int,
+    hotspots: str,
+    contact_cutoff: float = 4.5,
+):
+    """Real pyrosetta SC + any-atom interface contacts on a co-folded complex.
+
+    Args:
+      pdb_rel: path under /designs to the predicted complex (chain A target,
+        chain B binder).
+      resnum_offset: added to chain A's residue numbers to report them in the
+        caller's numbering scheme (e.g. +24 to turn a target chain that starts
+        at EGFR precursor 25 into precursor numbering).
+      hotspots: comma-separated intended hotspots, already in the OUTPUT
+        numbering scheme, checked for contact.
+      contact_cutoff: any-atom heavy-atom distance in angstroms.
+    """
+    import json
+    import os
+
+    import pyrosetta
+    from Bio.PDB import NeighborSearch, PDBParser
+    from Bio.PDB.Polypeptide import protein_letters_3to1 as t31
+
+    pdb = f"/designs/{pdb_rel}"
+    if not os.path.exists(pdb):
+        raise RuntimeError(f"no such pdb on volume: {pdb}")
+
+    # --- real Lawrence-Colman SC across the A|B interface --------------------
+    pyrosetta.init("-mute all -ignore_unrecognized_res", silent=True)
+    pose = pyrosetta.pose_from_pdb(pdb)
+    sc_filter = pyrosetta.rosetta.protocols.simple_filters.ShapeComplementarityFilter()
+    sc_filter.jump_id(1)
+    sc_filter.quick(False)
+    try:
+        sc = float(sc_filter.score(pose))
+    except Exception as e:
+        print(f"[warn] SC filter failed: {e}")
+        sc = None
+
+    # --- interface contacts --------------------------------------------------
+    model = PDBParser(QUIET=True).get_structure("cx", pdb)[0]
+    tgt_atoms = [a for a in model["A"].get_atoms()
+                 if a.get_parent().id[0] == " " and a.element != "H"]
+    bnd_atoms = [a for a in model["B"].get_atoms()
+                 if a.get_parent().id[0] == " " and a.element != "H"]
+    ns = NeighborSearch(tgt_atoms)
+    contacts = {}
+    for a in bnd_atoms:
+        for t in ns.search(a.coord, contact_cutoff):
+            r = t.get_parent()
+            num = r.id[1] + resnum_offset
+            contacts.setdefault(num, t31.get(r.get_resname(), "X"))
+
+    hot = [int(h) for h in hotspots.split(",") if h.strip()]
+    recovered = [h for h in hot if h in contacts]
+    result = {
+        "run_id": run_id,
+        "sc": round(sc, 4) if sc is not None else None,
+        "sc_source": "pyrosetta_ShapeComplementarityFilter",
+        "sc_pass": (sc is not None and sc >= SC_PASS),
+        "n_interface_residues": len(contacts),
+        "interface_residues": {str(k): contacts[k] for k in sorted(contacts)},
+        "hotspots_checked": hot,
+        "hotspots_recovered": recovered,
+        "hotspot_recovery": f"{len(recovered)}/{len(hot)}",
+    }
+    print("SC/CONTACTS:", json.dumps(
+        {k: v for k, v in result.items() if k != "interface_residues"}))
+    return result
+
+
+@app.local_entrypoint()
+def fulllength_check(
+    target_fasta: str,
+    binders_fasta: str,
+    hotspots: str,
+    resnum_offset: int = 0,
+    save_prefix: str = "fulllength",
+):
+    """Co-fold every binder in `binders_fasta` against the single target in
+    `target_fasta`, then report iPTM / ipSAE_min / SC / hotspot recovery.
+
+    --resnum-offset shifts chain A's residue numbers into the numbering scheme
+    --hotspots is written in (the target sequence is fed to Boltz gaplessly, so
+    chain A always comes back numbered from 1).
+
+    Example:
+      modal run --detach modal/redundancy.py::fulllength_check \\
+        --target-fasta /tmp/egfr_25_645.fasta \\
+        --binders-fasta /tmp/binders.fasta \\
+        --hotspots 408,432,433,435,436,489,490 --resnum-offset 24 \\
+        --save-prefix egfr/fulllength
+    """
+    import json
+
+    def read_fasta(p):
+        recs, name, buf = [], None, []
+        for line in open(p):
+            line = line.strip()
+            if line.startswith(">"):
+                if name:
+                    recs.append((name, "".join(buf)))
+                name, buf = line[1:].split()[0], []
+            elif line:
+                buf.append(line)
+        if name:
+            recs.append((name, "".join(buf)))
+        return recs
+
+    tgt = read_fasta(target_fasta)
+    if len(tgt) != 1:
+        raise SystemExit(f"--target-fasta must hold exactly one record, got {len(tgt)}")
+    target_name, target_seq = tgt[0]
+    bnds = read_fasta(binders_fasta)
+    print(f"target {target_name}: {len(target_seq)} aa")
+    for n, s in bnds:
+        print(f"  binder {n}: {len(s)} aa")
+
+    folds = list(cofold_seqs.starmap(
+        [(n, target_seq, s, f"{save_prefix}/{n}") for n, s in bnds],
+        order_outputs=True,
+    ))
+
+    scored = list(sc_and_contacts.starmap(
+        [(f["run_id"], f["saved_pdb"].replace("/designs/", ""), resnum_offset, hotspots)
+         for f in folds if f.get("saved_pdb")],
+        order_outputs=True,
+    ))
+    by_id = {s["run_id"]: s for s in scored}
+
+    print("\n" + "=" * 72)
+    print(f"FULL-LENGTH CO-FOLD vs {target_name} ({len(target_seq)} aa)")
+    print(f"thresholds: ipSAE_min >= {IPSAE_MIN_PASS}, SC >= {SC_PASS} (ipTM informational)")
+    print("=" * 72)
+    for f in folds:
+        s = by_id.get(f["run_id"], {})
+        print(f"\n--- {f['run_id']} (binder {f['binder_len']} aa) ---")
+        print(f"  iPTM               {f['iptm']}   (informational)")
+        print(f"  ipSAE_min          {f['ipsae_min']}   pass={f['ipsae_pass']}")
+        print(f"  SC                 {s.get('sc')}   pass={s.get('sc_pass')}  [{s.get('sc_source')}]")
+        print(f"  complex pLDDT      {f['complex_plddt']}")
+        print(f"  interface residues {s.get('n_interface_residues')}")
+        print(f"  hotspot recovery   {s.get('hotspot_recovery')}  "
+              f"recovered={s.get('hotspots_recovered')}")
+        print(f"  ipsae pairs: {json.dumps(f['ipsae_pairs'])}")
+        if s.get("interface_residues"):
+            ir = s["interface_residues"]
+            print("  interface: " + ", ".join(f"{k}{v}" for k, v in ir.items()))
+    return {"folds": folds, "scored": scored}
