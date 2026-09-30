@@ -581,3 +581,99 @@ reconsidered in light of the numbers. (For reference, under min the v3b survivor
 seed 1 scored 0.5659 — a fail; under max it would have been 0.625, a pass. That
 0.034 gap is exactly what this pre-registration refuses to relitigate after the
 fact.)
+
+---
+
+## 2026-09-30 — Phase 1 v3c — core arm
+
+First real two-arm launch. Arm A (the 4-residue core) completed enough to answer
+the question the split was built for; Arm B never started. Full per-design metrics
+for all 7 completed designs are in `challenges/egfr/v3c-core-designs.csv` (36
+columns); the key columns are tabulated below.
+
+### Run configuration
+
+- Launched **2026-09-29 23:16 MDT** from `main`, plain terminal, foreground,
+  `caffeinate` active.
+- Arm A, tag `phase1-v3c-core`: hotspots **A408,A409,A411,A412**.
+- Arm B, tag `phase1-v3c-q408`: hotspots **A384,A408,A409,A411,A412** — **NOT RUN**.
+- Both arms: `--target-residue-range 311-514`, `--lengths 60,100`, `--n 10`.
+- Chained with `&&` so Arm B would start only on a clean Arm A exit.
+- Confirmed at launch: `chains A=204res`, lengths `[60,100]`, correct hotspot string.
+
+### Outcome
+
+- All 10 containers started **23:29**, terminated **23:53 MDT** — ~24 minutes of runtime.
+- **Termination cause: Modal workspace spend limit.** The limit was set to **$20.00**
+  personal spend; **$30.00** of credits had already been consumed, so apps stopped at
+  **$50.16** total usage.
+- **Cost: $6.86** (Modal usage breakdown, Ephemeral Apps, Sep 30 UTC).
+- Arm B never started — correct behaviour of the `&&` guard. Nothing to undo.
+
+### Results
+
+**7 designs completed** (one per seed for seeds 0,1,2,3,5,6,7). Of these, **only 5
+(seeds 1, 2, 3, 5, 7) have `Accepted/Ranked` directories on the volume.**
+`egfr_l93_s713816` (seed 6) and `egfr_l67_s528267` (seed 0) **completed scoring but
+were not written to Accepted before termination — they exist only in `v3c-core.log`**,
+so a volume listing misses them. For those two, no interface metrics (SC, dG, etc.)
+were dumped to the log (only trajectory + AF2 re-prediction values), so those cells are
+blank in the CSV.
+
+Metrics for accepted designs are the Rank-1 row of each seed's `final_design_stats.csv`
+(AF2 i_pTM/pLDDT are Average over the 2 predicted models; SC/dG/Hbonds are pyrosetta on
+the domain III complex). For the two rejected designs, i_pTM/pLDDT are the best-model
+AF2 re-prediction from `mpnn_reprediction_log.csv`.
+
+| Seed | Design | Len | Accepted | AF2 i_pTM | SC | dG | Interface Hbonds |
+|---|---|---|---|---|---|---|---|
+| 0 | egfr_l67_s528267 | 67 | **no** (log only) | 0.85 | — | — | — |
+| 1 | egfr_l89_s399498_mpnn2 | 89 | yes | 0.86 | 0.63 | −43.88 | 5.5 |
+| 2 | egfr_l75_s674224_mpnn14 | 75 | yes | 0.86 | 0.72 | −52.14 | 6.5 |
+| 3 | egfr_l91_s124145_mpnn1 | 91 | yes | 0.81 | 0.73 | −56.73 | 5.0 |
+| 5 | egfr_l64_s902794_mpnn2 | 64 | yes | 0.86 | 0.68 | −43.60 | 7.0 |
+| 6 | egfr_l93_s713816 | 93 | **no** (log only) | 0.90 | — | — | — |
+| 7 | egfr_l79_s846567_mpnn5 | 79 | yes | 0.85 | 0.70 | −51.91 | 10.5 |
+
+Sequences (also in the CSV):
+
+```
+seed 0  egfr_l67_s528267        SWTPAQKAHRVDVFYEDMMEIVEKVYRNSGEAKPSPKKFDKEVKMMMPNWVFEWYKEVEPVRKARGA
+seed 1  egfr_l89_s399498_mpnn2  MWLSREELMERARKVADPNDPERDAFWIMLDNTLAIIESRRKKAEETGDWEGAKEAIKKEVDDLRKHAPKSLLEKVFGEVLEEALKIPE
+seed 2  egfr_l75_s674224_mpnn14 MSVQQRYLFRMIEKNKELVEKGEISPEEAKEVLERYFKEHVEKYDTEFFLPHLNEEEKEKTLKAVEEIKERIESI
+seed 3  egfr_l91_s124145_mpnn1  HMTPELEKVMDALYKEKVWHEITWKLYDEFFKAHVDYDEKKVEEIQKVMQEIDEAVKNGDLERFVKVLTEYMKKYFGEELVKKLLEVVEKA
+seed 5  egfr_l64_s902794_mpnn2  MKVSEEEFMTLMWKLDDHYMFNPPPGKTIREVHDEVWSKVSNYFDGKYTPTDEDVAEAKKILSS
+seed 6  egfr_l93_s713816        MELARRIHKRMVELVLEAYEKDQMDPYFFVISSIGHISYKHLGGKFHPWFMEHWPTFVEIGMKTFKNDPEAMAKVREFRSLMEVYVEETARNS
+seed 7  egfr_l79_s846567_mpnn5  EIPKNWTLHHWGEFFRHELHFFRTVYTKEEYEKLKPEFLEKLEKIFEEYVKPVLEKASEEEREAFFKLYSEAMAEFESR
+```
+
+### Interpretation
+
+- **7 designs is a FLOOR, not a yield rate.** Seeds 4, 8, and 9 had not finished when
+  the run was killed (no report block in the log); seed 0 finished but rejected. The
+  denominator is incomplete, so no accept-rate should be quoted from this run.
+- **~$1 per accepted design** at this configuration ($6.86 / ~7 completed, 5 accepted).
+- **The 4-residue core epitope is designable without A384.** This is the open question
+  the two-arm design was built to answer, and Arm A answers it on its own: **7 completed
+  / 5 accepted from the 4-residue core, versus 2 accepted from v3b's 7-hotspot set.** The
+  concavity that A384 contributes is not required to get BindCraft-accepted designs on
+  this epitope. (Whether it improves *full-length* survival is still open — see below.)
+
+### Correction to the record
+
+An earlier assessment in this project attributed the run's termination to unbounded
+trajectory looping and estimated the cost at roughly **$57**. **Both were wrong.** The
+run cost **$6.86** and was stopped by a **$20 spend-limit setting after 24 minutes**, not
+by a runaway loop. This correction is recorded explicitly rather than silently replacing
+the earlier figure.
+
+### Still pending
+
+- **Full-length co-fold of all 7 against the pre-registered criteria (`d94a8d4`)** —
+  none of these have been scored against that bar yet. The design-time SC/i_pTM above are
+  domain III numbers, not the full-length decision metrics.
+- **Arm B** (`phase1-v3c-q408`, the +A384 arm).
+- **Mouse cross-reactivity refold.**
+- **pH-biased redesign near H409.**
+
+All of the above require the Modal workspace, which is currently over its spend limit.
