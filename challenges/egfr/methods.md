@@ -1135,3 +1135,44 @@ The controlling variable is the **pKa SWING on binding**, not absolute pKa. A hi
 1. **The `&&` guard claim was wrong.** In zsh, `cmd | tee file` exits with `tee`'s status, so the guard did not hold and **Arm B did launch**. Fix recorded: `set -o pipefail` (`modal/run_logged.sh`).
 2. **Sequence-composition analysis from `v3c-core.log`'s summary table used TRAJECTORY sequences**, not the MPNN variants of the 5 accepted designs — different molecules. Only seeds 0 and 6 were analysed correctly.
 3. **The v3b → v3c comparison is confounded and contradicts §9.** Both the hotspot set (7→4) and the length range ([60,180]→[60,100]) changed, and §9 already states v3b's 2/10 understates the true rate. The supportable claim is that **the 4-residue core produces accepted designs at a useful rate**, not that it does so *better* than v3b.
+
+## 2026-09-30 — Stage 1 results: mouse cross-reactivity co-fold
+
+Co-folded all 7 v3c designs against the human and mouse domain III slices (204 aa;
+mouse built by sequence substitution at the 26 divergent positions), Boltz-2,
+`--diffusion_samples 3`. Scored value = **mean ipSAE_min over the 3 samples** (never
+best-of-3, fixed before results); sample min–max range in brackets. Full data in
+`challenges/egfr/v3c-crossreact-stage1.json`. **GPU time: 1,771 s = 29.5 GPU-min**, under
+the pre-set 60-GPU-min abort (not aborted).
+
+| Design | human mean [range] | mouse mean [range] | Δ(h−m) | noise floor | verdict |
+|---|---|---|---|---|---|
+| egfr_l67_s528267 | 0.7050 [0.0307] | 0.6424 [0.0513] | +0.0626 | 0.0513 | **REAL** |
+| egfr_l89_s399498_mpnn2 | 0.7606 [0.0153] | 0.6951 [0.0482] | +0.0655 | 0.0482 | **REAL** |
+| egfr_l75_s674224_mpnn14 | 0.8010 [0.0317] | 0.7753 [0.0063] | +0.0257 | 0.0317 | indistinguishable |
+| egfr_l91_s124145_mpnn1 | 0.7199 [0.0154] | 0.6928 [0.0514] | +0.0271 | 0.0514 | indistinguishable |
+| egfr_l64_s902794_mpnn2 | 0.7509 [0.0501] | 0.7266 [0.0466] | +0.0243 | 0.0501 | indistinguishable |
+| egfr_l93_s713816 | 0.8159 [0.0111] | 0.7923 [0.0141] | +0.0236 | 0.0141 | **REAL** |
+| egfr_l79_s846567_mpnn5 | 0.7480 [0.0284] | 0.7280 [0.0558] | +0.0200 | 0.0558 | indistinguishable |
+
+**Interpretation — stated carefully:**
+
+- **ipSAE_min is a validated *binary classifier*, not an affinity scale.** These deltas
+  are **not** interpretable as fold-change in Kd. **All 14 complexes sit above the
+  0.60/0.61 operating threshold** (range 0.642–0.816), i.e. all are "predicted binder" on
+  both species; the co-fold does not say mouse binding is lost, only mildly lower-scoring.
+- **The REAL vs indistinguishable split reflects sampling precision, not effect size.**
+  l93 and l64 have **identical deltas (+0.024)** but opposite verdicts, purely because
+  their sample ranges differ (0.014 vs 0.050). The verdict column must not be read as
+  "bigger species effect."
+- **All 7 deltas are positive** (every design scores lower against mouse). Under a null of
+  no species effect that is **p ≈ 0.008** by a one-tailed sign test ((1/2)^7). **Caveat:**
+  the designs are **not** fully independent (shared epitope and target), so treat this as
+  **suggestive of a consistent small penalty**, not a formal test.
+- **Pre-commitment (a)** specified a real gap across **ALL 7**; only **3 of 7** met the
+  per-design rule, so the condition was **checked and NOT met**. The planned action is
+  unchanged: **submit and state the cross-reactivity limitation explicitly** (the small,
+  consistent, sub-to-near-threshold mouse penalty).
+- **Determinism note (repeat):** Boltz is deterministic without `--seed`, so the 3-sample
+  spread bounds *diffusion sampling* noise only — it says nothing about systematic model
+  error, which repetition cannot reveal.

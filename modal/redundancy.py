@@ -405,7 +405,7 @@ def _read_af2_scores(design_dir):
 # Boltz driver + scorer
 # --------------------------------------------------------------------------- #
 
-def _load_boltz_arrays(out_dir):
+def _load_boltz_arrays(out_dir, model_idx=0):
     """Return (pae A, plddt 0-100, conf dict, pred_dir) from a Boltz predict tree.
 
     Boltz 2.x nests outputs under out_dir/boltz_results_<stem>/predictions/<stem>/,
@@ -420,7 +420,7 @@ def _load_boltz_arrays(out_dir):
     import numpy as np
 
     conf_matches = glob.glob(
-        os.path.join(out_dir, "**", "confidence_*_model_0.json"), recursive=True
+        os.path.join(out_dir, "**", f"confidence_*_model_{model_idx}.json"), recursive=True
     )
     if not conf_matches:
         raise RuntimeError(f"no confidence_*_model_0.json under {out_dir}")
@@ -430,7 +430,7 @@ def _load_boltz_arrays(out_dir):
         conf = json.load(fh)
 
     pae_matches = glob.glob(
-        os.path.join(out_dir, "**", "pae_*_model_0.npz"), recursive=True
+        os.path.join(out_dir, "**", f"pae_*_model_{model_idx}.npz"), recursive=True
     )
     if not pae_matches:
         raise FileNotFoundError("no pae_*_model_0.npz found (need --write_full_pae)")
@@ -439,7 +439,7 @@ def _load_boltz_arrays(out_dir):
 
     plddt = None
     plddt_matches = glob.glob(
-        os.path.join(out_dir, "**", "plddt_*_model_0.npz"), recursive=True
+        os.path.join(out_dir, "**", f"plddt_*_model_{model_idx}.npz"), recursive=True
     )
     if plddt_matches:
         pl = np.load(plddt_matches[0])
@@ -941,24 +941,23 @@ sc_image = (
     volumes={"/designs": designs, BOLTZ_CACHE: boltz_weights},
     timeout=7200,
 )
-def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str):
-    """Co-fold `binder_seq` against `target_seq` with Boltz-2; score iPTM + ipSAE_min.
+def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str,
+                diffusion_samples: int = 1):
+    """Co-fold `binder_seq` against `target_seq` with Boltz-2; score ipSAE_min on
+    every diffusion sample.
 
-    Args:
-      run_id: label for logs and the output filenames.
-      target_seq: the target chain, as one gapless sequence -> Boltz chain A.
-      binder_seq: the binder -> Boltz chain B.
-      save_rel: path under /designs to persist the predicted PDB + arrays to,
-        so SC/contacts can be scored later on CPU without re-paying for a GPU.
-
-    Returns the metric dict. SC is deliberately NOT computed here (no pyrosetta
-    in this image) -- sc_and_contacts() does that on the persisted PDB.
+    diffusion_samples: number of Boltz diffusion samples (model_0..model_{N-1}).
+    Boltz is deterministic without --seed, so diffusion sampling is the only
+    measurable repeat-variance; it bounds sampling noise only, not model error.
+    Returns per-sample ipSAE_min plus mean/min/max/range; the scored value is the
+    MEAN (never best-of-N). GPU wall time is returned as gpu_seconds.
     """
     import glob
     import json
     import os
     import shutil
     import subprocess
+    import time as _time
 
     import yaml
 
@@ -973,7 +972,7 @@ def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str):
     yaml_path = f"{work}/{run_id}.yaml"
     with open(yaml_path, "w") as fh:
         yaml.safe_dump(yaml_doc, fh, sort_keys=False)
-    print(f"{run_id}: target {len(target_seq)} aa (chain A), binder {len(binder_seq)} aa (chain B)")
+    print(f"{run_id}: target {len(target_seq)} aa (chain A), binder {len(binder_seq)} aa (chain B), diffusion_samples={diffusion_samples}")
 
     out_dir = f"{work}/out"
     cmd = [
@@ -986,52 +985,81 @@ def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str):
         "--devices", "1",
         "--override",
         "--output_format", "pdb",
+        "--diffusion_samples", str(diffusion_samples),
     ]
     print("running:", " ".join(cmd))
+    _t0 = _time.time()
     subprocess.run(cmd, check=True, env={**os.environ, "BOLTZ_CACHE": BOLTZ_CACHE})
-
-    pae, plddt, conf, pred_dir = _load_boltz_arrays(out_dir)
-    n_expected = len(target_seq) + len(binder_seq)
-    if pae.shape[0] != n_expected:
-        raise RuntimeError(
-            f"PAE dim {pae.shape[0]} != {n_expected} (target+binder); token order unexpected"
-        )
+    gpu_seconds = round(_time.time() - _t0, 1)
 
     slices = _chain_slices_for([target_seq], binder_seq)
-    ipsae = _compute_ipsae(pae, plddt, slices)
-    iptm = float(conf["iptm"]) if conf.get("iptm") is not None else None
-
+    n_expected = len(target_seq) + len(binder_seq)
     save_dir = f"/designs/{save_rel}"
     os.makedirs(save_dir, exist_ok=True)
-    saved_pdb = None
-    for f in os.listdir(pred_dir):
-        if f.endswith(".pdb") or f.startswith("confidence_"):
-            dst = os.path.join(save_dir, f)
-            shutil.copy(os.path.join(pred_dir, f), dst)
-            if f.endswith(".pdb"):
-                saved_pdb = dst
-    for pattern in ("pae_*_model_0.npz", "plddt_*_model_0.npz"):
-        for src in glob.glob(os.path.join(out_dir, "**", pattern), recursive=True):
-            shutil.copy(src, os.path.join(save_dir, os.path.basename(src)))
 
+    per_sample = []
+    saved_pdbs = []
+    for n in range(diffusion_samples):
+        pae, plddt, conf, pred_dir = _load_boltz_arrays(out_dir, model_idx=n)
+        if pae.shape[0] != n_expected:
+            raise RuntimeError(
+                f"PAE dim {pae.shape[0]} != {n_expected} (target+binder); token order unexpected"
+            )
+        ipsae = _compute_ipsae(pae, plddt, slices)
+        iptm = float(conf["iptm"]) if conf.get("iptm") is not None else None
+        sample_pdb = None
+        for f in os.listdir(pred_dir):
+            keep = f.endswith(f"_model_{n}.pdb") or (
+                f.startswith("confidence_") and f.endswith(f"_model_{n}.json"))
+            if keep:
+                dst = os.path.join(save_dir, f)
+                shutil.copy(os.path.join(pred_dir, f), dst)
+                if f.endswith(".pdb"):
+                    sample_pdb = dst
+        for pattern in (f"pae_*_model_{n}.npz", f"plddt_*_model_{n}.npz"):
+            for src in glob.glob(os.path.join(out_dir, "**", pattern), recursive=True):
+                shutil.copy(src, os.path.join(save_dir, os.path.basename(src)))
+        saved_pdbs.append(sample_pdb)
+        per_sample.append({
+            "model": n,
+            "ipsae_min": ipsae["ipsae_min"],
+            "ipsae_pairs": ipsae["pairs"],
+            "iptm": round(iptm, 4) if iptm is not None else None,
+            "ptm": round(float(conf["ptm"]), 4) if conf.get("ptm") is not None else None,
+            "complex_plddt": (round(float(conf["complex_plddt"]), 4)
+                              if conf.get("complex_plddt") is not None else None),
+            "saved_pdb": sample_pdb,
+        })
+
+    vals = [x["ipsae_min"] for x in per_sample if x["ipsae_min"] is not None]
+    mean_ipsae = round(sum(vals) / len(vals), 4) if vals else None
     result = {
         "run_id": run_id,
         "target_len": len(target_seq),
         "binder_len": len(binder_seq),
-        "iptm": round(iptm, 4) if iptm is not None else None,
-        "ptm": round(float(conf["ptm"]), 4) if conf.get("ptm") is not None else None,
-        "complex_plddt": (round(float(conf["complex_plddt"]), 4)
-                          if conf.get("complex_plddt") is not None else None),
-        "ipsae_min": ipsae["ipsae_min"],
-        "ipsae_pass": (ipsae["ipsae_min"] is not None
-                       and ipsae["ipsae_min"] >= IPSAE_MIN_PASS),
-        "ipsae_pairs": ipsae["pairs"],
-        "saved_pdb": saved_pdb,
+        "diffusion_samples": diffusion_samples,
+        "gpu_seconds": gpu_seconds,
+        "per_sample": per_sample,
+        "ipsae_min_samples": [x["ipsae_min"] for x in per_sample],
+        "ipsae_min_mean": mean_ipsae,
+        "ipsae_min_min": round(min(vals), 4) if vals else None,
+        "ipsae_min_max": round(max(vals), 4) if vals else None,
+        "ipsae_min_range": round(max(vals) - min(vals), 4) if vals else None,
+        # backward-compatible keys: the scored value is the MEAN
+        "ipsae_min": mean_ipsae,
+        "ipsae_pass": (mean_ipsae is not None and mean_ipsae >= IPSAE_MIN_PASS),
+        "ipsae_pairs": per_sample[0]["ipsae_pairs"] if per_sample else None,
+        "iptm": per_sample[0]["iptm"] if per_sample else None,
+        "ptm": per_sample[0]["ptm"] if per_sample else None,
+        "complex_plddt": per_sample[0]["complex_plddt"] if per_sample else None,
+        "saved_pdb": saved_pdbs[0] if saved_pdbs else None,
+        "saved_pdbs": saved_pdbs,
     }
     with open(os.path.join(save_dir, "cofold_result.json"), "w") as fh:
         json.dump(result, fh, indent=2)
     designs.commit()
-    print("RESULT:", json.dumps({k: v for k, v in result.items() if k != "ipsae_pairs"}))
+    print("RESULT:", json.dumps({k: v for k, v in result.items()
+                                 if k not in ("ipsae_pairs", "per_sample")}))
     return result
 
 
@@ -1188,3 +1216,152 @@ def fulllength_check(
             ir = s["interface_residues"]
             print("  interface: " + ", ".join(f"{k}{v}" for k, v in ir.items()))
     return {"folds": folds, "scored": scored}
+
+
+def _read_fasta_local(p):
+    recs, name, buf = [], None, []
+    for line in open(p):
+        line = line.strip()
+        if line.startswith(">"):
+            if name:
+                recs.append((name, "".join(buf)))
+            name, buf = line[1:].split()[0], []
+        elif line:
+            buf.append(line)
+    if name:
+        recs.append((name, "".join(buf)))
+    return recs
+
+
+@app.local_entrypoint()
+def crossreact(
+    binders_fasta: str,
+    human_fasta: str,
+    mouse_fasta: str,
+    out_json: str,
+    save_prefix: str = "egfr/crossreact-v3c",
+    diffusion_samples: int = 3,
+    gpu_budget_min: float = 60.0,
+):
+    """STAGE 1. Co-fold every binder against the human and mouse domain III slices
+    with `diffusion_samples` each; score ipSAE_min as the MEAN over samples and
+    report the min-max range. Abort before starting a new design once cumulative
+    GPU time exceeds gpu_budget_min (leaving complete human+mouse pairs)."""
+    import json
+
+    hu = _read_fasta_local(human_fasta); mo = _read_fasta_local(mouse_fasta)
+    assert len(hu) == 1 and len(mo) == 1, "human/mouse fasta must each hold one record"
+    human_seq = hu[0][1]; mouse_seq = mo[0][1]
+    assert len(human_seq) == len(mouse_seq), f"human {len(human_seq)} != mouse {len(mouse_seq)}"
+    binders = _read_fasta_local(binders_fasta)
+    print(f"binders {len(binders)} | human {len(human_seq)} aa | mouse {len(mouse_seq)} aa | samples {diffusion_samples} | budget {gpu_budget_min} GPU-min")
+
+    budget_s = gpu_budget_min * 60.0
+    cum_gpu = 0.0
+    rows = {}
+    aborted = False
+    for name, bseq in binders:
+        if cum_gpu > budget_s:
+            print(f"!! GPU budget {gpu_budget_min} min exceeded (cum {cum_gpu:.0f}s) -- aborting before {name}")
+            aborted = True
+            break
+        pair = {}
+        for species, tseq in (("human", human_seq), ("mouse", mouse_seq)):
+            r = cofold_seqs.remote(f"{name}__{species}", tseq, bseq,
+                                   f"{save_prefix}/{species}/{name}", diffusion_samples)
+            cum_gpu += r.get("gpu_seconds", 0.0)
+            pair[species] = r
+        rows[name] = pair
+        print(f"[done] {name}  cum_gpu={cum_gpu:.0f}s")
+
+    print("\n" + "=" * 96)
+    print("STAGE 1 -- mouse cross-reactivity (ipSAE_min, mean of %d diffusion samples; range in brackets)" % diffusion_samples)
+    print("=" * 96)
+    print(f"{'design':<26}{'human mean[range]':<22}{'mouse mean[range]':<22}{'diff(h-m)':<12}{'noise floor':<12}verdict")
+    summary = []
+    for name, pair in rows.items():
+        h = pair.get("human"); m = pair.get("mouse")
+        if not (h and m):
+            print(f"{name:<26}INCOMPLETE"); continue
+        hm, hr = h["ipsae_min_mean"], h["ipsae_min_range"]
+        mm, mr = m["ipsae_min_mean"], m["ipsae_min_range"]
+        diff = round(hm - mm, 4)
+        floor = round(max(hr, mr), 4)
+        verdict = "REAL" if abs(diff) > floor else "indistinguishable"
+        print(f"{name:<26}{hm:.4f}[{hr:.4f}]      {mm:.4f}[{mr:.4f}]      {diff:+.4f}     {floor:.4f}      {verdict}")
+        summary.append(dict(design=name, human_mean=hm, human_range=hr, human_samples=h["ipsae_min_samples"],
+                            mouse_mean=mm, mouse_range=mr, mouse_samples=m["ipsae_min_samples"],
+                            diff=diff, noise_floor=floor, verdict=verdict,
+                            gpu_seconds=round(h["gpu_seconds"] + m["gpu_seconds"], 1)))
+    print(f"\nTOTAL GPU-seconds (stage 1): {cum_gpu:.0f}  (= {cum_gpu/60:.1f} GPU-min)   aborted={aborted}")
+    with open(out_json, "w") as f:
+        json.dump(dict(stage="crossreact", diffusion_samples=diffusion_samples,
+                       total_gpu_seconds=round(cum_gpu, 1), aborted=aborted,
+                       rows=summary), f, indent=2)
+    print(f"wrote {out_json}")
+
+
+@app.local_entrypoint()
+def fulllength_pass(
+    binders_fasta: str,
+    target_fasta: str,
+    hotspots: str,
+    out_json: str,
+    resnum_offset: int = 0,
+    save_prefix: str = "egfr/fulllength-v3c",
+    diffusion_samples: int = 3,
+):
+    """STAGE 2. Co-fold every binder against the full-length human ECD; score
+    ipSAE_min (mean of samples) and SC (pyrosetta, mean of samples). Apply the
+    d94a8d4 criteria EXACTLY: ipSAE_min >= 0.60 AND SC >= 0.58."""
+    import json
+
+    tg = _read_fasta_local(target_fasta)
+    assert len(tg) == 1, "target fasta must hold one record"
+    tname, tseq = tg[0]
+    assert tseq[408] == "H", f"target residue 409 = {tseq[408]} != H -- STOP"
+    binders = _read_fasta_local(binders_fasta)
+    print(f"target {tname}: {len(tseq)} aa; residue409={tseq[408]} | binders {len(binders)} | samples {diffusion_samples}")
+
+    cum_gpu = 0.0
+    rows = []
+    for name, bseq in binders:
+        r = cofold_seqs.remote(name, tseq, bseq, f"{save_prefix}/{name}", diffusion_samples)
+        cum_gpu += r.get("gpu_seconds", 0.0)
+        sc_vals = []
+        for pdb in r["saved_pdbs"]:
+            if not pdb:
+                continue
+            s = sc_and_contacts.remote(name, pdb.replace("/designs/", ""), resnum_offset, hotspots)
+            if s.get("sc") is not None:
+                sc_vals.append(s["sc"])
+        sc_mean = round(sum(sc_vals) / len(sc_vals), 4) if sc_vals else None
+        sc_range = round(max(sc_vals) - min(sc_vals), 4) if sc_vals else None
+        ipsae_mean = r["ipsae_min_mean"]
+        ip_pass = ipsae_mean is not None and ipsae_mean >= IPSAE_MIN_PASS
+        sc_pass = sc_mean is not None and sc_mean >= SC_PASS
+        rows.append(dict(design=name, binder_len=r["binder_len"],
+                         ipsae_mean=ipsae_mean, ipsae_range=r["ipsae_min_range"],
+                         ipsae_samples=r["ipsae_min_samples"],
+                         sc_mean=sc_mean, sc_range=sc_range, sc_samples=sc_vals,
+                         ipsae_pass=ip_pass, sc_pass=sc_pass,
+                         overall_pass=bool(ip_pass and sc_pass),
+                         gpu_seconds=round(r["gpu_seconds"], 1)))
+        print(f"[done] {name}  ipSAE={ipsae_mean} SC={sc_mean}  cum_gpu={cum_gpu:.0f}s")
+
+    print("\n" + "=" * 96)
+    print("STAGE 2 -- full-length, d94a8d4 criteria: ipSAE_min >= %.2f AND SC >= %.2f (means of %d samples)"
+          % (IPSAE_MIN_PASS, SC_PASS, diffusion_samples))
+    print("=" * 96)
+    print(f"{'design':<26}{'ipSAE mean[range]':<22}{'SC mean[range]':<22}{'ipSAE':<8}{'SC':<8}overall")
+    for r in rows:
+        print(f"{r['design']:<26}{str(r['ipsae_mean'])+'['+str(r['ipsae_range'])+']':<22}"
+              f"{str(r['sc_mean'])+'['+str(r['sc_range'])+']':<22}"
+              f"{'PASS' if r['ipsae_pass'] else 'fail':<8}{'PASS' if r['sc_pass'] else 'fail':<8}"
+              f"{'PASS' if r['overall_pass'] else 'fail'}")
+    print(f"\nTOTAL GPU-seconds (stage 2): {cum_gpu:.0f}  (= {cum_gpu/60:.1f} GPU-min)")
+    with open(out_json, "w") as f:
+        json.dump(dict(stage="fulllength", diffusion_samples=diffusion_samples,
+                       ipsae_pass=IPSAE_MIN_PASS, sc_pass=SC_PASS,
+                       total_gpu_seconds=round(cum_gpu, 1), rows=rows), f, indent=2)
+    print(f"wrote {out_json}")
