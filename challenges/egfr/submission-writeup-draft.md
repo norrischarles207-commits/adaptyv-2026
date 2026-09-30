@@ -43,7 +43,9 @@ Y32E created it (~13× gain, Fab format), reverting E32→His destroyed it
 dependence.
 
 **Why this epitope.** H409 is in the hotspot set. `[measured]` It is also
-conserved in mouse, so the mechanism is available in both species.
+conserved in mouse, so the mechanism is available in both species. And the EGF
+control independently confirms the site is bindable: folded blind against the
+full receptor, EGF recovers 408, 409 and 412 in every sample.
 
 **What was achieved this round — stated plainly.** `[measured]` This round
 applied **no pH restraint during hallucination**. Any favourable acid–histidine
@@ -197,17 +199,53 @@ protocol had a one-in-three chance of reporting `l75` as a pass. The
 mean-not-best-of-N rule was fixed before results were seen, and this is the
 case it caught.
 
-**Calibration control — pre-registered, not completed.** `[measured]` Because
-the 0.60 threshold derives from a benchmark of ~200–400 residue complexes and
-is applied here at ~700 residues, we pre-registered an EGF positive control
-with both interpretive branches fixed in advance (commit `5a2d2dc`, before the
-control was run). The control did not complete: the compute workspace hit its
-spend limit and the result was lost. Neither branch resolves, so **we report
-Stage 2 against the unadjusted threshold and flag that the threshold is being
-applied outside its validated size domain.** Six designs shifting down by
-similar magnitude is as consistent with a systematic offset as with six
-independent failures, and we cannot distinguish the two. The pre-registration
-stands in the repository unfulfilled rather than being quietly dropped.
+**Calibration control — pre-registered, run, branch (a).** `[measured]` The
+0.60 threshold derives from a benchmark of ~200–400 residue complexes and is
+applied here at ~700. We pre-registered an EGF positive control with both
+interpretive branches fixed in advance (commit `5a2d2dc`, before the control
+was run), explicitly as a check on the instrument rather than an adjustment of
+the threshold to admit designs.
+
+Mature EGF (53 aa, P01133, coordinates read from the feature table) co-folded
+against the same 621-residue target, same tool, same settings, three samples:
+
+| | ipSAE_min | SC | ipTM | pTM | pLDDT |
+|---|---|---|---|---|---|
+| EGF control | **0.644** [0.059] | 0.499 [0.036] | 0.948 | 0.882 | 0.884 |
+
+**EGF clears 0.60. Branch (a) applies: the threshold holds, Stage 2 stands
+unadjusted.** A known nanomolar ligand of this receptor is not systematically
+depressed below threshold by full-length context, so the six sub-threshold
+designs are better read as six genuine failures than as a scoring artifact.
+That is the less convenient of the two branches and it is the one the data
+selected.
+
+**The control validated the epitope as well as the threshold.** `[measured]`
+Unplanned: `sc_and_contacts` reports which hotspots each pose recovers. EGF
+independently docked onto our hotspot set — 3/4, 3/4 and 4/4 across the three
+samples, recovering 408, 409 and 412 in every sample and 411 in one. We did
+not constrain it there; `cofold_seqs` receives no hotspot argument. **A natural
+ligand of EGFR, folded blind against the full receptor, lands on the patch we
+designed against.** The epitope is a real binding site, not an artifact of
+hotspot selection from a cetuximab co-crystal.
+
+**A finding against our own SC criterion.** `[measured]` EGF scores SC = 0.499,
+below our pre-registered 0.58 cutoff. Since EGF binds at essentially our
+epitope, this is not an epitope mismatch — **our SC criterion would have
+rejected EGF.** SC ≥ 0.58 is therefore not a necessary condition for binding
+at this site, and the criterion is probably too strict. We report this rather
+than acting on it: the thresholds were fixed in advance, and no design in our
+set failed on SC alone, so relaxing the criterion post-hoc would rescue nothing
+and cost the pre-registration its meaning. The finding is offered for whoever
+calibrates this metric next.
+
+`[inferred]` One caution on reading these numbers as affinity. Our passer
+scores 0.651 against EGF's 0.644. That does not mean it out-binds EGF. ipSAE
+is a binary classifier of whether an interface is real, validated as such; it
+is not an affinity scale, and nothing here licenses ranking a de novo design
+above a natural ligand.
+
+`[measured]` Control cost 149 GPU-s. Artifact: `challenges/egfr/egf-control.json`.
 
 ---
 
@@ -291,10 +329,10 @@ hydrophobic surface, and we weighted against those.
    Adaptyv's EGFR Round 2 was 9% (6/65), and no prior round required
    pH-switching or cross-species reactivity, so there is no base rate for this
    problem type. We expect below 9%.
-5. **Threshold applied out of domain, control not completed.** `[measured]`
-   The calibration control was pre-registered and then lost to a compute spend
-   limit. We cannot distinguish a systematic full-length offset from six
-   genuine failures. Stage 2 is reported against the unadjusted threshold.
+5. **SC criterion is probably mis-set.** `[measured]` The EGF control scores
+   SC = 0.499 at our own epitope, below our 0.58 cutoff — the criterion would
+   reject a known ligand. Left unchanged because it was pre-registered and
+   changing it rescues nothing, but it should not be reused as-is.
 6. **The passer was rejected by BindCraft's own filters.** `[measured]`
    `egfr_l93_s713816` is a trajectory sequence that BindCraft's default filter
    set declined. It passes our independent full-length criteria with the
