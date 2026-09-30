@@ -1176,3 +1176,44 @@ the pre-set 60-GPU-min abort (not aborted).
 - **Determinism note (repeat):** Boltz is deterministic without `--seed`, so the 3-sample
   spread bounds *diffusion sampling* noise only — it says nothing about systematic model
   error, which repetition cannot reveal.
+
+## 2026-09-30 — Stage 2 results: full-length pass/fail (d94a8d4 criteria)
+
+Co-folded all 7 designs against full-length human EGFR ECD (P00533 precursor 25–645,
+621 aa; `residue 409 = HIS` asserted before scoring), Boltz-2, `--diffusion_samples 3`.
+Scored values = mean over 3 samples (range in brackets). Criteria applied EXACTLY as
+pre-registered in `d94a8d4`: **ipSAE_min ≥ 0.60 AND SC ≥ 0.58** (no 0.62 substitution).
+Data in `challenges/egfr/v3c-fulllength-stage2.json`. **GPU time: 1,244 s = 20.7 GPU-min.**
+
+| Design | ipSAE mean [range] | SC mean [range] | ipSAE | SC | overall | composite |
+|---|---|---|---|---|---|---|
+| egfr_l93_s713816 | 0.6514 [0.0138] | 0.6474 [0.1222] | PASS | PASS | **PASS** | 0.6514 |
+| egfr_l75_s674224_mpnn14 | 0.5425 [0.2179] | 0.5974 [0.1003] | fail | PASS | fail | 0.5425 |
+| egfr_l64_s902794_mpnn2 | 0.5164 [0.0981] | 0.5736 [0.0664] | fail | fail | fail | 0.5107 |
+| egfr_l89_s399498_mpnn2 | 0.5461 [0.0569] | 0.5117 [0.0652] | fail | fail | fail | 0.4818 |
+| egfr_l91_s124145_mpnn1 | 0.5101 [0.0642] | 0.5450 [0.0388] | fail | fail | fail | 0.4793 |
+| egfr_l79_s846567_mpnn5 | 0.5240 [0.1256] | 0.5186 [0.2049] | fail | fail | fail | 0.4685 |
+| egfr_l67_s528267 | 0.4533 [0.1540] | 0.5332 [0.0597] | fail | fail | fail | 0.4167 |
+
+Composite = ipSAE_mean × min(SC_mean / 0.58, 1.0) (the ranking recipe in `redundancy.py`).
+
+**Outcome:**
+
+- **1 of 7 passes both criteria: `egfr_l93_s713816` (seed 6)** — ipSAE_min 0.651, SC 0.647.
+  Note this design was **rejected at the BindCraft stage** (log-only, no accepted MPNN
+  variant; clearance/filters used its trajectory structure), yet it is the only design to
+  clear the full-length bar. The domain-III design-time scores did not predict full-length
+  survival.
+- The domain-III → full-length drop is large for every design: Stage-1 human ipSAE_min was
+  0.72–0.82; against the full ECD it falls to 0.45–0.65. This is the failure mode the slice
+  was expected to risk (a binder that scores well on the isolated domain but not in the
+  full receptor context), and it hit 6 of 7.
+- Several designs have **wide sample ranges** (l75 ipSAE range 0.218, l79 SC range 0.205),
+  so their means sit below threshold but individual samples cross it — consistent with the
+  determinism/sampling-noise caveat; the pre-registered rule scores the mean.
+
+**Pre-commitment (b) TRIGGERED** (fewer than 3 pass): the plan is to **submit the passer
+plus the next-best by composite, each labelled pass or sub-threshold, and NOT fill all 20
+slots.** By composite the order after the sole passer is: l93 (PASS) → l75 → l64 → l89 →
+l91 → l79 → l67. The size of the sub-threshold tail to include is a submission-strategy
+decision, recorded for the operator, not auto-selected here.
