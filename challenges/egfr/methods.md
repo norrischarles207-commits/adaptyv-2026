@@ -677,3 +677,51 @@ the earlier figure.
 - **pH-biased redesign near H409.**
 
 All of the above require the Modal workspace, which is currently over its spend limit.
+
+## 2026-09-30 — AMENDMENT to pre-registered v3c criteria: C-terminal paratope clearance
+
+**Reason.** Adaptyv confirmed in Slack (Tudor-Stefan Cotet) that submitted
+binders are expressed and immobilised with C-terminal tags, in the construct
+`design–linker–GFP11–linker–TwinStrep`, and recommended keeping the paratope
+near the N terminus, noting this matters more for smaller binders. Our v3c
+designs are 64–93 aa, so the C-terminal fusion is comparable in size to the
+binder itself, and a paratope sitting near the binder's C terminus risks
+steric occlusion by the fusion.
+
+**New reported metric (all candidates).** *C-terminal clearance* =
+(binder length − highest-numbered binder interface residue), reported in
+residues and as a fraction of length. Larger clearance = paratope further
+from the tagged C terminus. The interface residue set is the binder-chain
+(chain B) interface-residue list from BindCraft.
+
+**Status — ranking factor / tiebreaker, NOT a pass/fail threshold.** No cutoff
+is set. The metric was defined *after* the v3c results were already in view,
+so any threshold chosen now would be fitted to those results. Clearance is
+recorded to rank and break ties among otherwise-comparable candidates, not to
+accept or reject them.
+
+**Provenance caveat.** For the 5 accepted designs (seeds 1, 2, 3, 5, 7) the
+interface set is the MPNN-variant-specific, AF2-repredicted, interface-scored
+list. For the 2 non-accepted designs (seed 0 `egfr_l67_s528267`, seed 6
+`egfr_l93_s713816`) no MPNN variant passed the base AF2 filters, so no
+interface scoring was run on any variant; their clearance is derived from the
+**trajectory-backbone** interface set instead (same fold, so paratope location
+is essentially unchanged) and is a reference value only — these designs are
+not accepted and will not be submitted.
+
+**Values recorded** (new columns `Cterm_clearance_res`, `Cterm_clearance_frac`
+in `v3c-core-designs.csv`):
+
+| seed | design | length | max interface res (chain B) | clearance (res) | clearance (frac) | source |
+|------|--------|--------|-----------------------------|-----------------|------------------|--------|
+| 1 | egfr_l89_s399498_mpnn2  | 89 | B67 | 22 | 0.247 | mpnn |
+| 3 | egfr_l91_s124145_mpnn1  | 91 | B64 | 27 | 0.297 | mpnn |
+| 5 | egfr_l64_s902794_mpnn2  | 64 | B45 | 19 | 0.297 | mpnn |
+| 7 | egfr_l79_s846567_mpnn5  | 79 | B61 | 18 | 0.228 | mpnn |
+| 2 | egfr_l75_s674224_mpnn14 | 75 | B61 | 14 | 0.187 | mpnn |
+| 0 | egfr_l67_s528267        | 67 | B54 | 13 | 0.194 | trajectory |
+| 6 | egfr_l93_s713816        | 93 | B49 | 44 | 0.473 | trajectory |
+
+Among the 4 accepted MPNN designs with the largest clearance, seeds 3 and 5
+lead (0.297), then seed 7 (0.228) and seed 1 (0.247); seed 2 has the tightest
+paratope-to-C-terminus spacing of the accepted set (0.187).
