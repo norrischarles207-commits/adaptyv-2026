@@ -27,3 +27,6 @@ params/
 
 # OS cruft
 .DS_Store
+
+# retired arm, superseded by v3c
+challenges/egfr/phase1-probe-v3b-partial/

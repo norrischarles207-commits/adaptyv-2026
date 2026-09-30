@@ -1246,3 +1246,52 @@ INTERPRETATION, FIXED IN ADVANCE:
 
 This is a calibration check on the instrument, not an adjustment of the threshold to
 admit designs. The outcome can equally confirm the original result.
+
+## 2026-09-30 — run invocations, and what was not captured
+
+**Control (verbatim, the exact command that produced `egf-control.json`):**
+
+    python3 -m modal run --detach modal/redundancy.py::fulllength_pass \
+      --binders-fasta challenges/egfr/fasta/egf_control.fasta \
+      --target-fasta challenges/egfr/fasta/egfr_human_ecd_full.fasta \
+      --hotspots 408,409,411,412 \
+      --out-json challenges/egfr/egf-control.json \
+      --save-prefix egfr/egf-control \
+      --diffusion-samples 3
+
+Modal app `ap-UumYKun3vhXYA7VvxAyaYw`. 149.2 GPU-s. Result: ipSAE_min
+0.6437 [0.0592], SC 0.4993, ipTM 0.9478. Branch (a) of the `5a2d2dc`
+pre-registration applies: threshold holds, Stage 2 stands unadjusted.
+
+Unplanned observation: `sc_and_contacts` reported hotspot recovery of
+3/4, 3/4, 4/4 across samples (408, 409, 412 in all three). The co-fold
+receives no hotspot argument, so EGF docked there unprompted. This is
+independent evidence the epitope is a genuine binding site.
+
+Against our own criterion: EGF SC 0.4993 < the pre-registered 0.58.
+The SC criterion would reject a known ligand at our own epitope. Left
+unchanged because it was pre-registered and no design failed on SC
+alone; recorded as a calibration finding.
+
+**Stage 1 and Stage 2: exact invocations NOT captured.** Neither command
+was logged to a file or recorded here at run time, and shell history did
+not retain them. What is known from the committed outputs and the
+function signatures:
+
+- Stage 2 = `redundancy.py::fulllength_pass`, 3 diffusion samples,
+  thresholds ipSAE_min >= 0.60 / SC >= 0.58, target 621 aa,
+  1244.3 GPU-s, -> `v3c-fulllength-stage2.json`
+- Stage 1 = `redundancy.py::crossreact`, 3 diffusion samples, human and
+  mouse domain III targets, 1771.0 GPU-s,
+  -> `v3c-crossreact-stage1.json`
+- `hotspots` is parsed as bare integers (`int(h)`), so both runs passed
+  `408,409,411,412`, not the BindCraft `A408,...` form.
+- `resnum_offset` values used are unrecorded.
+
+**Input FASTAs were also not archived at run time** and have been
+reconstructed by `rebuild_fastas.py`. All assertions pass and the mouse
+slice rebuilds to exactly the 26 divergent positions `species_align.out`
+found independently, but this is derivation, not recovery.
+
+**Corrective:** future runs go through `modal/run_logged.sh`, which tees
+the full command line and output to a committed log.

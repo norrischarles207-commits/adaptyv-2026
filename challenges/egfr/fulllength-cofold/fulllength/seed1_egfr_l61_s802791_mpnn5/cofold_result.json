@@ -1,0 +1,29 @@
+{
+  "run_id": "seed1_egfr_l61_s802791_mpnn5",
+  "target_len": 621,
+  "binder_len": 61,
+  "iptm": 0.9293,
+  "ptm": 0.6603,
+  "complex_plddt": 0.8873,
+  "ipsae_min": 0.5659,
+  "ipsae_pass": false,
+  "ipsae_pairs": [
+    {
+      "a": "A",
+      "b": "B",
+      "n_int_a": 239,
+      "n_int_b": 60,
+      "d0": 6.351,
+      "ipsae": 0.625
+    },
+    {
+      "a": "B",
+      "b": "A",
+      "n_int_a": 60,
+      "n_int_b": 239,
+      "d0": 6.351,
+      "ipsae": 0.5659
+    }
+  ],
+  "saved_pdb": "/designs/egfr/fulllength/seed1_egfr_l61_s802791_mpnn5/seed1_egfr_l61_s802791_mpnn5_model_0.pdb"
+}

@@ -1,7 +1,7 @@
 # EGFR pH-conditional binder — design rationale and validation
 
 **Challenge 1, Anthropic × Adaptyv Bio 2026 · Track 3**
-Draft — values marked `[PENDING]` land from the Stage 1/2 co-folds.
+Complete — all co-fold results landed 2026-09-30.
 
 ---
 
