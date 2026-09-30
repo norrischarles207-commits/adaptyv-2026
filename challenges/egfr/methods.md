@@ -763,3 +763,54 @@ interface-scored) are trustworthy. The committed MPNN-derived values stand uncha
   the paratope actually faces the immobilisation surface. That structural
   metric is deferred until the design structures are retrievable from the
   Modal volume (currently over its spend limit).
+
+## 2026-09-30 — Finding: MPNN strips non-interface histidines (pH-machinery risk)
+
+Quantifying ISSUE C — whether the MPNN redesign step deletes histidines that a
+pH-responsive design would depend on. For each of the 5 accepted v3c core designs,
+trajectory sequence (from `v3c-core.log`) vs the MPNN variant (from
+`v3c-core-designs.csv`), His positions 1-indexed from the binder N-terminus. "Interface
+His" = a His whose position is in that design's chain-B interface-residue list.
+
+| Seed | Design | traj His | MPNN His | lost | gained | interface His (traj → MPNN) |
+|---|---|---|---|---|---|---|
+| 1 | egfr_l89_s399498_mpnn2  | 4: 20,41,50,67 | 1: 67 | 20,41,50 | — | [67] → [67] |
+| 2 | egfr_l75_s674224_mpnn14 | 2: 40,52 | 2: 40,52 | — | — | [40,52] → [40,52] |
+| 3 | egfr_l91_s124145_mpnn1  | 5: 16,20,34,72,75 | 3: 1,20,34 | 16,72,75 | 1 | [20,34] → [20,34] |
+| 5 | egfr_l64_s902794_mpnn2  | 3: 18,27,33 | 2: 18,33 | 27 | — | [33] → [33] |
+| 7 | egfr_l79_s846567_mpnn5  | 5: 9,10,17,20,49 | 4: 9,10,17,20 | 49 | — | [9,10,17,20] → [9,10,17,20] |
+
+**Totals: 19 trajectory His → 12 MPNN His (8 lost, 1 gained, net −7).** MPNN reduced His
+count in 3 of 5 designs, left it unchanged in 1, and in seed 3 traded three surface His
+for one N-terminal His.
+
+**The strip is selective, and in a reassuring direction.** Every one of the 8 lost His
+was a **non-interface** residue; every one of the 8 **interface** His (across all 5
+designs) was **conserved**. The single gained His (seed 3, position 1) is also
+non-interface. So on this run MPNN is behaving as ProteinMPNN usually does — disfavouring
+solvent-exposed His on the scaffold surface — while preserving every His that sits in the
+binder–target contact set. No interface His was lost.
+
+**Caveats — why this is recorded as a risk, not a resolved concern.**
+
+1. **This run carried no pH restraint.** The v3c core arm used no pH-specific term (§6,
+   §7: "Phase 1 does not attempt pH coupling and uses no pH-specific restraint"). The
+   trajectory His here are therefore *incidental scaffold His*, not deliberately placed
+   pH machinery. The framing "we select for pH-responsive designs and then hand them to
+   MPNN" does **not** literally apply to this run — nothing here was selected for pH.
+2. **But it is a real risk for the planned pH-biased arm.** The pending "pH-biased
+   redesign near H409" step (§ Still pending) is exactly the case where a functional His
+   would be introduced and then handed to the same MPNN step. This finding says that
+   step will strip any pH His that is **not** inside the ≤4.5 Å interface contact set.
+3. **Interface-set membership is a coarse proxy for "pH-relevant".** A titratable His
+   can act at slightly longer range than the 4.5 Å heavy-atom contact cutoff, so
+   "interface His conserved" guarantees protection only for His that happen to coincide
+   with a contact residue. A His positioned to titrate against target H409 but sitting
+   6–8 Å away could be both pH-relevant and MPNN-strippable.
+4. **We cannot yet say which trajectory His sat near target H409.** That needs the design
+   structures, which are not retrievable while the Modal volume is over its spend limit.
+
+**Not fixed here, by instruction — quantified only.** If the pH-biased arm goes ahead,
+the fix is to fix (`--fixed-residues`, or the BindCraft omit-AA / bias mechanism) any
+deliberately placed pH histidine so MPNN cannot mutate it, and to re-check His retention
+against the trajectory as done above.
