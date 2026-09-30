@@ -1,0 +1,125 @@
+{
+  "run_id": "egfr_l89_s399498_mpnn2",
+  "target_len": 621,
+  "binder_len": 89,
+  "diffusion_samples": 3,
+  "gpu_seconds": 175.3,
+  "per_sample": [
+    {
+      "model": 0,
+      "ipsae_min": 0.5549,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 462,
+          "n_int_b": 84,
+          "d0": 8.241,
+          "ipsae": 0.5963
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 84,
+          "n_int_b": 462,
+          "d0": 8.241,
+          "ipsae": 0.5549
+        }
+      ],
+      "iptm": 0.918,
+      "ptm": 0.8622,
+      "complex_plddt": 0.8691,
+      "saved_pdb": "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_0.pdb"
+    },
+    {
+      "model": 1,
+      "ipsae_min": 0.5702,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 223,
+          "n_int_b": 84,
+          "d0": 6.427,
+          "ipsae": 0.6288
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 84,
+          "n_int_b": 223,
+          "d0": 6.427,
+          "ipsae": 0.5702
+        }
+      ],
+      "iptm": 0.9173,
+      "ptm": 0.7998,
+      "complex_plddt": 0.8689,
+      "saved_pdb": "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_1.pdb"
+    },
+    {
+      "model": 2,
+      "ipsae_min": 0.5133,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 397,
+          "n_int_b": 83,
+          "d0": 7.807,
+          "ipsae": 0.564
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 83,
+          "n_int_b": 397,
+          "d0": 7.807,
+          "ipsae": 0.5133
+        }
+      ],
+      "iptm": 0.9133,
+      "ptm": 0.839,
+      "complex_plddt": 0.8684,
+      "saved_pdb": "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_2.pdb"
+    }
+  ],
+  "ipsae_min_samples": [
+    0.5549,
+    0.5702,
+    0.5133
+  ],
+  "ipsae_min_mean": 0.5461,
+  "ipsae_min_min": 0.5133,
+  "ipsae_min_max": 0.5702,
+  "ipsae_min_range": 0.0569,
+  "ipsae_min": 0.5461,
+  "ipsae_pass": false,
+  "ipsae_pairs": [
+    {
+      "a": "A",
+      "b": "B",
+      "n_int_a": 462,
+      "n_int_b": 84,
+      "d0": 8.241,
+      "ipsae": 0.5963
+    },
+    {
+      "a": "B",
+      "b": "A",
+      "n_int_a": 84,
+      "n_int_b": 462,
+      "d0": 8.241,
+      "ipsae": 0.5549
+    }
+  ],
+  "iptm": 0.918,
+  "ptm": 0.8622,
+  "complex_plddt": 0.8691,
+  "saved_pdb": "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_0.pdb",
+  "saved_pdbs": [
+    "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_0.pdb",
+    "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_1.pdb",
+    "/designs/egfr/fulllength-v3c/egfr_l89_s399498_mpnn2/egfr_l89_s399498_mpnn2_model_2.pdb"
+  ]
+}

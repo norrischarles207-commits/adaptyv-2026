@@ -30,3 +30,6 @@ params/
 
 # retired arm, superseded by v3c
 challenges/egfr/phase1-probe-v3b-partial/
+
+# regenerable confidence matrices
+challenges/egfr/fulllength-v3c/**/*.npz
