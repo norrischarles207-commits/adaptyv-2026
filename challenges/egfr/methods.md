@@ -814,3 +814,82 @@ binder–target contact set. No interface His was lost.
 the fix is to fix (`--fixed-residues`, or the BindCraft omit-AA / bias mechanism) any
 deliberately placed pH histidine so MPNN cannot mutate it, and to re-check His retention
 against the trajectory as done above.
+
+## 2026-09-30 — Species alignment reproduced; two filters pre-registered; pipeline audit
+
+### Task 1 — domain III conservation reproduced in-repo (`species_align.py`)
+
+`challenges/egfr/species_align.py` fetches UniProt P00533 (human) and Q01279 (mouse),
+globally aligns the full precursors (BLOSUM62, gap −11/−1), and reports domain III
+conservation; output in `species_align.out`. All four numbering sanity checks **PASS**
+(mature 409=H, 346=H, 353=R, 465=K), so the table is trusted.
+
+- **Domain III identity 179/205 = 87.3%**, now reproduced by a live in-repo alignment
+  rather than attributed to the lit pass — confirms 87.3% (not brief v2's 92%).
+- **All four Arm A core hotspots are mouse-conserved:** mature 408 Q, 409 H, 411 Q,
+  412 F. Both pH histidines are conserved: **H409 and H346**.
+- **Hypothesis that Q408 is a species liability: TESTED and REJECTED.** Mature Q408
+  (precursor Q432) is glutamine in both species.
+- Epitope-adjacent divergences confirmed: **467 I→M, 468 S→N** (cetuximab region) and
+  **353 R→K**. Full 26-position divergence list is in `species_align.out`.
+
+### Tasks 2 & 3 — two new filters, PRE-REGISTERED and DEFERRED (blocked on coordinates)
+
+Both require the v3c per-design **complex coordinates**, which are on the Modal volume
+(over its spend limit) and not retrievable. Neither can be computed now: `v3c-core.log`
+records only *binder*-side interface residues (chain B), not target-side contacts, and
+**no v3c complex PDB exists locally**. Definitions are fixed here, before the numbers
+exist, so they cannot be tuned to the outcome. Both run against each design's complex PDB,
+in which BindCraft renumbers the target 1-204 over the mature 311-514 slice
+(**mature = index + 310**; verification gate: **index 99 must be HIS = mature 409**, else
+stop and do not trust the mapping).
+
+**Filter 2 — interface species conservation.** Conserved *hotspots* do not imply a
+conserved *interface*. For each design: take the binder–target interface residue list
+(4.5 Å heavy-atom), map each **target** residue to mature numbering, and report total
+target interface residues; count mouse-conserved vs divergent (against the 26 divergent
+positions in `species_align.out`); and which divergent positions are contacted, by mature
+number. **Flag as a cross-reactivity risk any design contacting mature 418, 443, 467,
+468, or 353**, regardless of its hotspot set.
+
+**Filter 3 — acidic-residue-to-target-histidine (Liu 2022 / G532 mechanism, PMC9703009).**
+The G532 pH switch comes from EGFR's *own* histidines paired with binder **acidic**
+residues (H433=H409 ↔ LCDR1 Glu32; H370=H346 ↔ LCDR2 Asp52/Asp53; mutating that Glu→His
+destroyed the pH dependence). Our binders need Asp/Glu positioned against the target
+histidines, not histidines of their own. For each design report: min distance from any
+binder Asp/Glu carboxylate O to the **H409** imidazole N (ND1/NE2); same for **H346**;
+and counts of binder Asp/Glu within **4.0 Å** and within **6.0 Å** of either. Target
+positions in the renumbered complex: **H409 = index 99, H346 = index 36.**
+
+### Task 4 — pipeline audit (CHECK only; nothing changed)
+
+(a) **MPNN variant — UNCONFIRMED from this repo.** `run_bindcraft.py` loads BindCraft's
+shipped `settings_advanced/default_4stage_multimer_hardtarget.json` (on the image at
+`/opt/bindcraft`, **not** in this repo) and overrides only `af_params_dir`,
+`save_design_animations`, `save_design_trajectory_plots`, and `max_trajectories`. It does
+**not** set `mpnn_weights`, so the SolubleMPNN-vs-ProteinMPNN choice is whatever that JSON
+ships. BindCraft's documented default for this preset is SolubleMPNN, but the value is not
+verifiable from the repo — it must be read off the image. Given the Adaptyv expression gap
+(0% ProteinMPNN vs 93.1% SolubleMPNN), **confirm this before the next run.**
+(b) **ipSAE — YES, min reduction.** `redundancy.py::_compute_ipsae` (Dunbrack 2025):
+interface residues by PAE ≤ 10 Å and pLDDT ≥ 70, d0 from the TM-score length formula,
+reduced as **ipsae_min** (minimum over the two ordered chain directions).
+`IPSAE_MIN_PASS = 0.60`.
+(c) **Interface dG / dSASA / shape complementarity — YES.** SC via pyrosetta
+ShapeComplementarityFilter (pre-filter, pass 0.58); dG, dSASA, and Binder_Energy_Score
+are computed by BindCraft (present in `v3c-core.log`).
+(d) **Exposed-hydrophobic-patch metric — NO.** No SAP / spatial-aggregation-propensity /
+exposed-patch score anywhere in the pipeline. Only BindCraft's scalar
+`Surface_Hydrophobicity` and `Interface_Hydrophobicity` columns exist (fractions, not a
+patch score). Adding a real exposed-hydrophobic-patch metric is an open item if
+aggregation / expression liability is a concern.
+
+### Task 5 — `set -o pipefail` fix
+
+No launch script existed to patch: the v3c two-arm launch was an ad-hoc **interactive**
+`modal run … | tee … && modal run …` command (README's `modal run` commands are single
+detached runs, no `tee`, no chain). Added **`modal/run_logged.sh`**, a `set -euo pipefail`
+wrapper that tees a command's combined output to a log **and** exits with the command's
+real status, so an `&&`-chained launch cannot advance on `tee`'s success after `modal`
+failed. Tested: failing command → non-zero exit, and a failing first arm blocks the
+second. Use it for any future chained/logged launch.

@@ -1,0 +1,59 @@
+human: >sp|P00533|EGFR_HUMAN Epidermal growth factor receptor OS=Homo sapiens OX=9606 GN=EGFR PE=1 SV=2
+       1210 aa
+mouse: >sp|Q01279|EGFR_MOUSE Epidermal growth factor receptor OS=Mus musculus OX=10090 GN=Egfr PE=1 SV=1
+       1210 aa
+
+Domain III (mature 310-514 = precursor 334-538), 205 positions
+identity: 179/205 = 87.3%
+
+POSITIONS OF INTEREST
+ mature   prec  human  mouse  same?     note
+------------------------------------------------------------------------------------------
+    346    370      H      H  yes       G5V2 second histidine
+    353    377      R      K  >> NO <<  G5V2 + cetuximab contact
+    382    406      L      L  yes       G5V2 contact
+    384    408      Q      Q  yes       dropped for glycan risk
+    408    432      Q      Q  yes       Arm A hotspot - cetuximab contact, NOT a G5V2 contact
+    409    433      H      H  yes       Arm A hotspot - pH anchor His; cetuximab AND G5V2
+    411    435      Q      Q  yes       Arm A hotspot - G5V2 contact
+    412    436      F      F  yes       Arm A hotspot
+    465    489      K      K  yes       dropped; G5V2 + cetuximab contact
+    466    490      I      I  yes       dropped
+    467    491      I      M  >> NO <<  mouse-divergent per earlier analysis
+    468    492      S      N  >> NO <<  mouse-divergent per earlier analysis; cetuximab contact
+
+ALL 26 DIVERGENT POSITIONS IN DOMAIN III
+ mature   prec  human  mouse
+--------------------------------
+    324    348      S      T
+    337    361      N      Y
+    340    364      S      A
+    353    377      R      K
+    359    383      H      R
+    366    390      Q      R
+    369    393      D      E
+    388    412      E      D
+    390    414      R      W
+    418    442      S      G
+    443    467      K      R
+    460    484      S      P
+    461    485      G      N
+    467    491      I      M
+    468    492      S      N
+    471    495      G      A
+    473    497      N      K
+    474    498      S      D
+    478    502      T      V
+    479    503      G      N
+    480    504      Q      H
+    483    507      H      N
+    484    508      A      P
+    488    512      P      S
+    503    527      R      Q
+    513    537      D      E
+
+SANITY CHECKS - if any FAIL, numbering is wrong, discard the above
+  PASS mature 409 = H (expected H)  pH anchor = precursor H433
+  PASS mature 346 = H (expected H)  G5V2 second His = precursor H370
+  PASS mature 353 = R (expected R)  = precursor R377
+  PASS mature 465 = K (expected K)  = precursor K489
