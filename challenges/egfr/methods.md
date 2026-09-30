@@ -667,6 +667,20 @@ run cost **$6.86** and was stopped by a **$20 spend-limit setting after 24 minut
 by a runaway loop. This correction is recorded explicitly rather than silently replacing
 the earlier figure.
 
+**Correction 2 — the `&&` guard did not guard, and Arm B *did* launch.** The Run
+configuration and Outcome sections above state that Arm B was "**NOT RUN**", that it
+"never started", and that this was "correct behaviour of the `&&` guard." All three are
+wrong. The launch piped Arm A through `tee`
+(`modal run … | tee v3c-core.log && modal run … --run-tag phase1-v3c-q408`); in zsh a
+pipeline exits with the status of its **last** stage (`tee`), not `modal`, so `&&` fired
+on `tee`'s success regardless of Arm A's exit code. Arm B therefore launched, hit the
+already-disabled workspace, and died immediately: `v3c-q408.log` (793 bytes) contains
+only `Workspace ac-3KZ86ww6Oyuet9trAefaYa has exceeded its spend limit`. No Arm B
+designs were produced and nothing was written to the volume, so "nothing to undo" still
+holds — but it was the spend limit that stopped Arm B, **not** the guard. **Fix for next
+time:** `set -o pipefail` before the chain, or redirect (`> v3c-core.log 2>&1`) instead
+of piping to `tee`, so `&&` sees `modal`'s real exit status.
+
 ### Still pending
 
 - **Full-length co-fold of all 7 against the pre-registered criteria (`d94a8d4`)** —
@@ -725,6 +739,14 @@ in `v3c-core-designs.csv`):
 Among the 4 accepted MPNN designs with the largest clearance, seeds 3 and 5
 lead (0.297), then seed 7 (0.228) and seed 1 (0.247); seed 2 has the tightest
 paratope-to-C-terminus spacing of the accepted set (0.187).
+
+**Robustness to MPNN redesign.** The chain-B interface list differs between the
+trajectory backbone and the final MPNN-redesigned sequence, but the *highest-numbered*
+interface residue — the only quantity clearance depends on — agrees on **6 of the 7**
+designs; only seed 1 differs, and by a single residue (trajectory B68 vs MPNN B67, i.e.
+clearance 21 vs 22). C-terminal clearance is therefore insensitive to MPNN redesign,
+which is why the trajectory-derived values for seeds 0 and 6 (no MPNN variant was
+interface-scored) are trustworthy. The committed MPNN-derived values stand unchanged.
 
 **Additional constraints and caveats recorded (2026-09-30).**
 
