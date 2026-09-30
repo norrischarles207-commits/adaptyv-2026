@@ -1,0 +1,8 @@
+seed,design,source,gate_pass,pdb_file,n_target_interface,n_conserved,n_divergent,divergent_contacted,risk_contacted,binder_acids,d_acid_H409,d_acid_H346,acids_within_4A,acids_within_6A,H409_min_acid_anyatom,H409_rank_in_interface,iface_frac_acid_within_6A
+0,egfr_l67_s528267,trajectory,True,seed0_egfr_l67_s528267.pdb,21,17,4,353|418|443|468,353|418|443|468,11,9.0,9.41,0,0,8.77,10/21,0.19
+1,egfr_l89_s399498_mpnn2,mpnn,True,seed1_1_egfr_l89_s399498_mpnn2_model2.pdb,23,19,4,353|418|467|468,353|418|467|468,22,4.19,7.79,0,1,3.52,6/23,0.65
+2,egfr_l75_s674224_mpnn14,mpnn,True,seed2_1_egfr_l75_s674224_mpnn14_model2.pdb,25,22,3,324|418|467,418|467,20,2.59,9.32,1,1,2.59,1/25,0.16
+3,egfr_l91_s124145_mpnn1,mpnn,True,seed3_1_egfr_l91_s124145_mpnn1_model2.pdb,26,20,6,324|353|359|418|467|468,353|418|467|468,22,2.68,8.05,1,1,2.68,1/26,0.42
+5,egfr_l64_s902794_mpnn2,mpnn,True,seed5_1_egfr_l64_s902794_mpnn2_model2.pdb,23,18,5,324|353|418|467|468,353|418|467|468,13,2.97,9.89,1,1,2.97,4/23,0.43
+6,egfr_l93_s713816,trajectory,True,seed6_egfr_l93_s713816.pdb,28,24,4,324|418|467|468,418|467|468,14,10.91,17.99,0,0,10.13,14/28,0.18
+7,egfr_l79_s846567_mpnn5,mpnn,True,seed7_1_egfr_l79_s846567_mpnn5_model2.pdb,23,19,4,324|353|418|467,353|418|467,19,2.69,6.53,1,1,2.69,1/23,0.48

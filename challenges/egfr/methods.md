@@ -893,3 +893,95 @@ wrapper that tees a command's combined output to a log **and** exits with the co
 real status, so an `&&`-chained launch cannot advance on `tee`'s success after `modal`
 failed. Tested: failing command → non-zero exit, and a failing first arm blocks the
 second. Use it for any future chained/logged launch.
+
+## 2026-09-30 — Filters 2 & 3 computed on retrieved v3c complexes
+
+**Retrieval (read-only, no container, no compute spend).** The v3c complex PDBs were
+pulled with `modal volume get` (CLI, control-plane copy from the `adaptyv-designs`
+volume) — **not** by invoking a Modal function, which would start a GPU container.
+**Total pulled: 2,545,668 bytes (~2.6 MB), 7 files.** They live in the session scratch
+(not committed, as with `phase1-probe-v3b-partial/`); exact volume paths are recorded
+below for reproducibility.
+
+**Inventory (Task B).** Every one of the 7 designs has both a trajectory complex
+(`<seed>/Trajectory/Relaxed/egfr_l*.pdb`) and MPNN-variant complexes
+(`<seed>/MPNN/Relaxed/…`). The 5 accepted designs additionally have Rank-1 accepted
+complexes (`<seed>/Accepted/Ranked/1_*.pdb`); seeds 0 and 6 have MPNN complexes (32 and
+4) but none accepted. **Accepted designs all have MPNN-variant complexes, so no STOP.**
+
+**Provenance (Task C) — exact structure measured per design.** MPNN Rank-1 complex for
+the 5 accepted; trajectory complex for seeds 0 and 6 (no accepted MPNN variant). Per-row
+`pdb_file` and numbers are in `challenges/egfr/v3c-core-filters.csv`. Numbering gate
+(target chain A residue 99 = HIS = mature 409, residue 36 = HIS = mature 346;
+mature = A_resnum + 310) **PASSED on all 7**.
+
+| Seed | Structure measured | src |
+|---|---|---|
+| 0 | `…/0/Trajectory/Relaxed/egfr_l67_s528267.pdb` | trajectory |
+| 1 | `…/1/Accepted/Ranked/1_egfr_l89_s399498_mpnn2_model2.pdb` | mpnn |
+| 2 | `…/2/Accepted/Ranked/1_egfr_l75_s674224_mpnn14_model2.pdb` | mpnn |
+| 3 | `…/3/Accepted/Ranked/1_egfr_l91_s124145_mpnn1_model2.pdb` | mpnn |
+| 5 | `…/5/Accepted/Ranked/1_egfr_l64_s902794_mpnn2_model2.pdb` | mpnn |
+| 6 | `…/6/Trajectory/Relaxed/egfr_l93_s713816.pdb` | trajectory |
+| 7 | `…/7/Accepted/Ranked/1_egfr_l79_s846567_mpnn5_model2.pdb` | mpnn |
+
+### Filter 2 — interface species conservation (4.5 Å heavy-atom, target mapped to mature)
+
+| Seed | target iface res | conserved | divergent | divergent contacted (mature) | RISK (418/443/467/468/353) |
+|---|---|---|---|---|---|
+| 0 | 21 | 17 | 4 | 353, 418, 443, 468 | 353, 418, 443, 468 |
+| 1 | 23 | 19 | 4 | 353, 418, 467, 468 | 353, 418, 467, 468 |
+| 2 | 25 | 22 | 3 | 324, 418, 467 | 418, 467 |
+| 3 | 26 | 20 | 6 | 324, 353, 359, 418, 467, 468 | 353, 418, 467, 468 |
+| 5 | 23 | 18 | 5 | 324, 353, 418, 467, 468 | 353, 418, 467, 468 |
+| 6 | 28 | 24 | 4 | 324, 418, 467, 468 | 418, 467, 468 |
+| 7 | 23 | 19 | 4 | 324, 353, 418, 467 | 353, 418, 467 |
+
+**Finding — conserved hotspots did NOT buy a conserved interface.** Although all four
+Arm A core hotspots are mouse-conserved (previous entry), **every one of the 7 designs
+contacts mouse-divergent positions, and every one contacts both mature 418 (S→G) and 467
+(I→M)**; most also contact 353 (R→K) and 468 (S→N). The as-built paratopes reach beyond
+the conserved core into divergent territory in all cases, so **mouse cross-reactivity is
+a live risk across the whole v3c core arm**, not something the hotspot choice secured.
+This is exactly the gap the filter was meant to expose: hotspot conservation is necessary
+but not sufficient.
+
+### Filter 3 — binder acid → target histidine (6.0 Å primary; see caveat)
+
+Min distance from any binder Asp/Glu carboxylate O to the target His imidazole N
+(ND1/NE2). **Per Task E the 6.0 Å shell is the primary readout**: AF2 surface-polar
+rotamers are unreliable, so a sub-4 Å carboxylate–imidazole distance is *not* evidence of
+a hydrogen bond. The 4.0 Å column is reported but not interpreted as bonding.
+
+| Seed | src | d(acid→H409) | d(acid→H346) | acids ≤4.0Å | acids ≤6.0Å | H409 in iface? | H409 min-acid (any atom) | H409 rank | iface frac w/ acid ≤6Å |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | traj | 9.00 | 9.41 | 0 | 0 | yes | 8.77 | 10/21 | 0.19 |
+| 1 | mpnn | 4.19 | 7.79 | 0 | 1 | yes | 3.52 | 6/23 | **0.65** |
+| 2 | mpnn | 2.59 | 9.32 | 1 | 1 | yes | 2.59 | **1/25** | 0.16 |
+| 3 | mpnn | 2.68 | 8.05 | 1 | 1 | yes | 2.68 | **1/26** | 0.42 |
+| 5 | mpnn | 2.97 | 9.89 | 1 | 1 | yes | 2.97 | 4/23 | 0.43 |
+| 6 | traj | 10.91 | 17.99 | 0 | 0 | yes | 10.13 | 14/28 | 0.17 |
+| 7 | mpnn | 2.69 | 6.53 | 1 | 1 | yes | 2.69 | **1/23** | 0.48 |
+
+**Null control (Task D) — and what it means.** The five MPNN designs each place a binder
+acid within 6 Å of H409; the two trajectory designs (0, 6) do not. But the null control
+shows this is only *partly* H409-specific:
+
+- In **seed 2** (only 16% of interface residues have an acid within 6 Å, yet H409 is rank
+  1/25) the acid proximity to H409 is genuinely distinctive.
+- In **seeds 3 and 7** H409 is also rank 1, but 42–48% of *all* interface residues have
+  an acid within 6 Å, so the interface is broadly acid-rich; H409 leading is meaningful
+  but partly a composition effect.
+- In **seed 1** H409 is rank 6/23 and **65%** of interface residues have an acid within
+  6 Å — here "acid near H409" carries essentially **no** information; the filter is
+  measuring interface packing density and the binder's overall acidity, not H409-specific
+  design intent.
+
+**Because the v3c core arm used no pH restraint, every acid-near-H409 here is incidental,
+not intent.** The null control confirms the filter's raw form (count acids within 6 Å of
+H409) largely measures packing density / binder acidity in acid-rich designs, and is only
+informative where the interface-wide acid fraction is low (seed 2). H346 is essentially
+unengaged in all designs (≥6.5 Å; only seed 7 marginal at 6.53 Å), consistent with its
+poor free-receptor accessibility (§3). The proper use of Filter 3 is therefore on the
+*pH-biased* redesign arm, where an acid is deliberately placed, and always read against
+this null (H409's rank among interface residues), not as an absolute distance.
