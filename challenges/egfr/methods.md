@@ -549,3 +549,35 @@ confidence JSON).
 6. **`I490` (mature A466) is uncontacted by construction now.** It was dropped from the
    hotspot set, but if the Adaptyv epitope definition requires it, no design so far
    touches it and none is being steered to.
+
+---
+
+## 2026-09-29 — Pre-registered v3c acceptance criteria
+
+Written **before any v3c results exist**, so the bar cannot be moved to fit the
+outcome. Both arms (`phase1-v3c-core` = A408,A409,A411,A412; `phase1-v3c-q408` =
+A384,A408,A409,A411,A412) are judged by **identical** criteria. A design must
+meet all of the following to advance:
+
+1. **ipSAE ≥ 0.60**, using the **min reduction** over the two chain-pair
+   directions (min of A→B and B→A), measured on the **full-length co-fold**
+   against P00533 precursor 25-645 — **not** on the domain III complex.
+2. **Shape complementarity ≥ 0.58**, pyrosetta Lawrence-Colman
+   (`ShapeComplementarityFilter`), computed on the **full-length** structure.
+3. **pH anchor engaged:** at least one binder side-chain heavy atom within
+   **6 Å** of the HIS409 imidazole (ring atoms CG/ND1/CD2/CE1/NE2), on the
+   full-length co-fold.
+4. **Mouse-divergent positions avoided:** **no** interface contact (any heavy
+   atom ≤ 4.5 Å) with mature **467, 468, 471, or 473**.
+
+**Why min, not max.** The 0.60 threshold's source convention is unresolved
+(open item #1): the code attributes the ipSAE *formula* to Dunbrack 2025 but the
+min reduction to the bioRxiv 2025.08.14.670059 meta-analysis, and neither has
+been checked against the reference implementation. The min reduction is the
+**conservative** choice — it scores the weaker of the two interface directions,
+so a design cannot pass on the strength of one side alone. This convention was
+fixed **before v3c results existed**; it is recorded here so it cannot be
+reconsidered in light of the numbers. (For reference, under min the v3b survivor
+seed 1 scored 0.5659 — a fail; under max it would have been 0.625, a pass. That
+0.034 gap is exactly what this pre-registration refuses to relitigate after the
+fact.)
