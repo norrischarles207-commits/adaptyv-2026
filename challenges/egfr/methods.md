@@ -17,3 +17,535 @@ What changed vs the working brief (five points; detail in the `lit/` files):
 ## 2026-09-29 — Literature pass follow-ups
 
 Corrections and additions to the 2026-09-28 entry (see `lit/hand-back.md`, Addendum 2): Liu 2022 lists six EGFR interface residues and five of them (H433, R377, L406, Q435, K489) are in the measured 24, not four; that overlap is expected because the G5V2 model was docked on the cetuximab 1YY9 template, so it is not independent evidence. G532 is G5V2 Y32E plus unspecified HCDR2 mutations (paper, summarizer-read), not Y32E alone. Whether EGFR is among the 15 targets of the Overath 2025 ipSAE_min meta-analysis is unresolved (Table 1 unreachable; Zenodo 15722219 `final_dataset.csv` would answer it). The Round 2 BLI assay pH remains unstated in every source we could read.
+
+---
+
+## 2026-09-29 — Phase 1 probe runs, full-length validation, structural measurements
+
+Covers: the v3 AF2 OOM and the domain III slicer that fixed it, the v3b probe run and
+its two accepted designs, an independent full-length co-fold check of both, and a
+geometry pass over 6ARU / 3NJP / 1NQL that motivates the v3c two-arm hotspot split.
+
+Every number below was measured in this session unless it is explicitly attributed to
+the literature pass. Geometry was computed with Biopython (Shrake-Rupley SASA,
+`NeighborSearch` for contacts) on the deposited coordinates; scripts were run
+ad hoc and are not checked in. Values are quoted as measured, not rounded.
+
+### 1. NUMBERING
+
+**Offset: precursor = mature + 24.** UniProt P00533 is a 1210-residue precursor with a
+24-residue signal peptide; mature numbering drops it.
+
+Verified three independent ways, not assumed:
+
+- **Hotspot identity match.** All seven v3 hotspots have the expected residue identity
+  at mature = precursor − 24: precursor 408→mature 384 GLN, 432→408 GLN, 433→409 HIS,
+  435→411 GLN, 436→412 PHE, 489→465 LYS, 490→466 ILE. The 433→409 HIS match is the
+  load-bearing one — it confirms the H433 pH anchor in `f596f6f` is mature H409.
+- **Whole-chain sequence identity.** 6ARU chain A SEQRES is 622 aa; stripping the
+  trailing `HHHHHH` purification tag leaves 616 aa = mature 1-616 = precursor 25-640.
+  That matches P00533 precursor 25-640 exactly except at two positions, **N540K and
+  E634R** (precursor numbering), both far from the 408-490 epitope region.
+- **SEQRES ↔ author numbering.** `SEQRES[i-1]` equals author residue `i` for **0
+  mismatches over all 609 observed residues**. This closes the open item raised in the
+  2026-09-28 lit entry ("the 6ARU author range 4–612, mature remains unverified beyond
+  sequence-identity checks") — chain A observed span is **mature 4-612, 609 standard
+  residues**, i.e. precursor 28-636.
+
+**Which convention each artifact uses:**
+
+| Artifact | Convention | Note |
+|---|---|---|
+| 6ARU deposited coords (`6aru.cif`) | **mature** | author/`auth_seq_id`; observed 4-612 |
+| 3NJP, 1NQL deposited coords | **mature** | same as 6ARU, offset +0 (below) |
+| Challenge spec / Adaptyv brief | **precursor** | P00533, e.g. H433, E496 |
+| Literature (`lit/`, Liu 2022, patent) | **precursor** | per the lit-pass header |
+| Pipeline `--hotspots` strings | **mature** | must match the loaded PDB's numbering |
+| Pipeline `--target-residue-range` | **mature** | 311-514 = precursor 335-538 |
+| BindCraft output complex PDBs | **renumbered 1-N** | see the trap below |
+| Boltz co-fold output chain A | **1-621** | precursor = i + 24 |
+
+**Trap, recorded because it produced a wrong result once.** The slicer writes
+`egfr.pdb` preserving mature numbering (311-514), but **BindCraft renumbers the target
+to 1-204 in the complex PDB it writes**. Mapping contacts with the input numbering gave
+a spurious "0/7 hotspots contacted". The correct map for v3b accepted designs is
+**precursor = 334 + slice index**, verified by 204/204 exact residue-identity matches
+against P00533. For the Boltz full-length co-folds the map is precursor = chain-A index
++ 24, verified at **0/621 mismatches in both predictions**.
+
+**All three structures share mature numbering, offset +0.** Established by scanning
+offsets −30…+30 and taking the one maximising global sequence identity over shared
+numbering, then confirming the ±10 window around 409 and requiring the mapped residue
+to be HIS:
+
+| Structure | chain | offset | shared | global identity | ±10 window | res @409 |
+|---|---|---|---|---|---|---|
+| 6ARU | A | +0 | 609 | 1.000 | 1.000 | 409 H |
+| 3NJP | A | +0 | 609 | 0.998 | 1.000 | 409 H |
+| 3NJP | B | +0 | 609 | 0.998 | 1.000 | 409 H |
+| 1NQL | A | +0 | 609 | 0.998 | 1.000 | 409 H |
+
+Convention: `6ARU_number = target_number + offset`. No renumbering was needed between
+the three; this was confirmed by alignment, not inferred from a His happening to sit at
+409.
+
+### 2. EPITOPE DERIVATION
+
+**The cetuximab contact patch, measured from 6ARU.** Chain A residues with any heavy
+atom within 4.5 Å of the Fab (chains B+C): **24 residues**, independently reproducing
+the count in the lit pass. Mature numbering, span 349-473 (precursor 373-497):
+
+```
+349P 350V 353R 382L 384Q 408Q 409H 411Q 412F 415A 417V 418S
+438I 440S 441G 443K 465K 466I 467I 468S 469N 471G 472E 473N
+```
+
+Split by Fab chain — light chain B contacts 10, heavy chain C contacts 19:
+
+- **C (heavy) only:** 349P 350V 353R 382L 384Q 408Q 409H 411Q 412F 415A 417V 418S 438I 440S
+- **B (light) only:** 466I 469N 471G 472E 473N
+- **both:** 441G 443K 465K 467I 468S
+
+**All 7 of the v3 hotspots are cetuximab contacts (7/7).** The epitope choice is
+therefore anchored on measured Fab contacts, not inference.
+
+**Hotspot set history**
+
+| Version | Hotspots | Change and reason |
+|---|---|---|
+| **v3** | `A384,A408,A409,A411,A412,A465,A466` | Conserved cetuximab core + H409 (precursor H433) as the pH anchor. All 7 verified as Fab contacts. |
+| **v3b** | same | No hotspot change. Added `--target-residue-range 311-514` (domain III) after AF2 OOM'd on the full 609-residue ECD — see §9. |
+| **v3c** | two arms, §7 | A466 and A465 dropped; set split into a 4-residue core and a 5-residue variant. |
+
+**Why A466 was dropped.** Never contacted by any design produced so far. In the
+full-length co-fold of seed 1 its closest heavy-atom approach to the binder is
+**8.65 Å** (seed 6: 7.68 Å) — not a borderline miss. It was also uncontacted at design
+time on the domain III slice, so both accepted designs scored 6/7 rather than 7/7 with
+A466 as the sole miss. A hotspot no design will touch adds nothing to the restraint.
+
+**Why A465 was dropped.** It is the route by which the mouse-divergent positions enter
+the patch. With A465 present (SET3), **I467 is in-patch at 3.85 Å and S468 at 7.32 Å**
+(criterion in §3). Removing A465 pushes both out: against the 5-residue set I467 is
+8.53 Å and S468 12.66 Å, and against the 4-residue core 8.53 Å and 13.08 Å. Since
+mouse cross-reactivity is an objective, steering the interface away from divergent
+positions is worth more than the extra contact.
+
+### 3. STRUCTURAL MEASUREMENTS
+
+All SASA below is **chain A alone — free-receptor exposure**, with the Fab, glycans and
+waters excluded. This matters: see §5 for how much drops in the complexes. Relative
+SASA uses a Gly-X-Gly reference built computationally from each residue's own observed
+backbone and rotamer (flanking residues stripped to backbone), not a published table.
+
+**Histidines**
+
+| Res | SC SASA | GlyXGly ref | rel SC | total | ring↔surface normal | direction |
+|---|---|---|---|---|---|---|
+| **H409** (precursor H433) | 99.1 Å² | 147.1 Å² | **0.67** | 145.1 Å² | 72.8° | ALONG |
+| **H346** (precursor H370) | 30.0 Å² | 145.8 Å² | **0.21** | 30.0 Å² | 93.7° | ALONG |
+
+H346 is largely buried — about a third the relative exposure of H409, and its backbone
+is fully occluded (total SASA equals side-chain SASA). Both imidazoles lie *along* the
+surface rather than projecting out of it. This bears directly on lit-pass point (2):
+Liu 2022 pairs binder acid with **both** H433 and H370, but H370/H346 is poorly
+accessible on the free receptor.
+
+**H409 ↔ H346 geometry** — they are on the same face but too far apart to act as a
+coupled pair:
+
+| Measurement | Value |
+|---|---|
+| CA-CA | 12.84 Å |
+| closest heavy-atom approach | 7.72 Å (409 N ↔ 346 NE2) |
+| **ring-to-ring closest approach** | **8.52 Å** |
+| ring-centroid separation | 9.73 Å |
+| imidazole interplanar angle | 77.8° |
+| angle between surface normals | 47.7° → **same exposed face** (<60°) |
+
+**Patch spans, centroids, planarity, curvature**
+
+| Set | Members | Max span | Centroid RMS | Plane RMS | H (/Å) | \|1/H\| | Shape |
+|---|---|---|---|---|---|---|---|
+| 4-res core | 408,409,411,412 | **6.93 Å** (409-412) | **3.14 Å** | **0.45 Å** | −0.02069 | 48.3 Å | flat (see below) |
+| 5-res | 384,408,409,411,412 | 15.77 Å (384-411) | 6.12 Å | 0.96 Å | **+0.08311** | 12.0 Å | **CONCAVE** |
+| SET3 | 384,408,409,411,412,465 | 15.77 Å (384-411) | 7.20 Å | 1.34 Å | +0.03320 | 30.1 Å | not resolvable |
+| SET4 | 346,384,408,409,411,412 | 15.77 Å (384-411) | 6.71 Å | 1.86 Å | −0.06558 | 15.2 Å | **CONVEX** |
+
+CA centroids: 4-res (33.35, 31.35, 63.25); 5-res (35.12, 33.16, 62.24);
+SET3 (34.04, 34.79, 62.78); SET4 (36.11, 33.23, 60.91).
+
+**Curvature method and its noise floor.** A 6-parameter quadric cannot be fitted to 4-6
+CA points (exactly determined or underdetermined, zero residual, meaningless), so
+curvature is fitted to the **solvent-exposed heavy atoms** (SASA > 1 Å²) of the patch
+residues, with z along the outward normal so H>0 is concave. Resolvability test:
+compare the predicted sag `|H|·r²/2` over the patch radius against the quadric fit RMS.
+
+| Set | r | \|H\| | sag | fit RMS | resolvable? |
+|---|---|---|---|---|---|
+| 4-res | 3.5 Å | 0.02069 | 0.13 Å | 1.68 Å | **NO** — 13× below noise |
+| 5-res | 7.9 Å | 0.08311 | 2.59 Å | 1.77 Å | yes |
+| SET3 | 7.9 Å | 0.03320 | 1.04 Å | 1.82 Å | **NO** |
+| SET4 | 7.9 Å | 0.06558 | 2.05 Å | 1.91 Å | yes |
+
+**Correction to an earlier statement in this session.** SET3 was first reported as
+"mildly concave at 30 Å radius". That is **not supported**: its sag (1.04 Å) is below
+its own fit RMS (1.82 Å). SET3 should be treated as **flat**, as should the 4-residue
+core, whose nominal "convex" sign is arbitrary. Only the 5-residue set and SET4 have
+resolvable curvature. Signs were stable to atom selection (an all-heavy-atom fit gave
++0.0696 for SET3 and −0.0145 for SET4, same signs), so it is the *magnitude*, not the
+direction, that fails the noise test.
+
+**Neither 6-residue set is one compact patch.** Nearest-neighbour CA distance within
+each set: the core is tight (408↔409 = 3.80 Å, 411↔412 = 3.80 Å) but **A384 is 12.29 Å
+from its nearest set member and A465 is 10.10 Å** — two detached satellites, which is
+what inflates the centroid RMS to 7.20 Å. In SET4, A346 sits 7.95 Å from A384 and
+bridges the gap, lowering the RMS to 6.71 Å.
+
+**H409's local environment is unusually sparse.** Residues with CA within 10 Å of the
+H409 CA: only **8**, and they are purely its own sequence neighbours 406-413 — no
+tertiary contacts at all. Within 12 Å: 17 residues (344, 379, 380, 382, 404, 406-415,
+435, 436). H409 sits on a protruding loop tip.
+
+**Mouse-divergent positions** (criterion: **in-patch = minHD ≤ 8 Å AND normal angle
+< 90° AND solvent exposed**; minHD is closest heavy-atom distance to any patch member):
+
+| Res | rel SASA | vs SET3 | vs 5-res | vs 4-res core |
+|---|---|---|---|---|
+| **467 I** | 0.55 SC | **3.85 Å → IN** | 8.53 Å → out | 8.53 Å → out |
+| **468 S** | 0.83 SC | **7.32 Å → IN** | 12.66 Å → out | 13.08 Å → out |
+| 471 G | 0.39 total | 13.53 Å → out | 18.54 Å → out | 20.19 Å → out |
+| 473 N | 0.93 SC | 15.72 Å → out | 23.13 Å → out | 23.13 Å → out |
+
+Gly471 has no side chain, so it is reported on a total-residue basis. A first attempt
+at "contiguous patch" used a 5 Å connectivity graph over all exposed residues; that
+percolates across the whole surface (395-residue component) and called everything
+contiguous, so it was discarded in favour of the local criterion above.
+
+**Acidic residues near H409 and near the patch.** Only three ASP and no GLU lie within
+14 Å of the H409 imidazole (ring atoms CG/ND1/CD2/CE1/NE2):
+
+| Res | dist to imidazole | rel SC | carboxylate vs normal | minHD → 5-res | in-patch |
+|---|---|---|---|---|---|
+| **D436** | 10.24 Å | 0.30 | 27.6° **OUT** | 3.00 Å (411) | YES |
+| **D344** | 10.58 Å | 0.19 | 95.1° ALONG | 6.05 Å (408) | YES (face 88.7°, marginal) |
+| D434 | 13.54 Å | 0.43 | 47.4° ALONG | 5.84 Å (412) | YES |
+
+Nearest *carboxyl oxygen* to the imidazole: D344 10.58 Å, D436 10.68 Å, D434 14.31 Å,
+D323 16.07 Å, D355 17.98 Å. Other exposed acids (rel SASA > 0.3) within 20 Å of the
+5-res centroid: **E431** (0.57, carboxylate 125.0° **IN**, minHD 11.56 Å, out),
+**D323** (0.83, 23.9° OUT, minHD 14.37 Å, out), **E400** (0.64, 131.7° **IN**,
+minHD 14.78 Å, out). E431 and E400 look exposed on side-chain SASA but their
+carboxylates point *into* the protein, so the functional group is unavailable.
+
+D436 is the only well-oriented acid in the patch: outward carboxylate, same face
+(47.7°), and genuine contact distance (3.00 Å to Q411, 3.38 Å to F412).
+
+### 4. GLYCOSYLATION
+
+**Sequon inventory.** 11 N-X-S/T sequons (X ≠ Pro) in chain A, derived from the SEQRES
+construct (so gaps in observed density cannot create or hide one); all 11 are observed
+in the coordinates. Distances are closest heavy atom to the 5-residue patch centroid:
+
+| Asn | motif | d to centroid | within 25 Å |
+|---|---|---|---|
+| 104 | NKT | 70.26 Å | no |
+| 151 | NMS | 71.08 Å | no |
+| 172 | NGS | 87.40 Å | no |
+| **328** | NAT | **17.93 Å** | YES |
+| **337** | NCT | 24.83 Å | YES |
+| **389** | NRT | 24.16 Å | YES |
+| **420** | NIT | **18.77 Å** | YES |
+| 504 | NVS | 36.01 Å | no |
+| 544 | NIT | 53.87 Å | no |
+| 579 | NNT | 65.87 Å | no |
+| 599 | NCT | 75.51 Å | no |
+
+The four within 25 Å, with per-member distances:
+
+| Asn | motif | rel SC | →384 | →408 | →409 | →411 | →412 | side chain points |
+|---|---|---|---|---|---|---|---|---|
+| 328 | NAT | 0.19 | **11.89** | 14.99 | 18.44 | 21.87 | 18.51 | LATERAL (96.5°) |
+| 337 | NCT | 0.70 | 21.47 | 23.42 | 26.22 | 26.66 | 22.90 | AWAY (167.3°) |
+| 389 | NRT | 0.84 | 12.33 | 21.59 | 25.12 | 27.50 | 23.95 | LATERAL (119.6°) |
+| **420** | NIT | 0.32 | **7.76** | 16.58 | 19.62 | 21.83 | 18.28 | AWAY (163.1°) |
+
+**Key finding: every sequon reaches the patch only through A384.** N420 is the closest
+at 7.76 Å from A384, and the **408-412 core is ≥ 14.99 Å from any sequon Asn** (the
+minimum being N328→A408). The glycan liability is therefore a property of A384
+specifically, not of the core.
+
+**Carbohydrate present.** 13 carbohydrate residues, traced to their root Asn by actual
+bond distance (≤1.8 Å), not nearest-neighbour guessing — a first pass using
+nearest-ASN wrongly split the chain-D octasaccharide across three different residues.
+
+| Root Asn | tree | first-NAG distance to patch | nearest member |
+|---|---|---|---|
+| **A/ASN328** | 8 sugars (chain D: NAG1-2, BMA3, MAN4-8) | **11.93 Å** | 384 |
+| **A/ASN420** | 2 sugars (chain E: NAG1-2) | **13.15 Å** | 384 |
+| A/ASN389 | 1 sugar (A NAG710) | 16.66 Å | 384 |
+| A/ASN337 | 1 sugar (A NAG709) | 25.11 Å | 384 |
+| C/ASN88 | 1 sugar (C NAG301) | 30.13 Å | 384 (Fab glycan) |
+
+Closest carbohydrate atom to the patch is **D/NAG1 at 11.93 Å**. The closest any sugar
+atom comes to the *core* is 16.79 Å (MAN4, nearest member 409). Note both nearest
+glycans again arrive via A384.
+
+### 5. LIGAND OVERLAP
+
+H409's 0.67 relative exposure is a **free-receptor** figure. In complex it is buried in
+every structure measured except one. Burial attributed per chain:
+
+| Structure | chain A alone | with partner | buries | closest approach | rel SC alone → complex |
+|---|---|---|---|---|---|
+| **6ARU** (cetuximab Fab) | 99.1 Å² | 26.3 Å² | **72.8 Å² by chain C** (heavy) | 3.47 Å | 0.67 → **0.18** |
+| 6ARU | — | 99.1 Å² | 0.0 Å² by chain B (light) | 13.52 Å | — |
+| **3NJP A** (EGF) | 104.8 Å² | 17.0 Å² | **87.8 Å² by chain C** (EGF) | 3.10 Å | 0.70 → **0.11** |
+| **3NJP B** (EGF) | 108.1 Å² | 15.7 Å² | **92.4 Å² by chain D** (EGF) | 3.37 Å | 0.73 → **0.11** |
+| **1NQL A** (EGF) | 113.5 Å² | 113.5 Å² | **0.0 Å² by chain B** | **29.21 Å** | 0.77 → **0.77** |
+
+So H409 lies in **both** the cetuximab epitope and the EGF-binding site. A binder
+anchored there competes with the natural ligand — a consequence worth stating
+explicitly, since EGF competition may be desirable (antagonism) but also means
+endogenous ligand will compete in any cell assay.
+
+**1NQL asymmetric-unit caveat.** 1NQL is the apparent exception, and the reason is
+probably crystallographic rather than biological: its asymmetric unit holds one
+receptor plus one EGF (chain A 612 residues, chain B 48; chains C/D/E have no standard
+residues), and its EGF sits 29.21 Å from H409. The biological 2:2 dimer is generated by
+symmetry, so contacts formed only in the symmetry-completed assembly do not appear in
+the deposited coordinates. **The 0.77 should be read as asymmetric-unit exposure, not
+as evidence that EGF leaves H409 free.** The symmetry mate was not built or checked.
+
+**H409 rotamer is conserved across all three structures.**
+
+| Structure | chi1 | bin | chi2 | SC RMSD vs 6ARU (10 Å shell) | flip-corrected |
+|---|---|---|---|---|---|
+| 6ARU A | −57.4° | m (−65) | −63.6° | — | — |
+| 3NJP A | −44.8° | m (−65) | −51.9° | 0.79 Å | 1.64 Å |
+| 3NJP B | −47.9° | m (−65) | +134.8° | 1.58 Å | **0.80 Å** |
+| 1NQL A | −58.9° | m (−65) | −55.8° | 0.74 Å | 1.63 Å |
+
+chi1 is in the m(−65) bin in all four copies. 3NJP chain B's chi2 is a **180° imidazole
+ring flip**: it comes within 18.4° of 6ARU after the flip and its side-chain RMSD drops
+from 1.58 Å to 0.80 Å under ND1↔CD2 / CE1↔NE2 correspondence. Since the ND1/CD2
+assignment is often unresolved at X-ray resolution, this is an atom-labelling
+difference between two copies in one crystal, not a conformational one. Superposition
+used backbone N/CA/C/O of the shell around H409; results were unchanged between a 10 Å
+shell (8 residues, 32 atoms, bb RMSD 0.20-0.31 Å) and a 12 Å shell (17 residues,
+bb RMSD 0.25-0.33 Å). Because the 10 Å shell is a single contiguous loop segment
+(406-413), the fit is local by construction.
+
+### 6. pH STRATEGY
+
+**Anchor is H409 (precursor H433).** This supersedes the brief v2 anchor of E496.
+Measured basis: **mature 472 (= precursor E496) is 25.85 Å from the H409 imidazole**
+and 28.89 Å CA-CA. E496 and H433 cannot participate in the same interface, so the
+brief's binder-His/E496 scheme and the H433 anchor are mutually exclusive, and the
+lit-pass precedent (Liu 2022 G532 pairing binder acid with EGFR H433/H370) points to
+H433. This resolves lit-pass contradiction (2) on geometry, independent of the
+summarizer-read sourcing.
+
+**Single-ionization ceiling.** For one ionizable group fully coupled to binding, the
+maximum achievable selectivity is `10^ΔpH`. Over pH 7.4 → 6.5, ΔpH = 0.9, so
+**Kd(7.4)/Kd(6.5) saturates at 10^0.9 = 7.94×** (computed here). The G532 figure of
+**13.26×** reported in the lit pass (Liu 2022, summarizer-read, not verified against a
+PDF) **exceeds that ceiling**, which implies more than one coupled ionizable group — or
+that the reported value includes avidity, since G532 is an IgG and the lit pass records
+a monovalent expectation of roughly 2-10×. Practical consequence: a single binder-side
+histidine cannot reach 13×, and a design brief that targets it should plan for ≥2
+coupled groups rather than one.
+
+**No target carboxylate is within salt-bridge range of H409.** Closest carboxyl oxygen
+is **D344 at 10.58 Å** and **D436 at 10.68 Å** — roughly 2-3× beyond H-bond/salt-bridge
+range (~2.7-4.0 Å). H346 (precursor H370), the second Liu anchor, is 8.52 Å ring-to-ring
+from H409, so the two target histidines do not couple to each other either. D344 and
+D436 remain live candidates for pairing with a **binder-side** histidine rather than
+with H409: both are in-patch, D436 with an outward carboxylate at 3.00 Å from Q411.
+**This is a Phase 3 question** — Phase 1 (§7) does not attempt pH coupling and uses no
+pH-specific restraint.
+
+### 7. PHASE 1 TWO-ARM DESIGN (v3c)
+
+Two arms, **10 seeds each, run sequentially** (not concurrently — two detached
+`modal run` sessions from one client cancel each other, per the `run_bindcraft.py`
+docstring), both on the domain III slice `--target-residue-range 311-514`:
+
+| Arm | Run tag | Hotspots |
+|---|---|---|
+| **A** | `phase1-v3c-core` | `A408,A409,A411,A412` |
+| **B** | `phase1-v3c-q408` | `A384,A408,A409,A411,A412` |
+
+**Rationale — the two arms trade off three measured properties that cannot all be
+satisfied at once.** The split exists because A384 is simultaneously the best and worst
+residue in the set:
+
+- **The core (Arm A) is glycan-free but flat.** The 408-412 core is ≥ 14.99 Å from any
+  sequon Asn and ≥ 16.79 Å from any modelled sugar atom, so it carries no glycan
+  liability. But it is the flattest surface measured (plane RMS 0.45 Å) with no
+  resolvable curvature, and its span is only 6.93 Å — a small, flat epitope is a harder
+  target for a high-affinity interface.
+- **A384 is the only source of concavity (Arm B).** Adding it takes the patch from
+  unresolvable curvature to a resolvable **concave** surface (H = +0.08311 /Å, radius
+  12.0 Å) and widens the span to 15.77 Å. Concavity generally helps a designed binder
+  get shape complementarity.
+- **But A384 is also the glycan-adjacent residue.** Every one of the four near sequons
+  reaches the patch through A384 and nothing else — N420 at 7.76 Å, N328 at 11.89 Å —
+  and the two nearest first-NAGs (11.93 Å, 13.15 Å) are both nearest to A384. A384 is
+  additionally 12.29 Å from its nearest other set member, so the concavity it creates
+  depends on a spatially detached residue.
+
+Running both is the only way to find out whether the concavity is worth the glycan risk;
+neither arm is a priori correct on the measurements.
+
+### 8. ASSAY CONDITIONS
+
+Neutral condition: **10 mM HEPES, 150 mM NaCl, 0.2% Tween-20, 3 mM EDTA, pH 7.4.**
+The acidic condition swaps HEPES for a low-pH buffer species (**species TBC** — see
+§10), with **ionic strength matched at ~170 mM** so the two conditions differ in pH
+alone and not in electrostatic screening.
+
+**Screening consequence.** At I = 0.170 M the Debye length is
+`0.304/√I nm = 0.737 nm = 7.37 Å` (computed here, 25 °C). A solvent-exposed salt bridge
+is therefore screened over roughly the length of a single residue-residue contact, so a
+pH-coupled ion pair placed on the open surface will contribute little free energy at
+this ionic strength. **The pH-coupled pair should be buried at the interface core**,
+where the local dielectric is lower and the interaction is shielded from bulk
+counterions. This argues against relying on H409's own exposure (0.67 free-receptor)
+and in favour of a pair that becomes occluded on binding.
+
+**Conflict to reconcile.** An earlier note recorded the buffer as **"HBS-T + 0.5% BSA"**,
+which is not the same as the above — it omits EDTA, implies a different detergent
+concentration, and adds BSA as a carrier. The two records need reconciling against the
+actual Adaptyv assay sheet before any pH-dependent claim is made, since 0.5% BSA in
+particular changes the effective free-ligand concentration. **Not resolved here.**
+
+### 9. VALIDATION SO FAR
+
+**The v3 OOM and the fix.** The v3 probe loaded the full 609-residue chain A. AF2
+activation memory scales ~N², and `design_logits` requested **29.26-42.59 GiB** across
+seeds against a 24 GB A10G, giving `RESOURCE_EXHAUSTED` on every seed before any design
+completed. Slicing to domain III (**311-514, 204 residues**, verified 609 → 204 on both
+`6aru.cif` and the RCSB `6ARU.pdb` that `design_one` actually fetches, all 7 hotspots
+retained) eliminated it: the v3b run logged **0 `RESOURCE_EXHAUSTED` and 0 XLA
+rematerialization warnings**, versus one rematerialization warning per seed within 10 s
+in v3.
+
+**v3b outcome: 2 accepted from 10 seeds.** Only 10 of the requested 100 seeds ever got
+a container — the run was killed mid-flight by
+`GRPCError FAILED_PRECONDITION 'workspace ac-3KZ86ww6Oyuet9trAefaYa is disabled'`, an
+account-level event, not a code fault. Every seed's last write is timestamped 10:53 PDT.
+Seeds 3/5/8 failed on their own merits (Clashing, LowConfidence); seeds 2/4/7/9 were
+interrupted mid-MPNN with trajectories in hand; seed 0 never wrote a trajectory. So the
+2/10 accept rate understates the true rate. Partial outputs preserved in
+`challenges/egfr/phase1-probe-v3b-partial/` (125 files).
+
+| | seed 1 | seed 6 |
+|---|---|---|
+| design | `egfr_l61_s802791_mpnn5` | `egfr_l73_s214385_mpnn3` |
+| length | 61 | 73 |
+| sequence | `SAEEEERIRDIVLTTDPHIKRWHEEYEKHPDLPERDKELYEEVMGHHLFLASVVLEDEKAA` | `MKVKDLVGLFRDFVEGKKPEGISEDEFWVIHFEFMVVDPRDPEMVEEFAKKYGISIEEVEEVFRIVKWHPYHR` |
+| AF2 design-time i_pTM | 0.90 | 0.80 |
+| AF2 pLDDT / i_pAE | 0.94 / 0.12 | 0.90 / 0.21 |
+| BindCraft SC | 0.67 | 0.64 |
+| binder energy | −148.92 | −183.31 |
+| interface H-bonds | 8.0 | 3.5 |
+
+**Full-length co-fold against P00533 precursor 25-645 (621 aa).** Boltz-2 2.2.1 on
+A100-40GB. Canonical P00533 was used rather than the 6ARU construct because the
+construct stops at precursor 640 and carries a His6 tag. Decision thresholds from
+`notes/calibration.md`: **ipSAE_min ≥ 0.60, SC ≥ 0.58; ipTM informational only**
+(AUC 0.52 on the Adaptyv set).
+
+| | seed 1 | seed 6 |
+|---|---|---|
+| iPTM *(informational)* | 0.9293 | 0.7191 |
+| pTM | 0.6603 | 0.8090 |
+| **ipSAE_min** | **0.5659** ✗ narrow fail | **0.2880** ✗ hard fail |
+| ipSAE directional (A→B / B→A) | 0.625 / 0.5659 | 0.3285 / 0.2880 |
+| **SC** (pyrosetta Lawrence-Colman) | **0.6451** ✓ pass | **0.3883** ✗ fail |
+| complex pLDDT | 0.8873 | 0.8302 |
+| binder mean pLDDT | 85.375 | 69.888 |
+| interface residues (4.5 Å, heavy) | 27 | 38 |
+| target residues flagged interface by PAE | 239 / 621 | **331 / 621** |
+| **hotspot recovery** | **6/7** | **3/7** |
+| epitope Jaccard vs design-time | **0.77** (88% retained) | **0.32** (70% retained) |
+| contacts by ECD domain | **27 domain III** | **19 domain I / 19 domain III** |
+| receptor fold, domIII CA RMSD vs 6ARU | 0.58 Å | 0.66 Å |
+| receptor fold, domI CA RMSD | 0.72 Å | 0.68 Å |
+
+Per-hotspot closest heavy-atom distance (precursor numbering):
+
+| Hotspot | seed 1 | seed 6 |
+|---|---|---|
+| Q408 | 3.25 Å ✓ | 3.03 Å ✓ |
+| Q432 | 2.97 Å ✓ | 2.81 Å ✓ |
+| **H433** | 3.00 Å ✓ | 3.16 Å ✓ |
+| Q435 | 2.80 Å ✓ | 7.49 Å ✗ |
+| F436 | 3.73 Å ✓ | 4.96 Å ✗ |
+| K489 | 2.21 Å ✓ | 4.61 Å ✗ |
+| I490 | 8.65 Å ✗ | 7.68 Å ✗ |
+
+**Seed 1 passes; seed 6 fails.** Seed 1 keeps its epitope entirely within domain III
+with six hotspots at genuine contact distance (2.21-3.73 Å), passes SC, and misses
+ipSAE_min by 0.034 — the shortfall is on the binder side (B→A 0.5659 vs A→B 0.625), not
+in interface geometry. Seed 6 bridges domain I and domain III on the full receptor,
+fails both decision metrics, and its binder pLDDT of 69.888 sits at ipSAE's 70 cutoff,
+which is why 331 of 621 target residues register as "interface" — a diffuse,
+low-confidence prediction. **Seed 6 was an artifact of the domain III slice**, which is
+the failure mode the slice was expected to risk. Receptor folds are sound in both
+(domain III CA RMSD 0.58/0.66 Å vs 6ARU), so the contact analysis is trustworthy.
+
+Contact counts use **heavy atoms only on both sides**: BindCraft's relaxed outputs carry
+hydrogens and Boltz's do not, so including H inflates the design-time counts to 29/26
+instead of 26/20 and makes the comparison unfair.
+
+**Tools built, and why each was needed** (both additive; no existing behaviour changed):
+
+- **`--target-residue-range` in `run_bindcraft.py`** (commit `155971a`) — the pipeline
+  had no way to load a sub-range of a target chain, so a large ECD could only be run
+  whole, which OOM'd. 17 insertions / 2 deletions, reusing the existing
+  `ChainSelect.accept_residue` hook. Empty string preserves prior behaviour exactly.
+- **`cofold_seqs` in `redundancy.py`** (commit `1362da3`) — the existing
+  `crossval_boltz` derives its target from the design PDB via `_extract_chains`, so it
+  can *only* re-predict against the same sliced target the design was built on. That
+  makes it structurally incapable of the check needed here. `cofold_seqs` takes the
+  target as an explicit sequence.
+- **`sc_and_contacts` + `sc_image`** (same commit) — two problems with reusing `_get_sc`.
+  First, `SC_PASS = 0.58` is calibrated on pyrosetta Lawrence-Colman SC, but
+  `redundancy.py`'s image has no pyrosetta and falls back to a **burial-fraction proxy**,
+  a different quantity that cannot be compared to that threshold. Second, `_get_sc`
+  prefers BindCraft's CSV value, which for a re-prediction is the *original* target's
+  number. `sc_image` adds pyrosetta so the real `ShapeComplementarityFilter` runs on the
+  new structure. `sc_and_contacts` also reports contacts with a `--resnum-offset` so
+  output lands in the caller's numbering.
+
+Artifacts: `challenges/egfr/fulllength-cofold/` (predicted complexes, PAE/pLDDT arrays,
+confidence JSON).
+
+### 10. OPEN ITEMS
+
+1. **Which ipSAE convention the pipeline uses.** `_compute_ipsae` implements Dunbrack
+   2025 with PAE ≤ 10 Å and pLDDT ≥ 70 interface selection and `d0` from the TM-score
+   length formula, taking the **minimum over ordered chain pairs**. Whether that matches
+   the convention behind the 0.60 operating point (and the Overath 2025 meta-analysis)
+   is unconfirmed — the lit pass records that ipSAE and SC "were never analysed in the
+   preprint or public tables", so the ranking recipe is untested on this data. Seed 1
+   fails by 0.034, which is inside the plausible spread between conventions, so this
+   directly decides whether seed 1 advances.
+2. **Adaptyv submission cap.** Number of sequences submittable is not recorded anywhere
+   in the repo; it sets how many seeds each v3c arm can contribute.
+3. **Low-pH buffer species.** §8 — the acidic condition's buffer is TBC, and the
+   "HBS-T + 0.5% BSA" vs "HEPES/NaCl/Tween/EDTA" conflict is unresolved.
+4. **D344 / D436 exposure.** Both are in-patch but modestly exposed (0.19 and 0.30 rel
+   SC) and D344's same-face call is marginal (88.7°, 1.3° inside the cutoff) and would
+   flip under a slightly different normal-estimation radius. If either is to carry a
+   pH-coupled pair with a binder histidine, its exposure should be checked in the
+   *bound* state rather than on the free receptor.
+5. **Mouse model confidence over domain III.** Domain III identity is 87.3% per the lit
+   pass (not the 92% in brief v2; BLOSUM62 similarity 93.1%). I467 and S468 are the
+   divergent positions that sit closest to the epitope, and dropping A465 in v3c is what
+   moves them out of patch — but the mouse cross-reactivity of the resulting interface
+   has not been modelled, only argued from distance.
+6. **`I490` (mature A466) is uncontacted by construction now.** It was dropped from the
+   hotspot set, but if the Adaptyv epitope definition requires it, no design so far
+   touches it and none is being steered to.
