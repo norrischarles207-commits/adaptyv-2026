@@ -1029,3 +1029,96 @@ the strict passers is rational — but Track 2 and Track 3 share a single 384-we
 plate allocated by a workflow that reads the submissions, so a large tail of
 weakly justified designs plausibly costs more in selection than it gains in
 coverage. Submit the defensible set, labelled honestly; do not pad to 20.
+
+## 2026-09-30 — Platform spec, deadline, glycosylation resolution, pH mechanism, pipeline facts, filter results, corrections
+
+Append-only synthesis. Inferences and unverified items are marked as such; sources cited where given.
+
+### Platform (Adaptyv, via Slack)
+
+- Target is expressed in **HEK293 with full human glycans** (not deglycosylated, not E. coli).
+- **Max 20 sequences per team per collection.**
+- The pH 6.5 condition replaces HEPES with **MES**, ionic strength matched to **~170 mM** so pH is the only variable. Buffer follows the **Germinal paper (Nat Biotechnol s41587-026-03187-0)**; exact recipe **not retrieved (unverified)**.
+- **Split-GFP** is used for expression quantification (design–linker–GFP11–linker–TwinStrep construct).
+- Linkers are **short but flexible**.
+
+### Deadline correction
+
+**Challenge 1 closes 2026-10-04 23:59 AoE**, not end of October. The competition's five problems run to **2026-11-01**. (Supersedes any earlier "end of October" assumption.)
+
+### Consequences for selection
+
+- **C-terminal clearance is promoted from tiebreaker to a selection criterion.** With C-terminal immobilisation and split-GFP readout, an occluded C-terminus impairs GFP11 complementation and **reads as failed expression**. Current clearance (residues): seed 2 (14) and seed 0 (13) **exposed/tight**; seed 6 (44), 3 (27), 1 (22), 5 (19) have **room**; seed 7 (18) **borderline**.
+- **New filter: penalise large exposed hydrophobic patches.** The neutral buffer's **0.2% Tween-20** competes for nonpolar surface. **UNVERIFIED:** 0.2% is ~10× a typical BLI kinetics buffer — flagged, not confirmed.
+- **3 mM EDTA rules out metal-coordinating designs.**
+- **OPEN / UNVERIFIED:** superfolder-derived GFP variants have a chromophore **pKa near 6**. **INFERENCE:** if expression is read per-pH-condition rather than once at a fixed pH, GFP's own pH response would bias measured selectivity upward for *every* design — a systematic artifact, not a property of the binder. Unverified whether readout is per-condition.
+
+### Glycosylation — resolves A384 (and a numbering hazard)
+
+- **NUMBERING RESOLUTION:** our "N420" is **mature** numbering = **precursor N444** (precursor 420 is a phenylalanine and cannot be a glycosite — determined, not assumed).
+- N420(mature)/N444(precursor) is **occupied**; chitobiose resolved in **both 1YY9 and 6ARU**. The chitobiose core reaches **10–12 Å**; the A384 patch sat **7.8 Å** away — i.e. inside the **rigid ordered stem**, not a flexible antenna.
+- Domain III carries **five canonical sequons** (mature N328, N337, N389, N420, N504) plus **two atypical N-X-C** (mature N444, N473). N328 and N337 carry **high-mannose reaching 28–35 Å**.
+- **Measured effect (Glycobiology 2025, cwaf066):** PNGase F deglycosylation improved cetuximab KD **4.66 nM → 0.017 nM** (270×) and **151 nM → 0.15 nM** (1000×); trastuzumab/HER2 **unaffected**, so the effect is specific to this surface.
+- Crystal coverage: apart from one **Man6/Man7 at N328**, every site is one or two GlcNAc stubs.
+- **NUMBERING HAZARD (recorded):** **mature N444 and precursor N444 are different asparagines**, both annotated glycosites, both in domain III. Do not conflate.
+
+### Arm B retired — on evidence, not guess
+
+The two-arm design existed to test whether A384's concavity was worth the glycan risk. The assay spec (**HEK293, full glycans**) plus the **measured shielding** above resolve it **without running Arm B**: A384 sits in the ordered glycan stem on a fully glycosylated target. **Cost acknowledged:** A384 was the only *resolvable* source of concavity (H = +0.08311 /Å); the remaining 4-residue core patch is flat. (Consistent with the earlier `&&`-guard correction — Arm B did briefly launch and die; it is now retired deliberately.)
+
+### Species specificity — the template chose a divergent patch
+
+- **Cetuximab does not functionally bind mouse EGFR.** Cleanest number: **necitumumab** (overlapping domain III epitope) human/cyno EC50 **6–7 pM** vs mouse EGFR-ECD-Fc **~20 nM**, **~3000× loss** (FDA BLA 125547 pharmacology review). **6ARU is the cetuximab complex**, so our structural template selected a **species-divergent** patch.
+- **Li et al. 2005 cetuximab contacts (mature):** R353, Q384, Q408, H409, S418, S440, K443, K465, I467, S468, N473.
+- **G5V2/G532 cross-reactive epitope (mature; converted from precursor H370/R377/L406/H433/Q435/K489):** H346, R353, L382, H409, Q411, K465.
+
+### Hypothesis tested and REJECTED — Q408 as species liability
+
+The in-repo alignment (`species_align.py`) shows **all four Arm A hotspots mouse-conserved** (408 Q, 409 H, 411 Q, 412 F) and **both histidines H346/H409 conserved**. Domain III identity **179/205 = 87.3%**. Q408 is not a species liability.
+
+### G532 mechanism — changes the pH strategy (Liu et al. 2022, Mol Ther Oncolytics, PMC9703009)
+
+- **The titrating histidines are EGFR's OWN, not the antibody's:** LCDR1 **Glu32** against **H433 (precursor) = H409 (mature)**; LCDR2 **Asp52/Asp53** facing **H370 = H346 (mature)**.
+- **Y32E created the pH dependence** (~13× gain, Fab format); reverting **E32→His destroyed it** (~5× loss). **H433A abolishes binding; H370A reduces affinity and pH dependence.**
+- The **13.26×** is Table 1, SPR, pH 7.4/6.5 KD ratio on human EGFR.
+- **INFERENCE (from assay geometry, not stated in the paper):** antibody captured via anti-Fc with monomeric His-Avi-tagged EGFR ECR as analyte → no 2:1 avid complex → the figure is **monovalent-equivalent**. Corroborated by the avidity-permissive **ELISA giving a LOWER ratio (8.083)** and by the key pH experiment being in **Fab format**.
+- **CAVEAT:** the pH 7.4 KD (3.90 µM) was fit with analyte only to 3200 nM (barely saturating) and is the numerator; **no replicates or CIs reported**.
+- **CALIBRATION:** G532's best affinity is **294 nM**; its **mouse** pH selectivity is **3.3×** vs **13.26×** human. Their epitope is **model-derived** (ABodyBuilder Fv manually docked onto 1YY9), so treat **H346/H409 as solid** and **R353/L382/Q411/K465 as hypotheses**.
+
+### Two-histidine epitope — revisit flagged
+
+We previously dismissed a two-histidine epitope because H346 reads as largely buried (0.21 rel SC) and is 8.52 Å from H409 at 77.8° (§3, §6). But **Liu's mutagenesis shows H370A measurably reduces pH dependence**, so *something* contacts H346. **Unresolved** — the buried/uncoupled reading and the mutagenesis disagree.
+
+### pH thermodynamics — corrected target
+
+The controlling variable is the **pKa SWING on binding**, not absolute pKa. A histidine at pKa ~6.95 gives only 2–3×; the target is **pKa_free ≤ 6.0 and pKa_complex ≥ 8.0**, giving **~5.2× per site, ~27× for two**. **WINDOW SCALING:** published fold-changes are mostly measured over pH 7.4 vs 5.4 (2.0 units); ours is **0.9 units**, so a design giving 79× there gives **roughly 8× here**. **State of the art reports ZERO de novo designs that bind tighter at low pH.**
+
+### Pipeline facts (resolves the earlier "MPNN weights UNCONFIRMED")
+
+- BindCraft's `default_4stage_multimer_hardtarget.json` sets **`"mpnn_weights": "soluble"`** (SolubleMPNN) — **retires the 0% vs 93.1% expression risk** flagged in the Task-4 audit.
+- It also sets **`"mpnn_fix_interface": true`**. **This corrects the morning's histidine finding:** all 8 interface His were conserved **because the pipeline holds interface residues fixed**, not because MPNN chose to protect them.
+- **Consequence:** MPNN will **preserve** an interface acid the trajectory placed, but will **never introduce** one — so **any pH bias must be applied at the hallucination stage**, not left to MPNN.
+
+### Selection metric provenance (bioRxiv 2025.08.14.670059)
+
+- **ipSAE_min > 0.61** is the max-F1 threshold from a **3766-binder** meta-analysis, computed **on MIN**; AF3 ipSAE_min was the best single predictor at **1.4× the average precision** of AF2 ipAE. **Our pre-registered 0.60 on min matches it and was chosen before this source was found.**
+- Same source: **composites beat singles** — ipSAE_min × (interface_dG/dSASA < −1.5); **SC > 0.62**; RMSD_binder < 3.73.
+- **PROPOSED AMENDMENT, not yet applied:** tighten SC from **0.58 → 0.62** in a *future* round (does not apply retroactively to the current d94a8d4 scoring).
+- Adaptyv's own ROC-AUC analysis of their EGFR rounds put **iPAE, ipTM and ESM2 pseudolikelihood at ~0.5 (random)**; Round 1's winner ranked 1st on the leaderboard while 2nd ranked 54th and 3rd ranked 89th.
+
+### Base rates
+
+- Adaptyv EGFR **Round 2 de novo hallucination hit rate 9% (6/65)**, expression 100%.
+- Historical EGFR hit rate before these competitions **0.01%**.
+- **No prior round required pH-switching or cross-species reactivity**, so there is **no base rate for this problem type; expect below 9%.**
+
+### Filter results (2026-09-30) — recap of what was computed
+
+- **Interface conservation (Filter 2):** all 7 designs contact mouse-divergent **418 (S→G)** and **467 (I→M)**, most also 353 and 468. **Conserved hotspots did not produce conserved interfaces.**
+- **Acid→H409 with null control (Filter 3):** all 5 MPNN designs place an acid 2.6–4.2 Å from H409's imidazole, but the null shows this is **mostly packing density** — seed 2 distinctive (16% of interface residues have an acid ≤6 Å, H409 rank 1), seed 1 not (65%, rank 6), seeds 3/5/7 intermediate (42–48%). H346 unengaged everywhere (≥6.5 Å). **The raw filter without the null would have produced five false positives.**
+
+### Corrections to earlier entries (consolidated)
+
+1. **The `&&` guard claim was wrong.** In zsh, `cmd | tee file` exits with `tee`'s status, so the guard did not hold and **Arm B did launch**. Fix recorded: `set -o pipefail` (`modal/run_logged.sh`).
+2. **Sequence-composition analysis from `v3c-core.log`'s summary table used TRAJECTORY sequences**, not the MPNN variants of the 5 accepted designs — different molecules. Only seeds 0 and 6 were analysed correctly.
+3. **The v3b → v3c comparison is confounded and contradicts §9.** Both the hotspot set (7→4) and the length range ([60,180]→[60,100]) changed, and §9 already states v3b's 2/10 understates the true rate. The supportable claim is that **the 4-residue core produces accepted designs at a useful rate**, not that it does so *better* than v3b.
