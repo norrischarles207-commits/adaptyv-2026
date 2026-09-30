@@ -1,0 +1,31 @@
+{
+  "stage": "fulllength",
+  "diffusion_samples": 3,
+  "ipsae_pass": 0.6,
+  "sc_pass": 0.58,
+  "total_gpu_seconds": 149.2,
+  "rows": [
+    {
+      "design": "EGF_HUMAN_mature|P01133",
+      "binder_len": 53,
+      "ipsae_mean": 0.6437,
+      "ipsae_range": 0.0592,
+      "ipsae_samples": [
+        0.6821,
+        0.6229,
+        0.6262
+      ],
+      "sc_mean": 0.4993,
+      "sc_range": 0.0363,
+      "sc_samples": [
+        0.4796,
+        0.5159,
+        0.5024
+      ],
+      "ipsae_pass": true,
+      "sc_pass": false,
+      "overall_pass": false,
+      "gpu_seconds": 149.2
+    }
+  ]
+}

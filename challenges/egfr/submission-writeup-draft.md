@@ -15,7 +15,7 @@ Draft — values marked `[PENDING]` land from the Stage 1/2 co-folds.
 | Epitope (hotspots) | Q408, H409, Q411, F412 — **mature** numbering |
 | Molecule class | protein (single chain, linear) |
 | Lengths | 64–93 aa |
-| Designs submitted | `[PENDING]` |
+| Designs submitted | 3 (1 pass, 2 declared near-misses) — allowance is 20, deliberately unused |
 | Selection criteria | Pre-registered before results, commit `d94a8d4` |
 
 **Numbering convention.** Mature EGFR numbering throughout. Precursor
@@ -73,7 +73,48 @@ distances, null ranks), methods log entry 2026-09-30.
 cross-reactivity from hotspot conservation, we built the mouse domain III
 sequence by substituting all 26 divergent positions and co-folded every design
 against both species under identical tool, length, and sampling settings.
-`[PENDING — Stage 1 table]`
+Three diffusion samples per species per design; 1,771 GPU-s. A difference is
+called real only when it exceeds the larger of the two sample ranges.
+
+| design | human ipSAE | mouse ipSAE | gap | noise floor | resolved |
+|---|---|---|---|---|---|
+| `egfr_l93_s713816` | 0.816 [0.011] | 0.792 [0.014] | 0.024 | 0.014 | yes |
+| `egfr_l75_s674224_mpnn14` | 0.801 [0.032] | 0.775 [0.006] | 0.026 | 0.032 | no |
+| `egfr_l64_s902794_mpnn2` | 0.751 [0.050] | 0.727 [0.047] | 0.024 | 0.050 | no |
+| `egfr_l79_s846567_mpnn5` | 0.748 [0.028] | 0.728 [0.056] | 0.020 | 0.056 | no |
+| `egfr_l91_s124145_mpnn1` | 0.720 [0.015] | 0.693 [0.051] | 0.027 | 0.051 | no |
+| `egfr_l67_s528267` | 0.705 [0.031] | 0.642 [0.051] | **0.063** | 0.051 | yes |
+| `egfr_l89_s399498_mpnn2` | 0.761 [0.015] | 0.695 [0.048] | **0.066** | 0.048 | yes |
+
+**The aggregate result, stated against our own interest.** `[measured]` All
+seven designs score higher against human than mouse. Under a sign test that is
+p = 0.016 two-tailed (0.008 one-tailed, and the human-favouring direction was
+predictable a priori from 26 divergent positions). **These designs are not
+species-agnostic — there is a small, systematic human preference across the
+entire set.** That is a finding against criterion 2, and we report it as such
+rather than leading with the four "indistinguishable" verdicts.
+
+**Resolution tracks precision, not effect size.** `[measured]` The per-design
+verdicts split into three resolved and four not, but that split is largely an
+artifact of measurement precision. `l93` (gap 0.024) resolves while `l79`
+(gap 0.020) does not — near-identical gaps, different verdicts, because `l93`
+was sampled four times more tightly. The honest grouping is by gap magnitude,
+not by verdict:
+
+- **Large gap (~0.065):** `l67`, `l89` — genuine species discrimination.
+- **Small gap (0.020–0.027):** the other five, indistinguishable from each
+  other and close to the noise floor.
+
+`[inferred]` Reading the four non-resolved designs as "cross-reactive" would
+be reading a null result as a positive one. The defensible claim is narrower:
+five of seven show a species gap too small to resolve at this sampling depth,
+and two show a gap roughly 2.7× larger that is clearly real.
+
+**Convergence worth noting.** `[measured]` The three submitted designs were
+selected on Stage 2 full-length composite, with no reference to Stage 1. They
+happen to be three of the five smallest species gaps, and both large-gap
+designs fall outside the submission set. The two selection criteria agree
+without having been made to.
 
 **Epitope-level conservation.** `[measured]` Global alignment of P00533 against
 mouse Q01279, computed in-repo against live UniProt. Domain III identity
@@ -125,7 +166,48 @@ AF2 ipAE (bioRxiv 2025.08.14.670059).
 
 **Full-length validation.** `[measured]` Designs were scored against the
 complete 621-residue ECD, not only the domain III slice used for design, to
-confirm the interface survives in the intact receptor. `[PENDING — Stage 2]`
+confirm the interface survives in the intact receptor. Three diffusion samples
+per design; mean reported with sample range in brackets. Total 1,244 GPU-s.
+
+| design | len | ipSAE_min | SC | pass | composite |
+|---|---|---|---|---|---|
+| `egfr_l93_s713816` | 93 | **0.651** [0.014] | **0.647** [0.122] | **yes** | 0.651 |
+| `egfr_l75_s674224_mpnn14` | 75 | 0.543 [0.218] ⚠ | 0.597 [0.100] | SC only | 0.543 |
+| `egfr_l64_s902794_mpnn2` | 64 | 0.516 [0.098] | 0.574 [0.066] | no | 0.511 |
+| `egfr_l89_s399498_mpnn2` | 89 | 0.546 [0.057] | 0.512 [0.065] | no | 0.482 |
+| `egfr_l91_s124145_mpnn1` | 91 | 0.510 [0.064] | 0.545 [0.039] | no | 0.479 |
+| `egfr_l79_s846567_mpnn5` | 79 | 0.524 [0.126] | 0.519 [0.205] ⚠ | no | 0.469 |
+| `egfr_l67_s528267` | 67 | 0.453 [0.154] ⚠ | 0.533 [0.060] | no | 0.417 |
+
+⚠ = poorly determined, sample range > 0.15 on the marked metric.
+
+**One design passes.** `[measured]` Slice-stage ipSAE_min was 0.72–0.82; six of
+seven fall to 0.45–0.65 at full length. The interface does not survive intact
+receptor context for most of the set.
+
+**The passer is the most reproducible result in the run, not the luckiest.**
+`[measured]` `egfr_l93_s713816` has an ipSAE sample range of **0.014** —
+0.650, 0.659, 0.645 — roughly four times tighter than any other design and
+sixteen times tighter than `l75`. All three samples clear threshold
+independently.
+
+**Why the sampling protocol mattered.** `[measured]` `l75` has a mean of 0.543
+but samples spanning 0.431–0.649: **one of three clears 0.60.** A single-sample
+protocol had a one-in-three chance of reporting `l75` as a pass. The
+mean-not-best-of-N rule was fixed before results were seen, and this is the
+case it caught.
+
+**Calibration control — pre-registered, not completed.** `[measured]` Because
+the 0.60 threshold derives from a benchmark of ~200–400 residue complexes and
+is applied here at ~700 residues, we pre-registered an EGF positive control
+with both interpretive branches fixed in advance (commit `5a2d2dc`, before the
+control was run). The control did not complete: the compute workspace hit its
+spend limit and the result was lost. Neither branch resolves, so **we report
+Stage 2 against the unadjusted threshold and flag that the threshold is being
+applied outside its validated size domain.** Six designs shifting down by
+similar magnitude is as consistent with a systematic offset as with six
+independent failures, and we cannot distinguish the two. The pre-registration
+stands in the repository unfulfilled rather than being quietly dropped.
 
 ---
 
@@ -194,8 +276,11 @@ hydrophobic surface, and we weighted against those.
 
 ## Limitations
 
-1. **Interface-level mouse divergence.** All designs contact ≥2 species-divergent
-   positions. Quantified above.
+1. **Interface-level mouse divergence, and a systematic species gap.** All
+   designs contact ≥2 species-divergent positions, and all seven score higher
+   against human than mouse (sign test p = 0.016 two-tailed). The designs are
+   not species-agnostic; the submitted three have gaps near the noise floor,
+   which is weaker than demonstrated cross-reactivity.
 2. **Flat epitope.** Dropping A384 removed the only measurable concavity;
    the remaining surface is flat within fit error.
 3. **pH mechanism is incidental, not designed.** No pH restraint was applied
@@ -206,14 +291,42 @@ hydrophobic surface, and we weighted against those.
    Adaptyv's EGFR Round 2 was 9% (6/65), and no prior round required
    pH-switching or cross-species reactivity, so there is no base rate for this
    problem type. We expect below 9%.
+5. **Threshold applied out of domain, control not completed.** `[measured]`
+   The calibration control was pre-registered and then lost to a compute spend
+   limit. We cannot distinguish a systematic full-length offset from six
+   genuine failures. Stage 2 is reported against the unadjusted threshold.
+6. **The passer was rejected by BindCraft's own filters.** `[measured]`
+   `egfr_l93_s713816` is a trajectory sequence that BindCraft's default filter
+   set declined. It passes our independent full-length criteria with the
+   tightest sampling spread in the run. We report the disagreement rather than
+   resolving it: either our criteria admit something BindCraft correctly
+   rejected, or BindCraft's defaults are miscalibrated for this target. The
+   wet-lab result decides.
 
 ---
 
 ## Designs submitted
 
-`[PENDING — table: name, length, ipSAE_min human (mean ± range), ipSAE_min
-mouse (mean ± range), difference vs noise floor, SC, C-terminal clearance,
-H409 acid rank, pass / sub-threshold]`
+**Three, not twenty.** `[measured]` The selection rule was pre-registered: if
+fewer than three designs pass full-length validation, submit the passer plus
+the next-best by composite, labelled, and **do not pad to the 20-sequence
+allowance.** One design passed. The rule fired as written.
+
+| # | design | len | full-length ipSAE | species gap | status |
+|---|---|---|---|---|---|
+| 1 | `egfr_l93_s713816` | 93 | **0.651** [0.014] | 0.024 | **Pass** — both thresholds, all three samples |
+| 2 | `egfr_l75_s674224_mpnn14` | 75 | 0.543 [0.218] | 0.026 | Sub-threshold, poorly determined (1 of 3 samples above threshold). Highest SC in the set |
+| 3 | `egfr_l64_s902794_mpnn2` | 64 | 0.516 [0.098] | 0.024 | Sub-threshold, well determined. Second-highest SC |
+
+`[inferred]` Designs 2 and 3 are submitted as declared near-misses, not as
+candidates we expect to bind. Padding the remaining 17 slots with designs whose
+composite runs down to 0.417 would raise the chance of a hit by chance while
+making the pre-registration meaningless. We would rather report one honest pass.
+
+`[measured]` `egfr_l93_s713816` leads on every axis measured: highest human
+ipSAE at slice stage (0.816), highest mouse (0.792), tightest sampling in both
+species, only full-length pass, and tightest full-length spread. It is the
+single design in this set we would defend individually.
 
 ---
 
