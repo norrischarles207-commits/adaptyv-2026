@@ -725,3 +725,19 @@ in `v3c-core-designs.csv`):
 Among the 4 accepted MPNN designs with the largest clearance, seeds 3 and 5
 lead (0.297), then seed 7 (0.228) and seed 1 (0.247); seed 2 has the tightest
 paratope-to-C-terminus spacing of the accepted set (0.187).
+
+**Additional constraints and caveats recorded (2026-09-30).**
+
+- **Linear designs only.** Adaptyv confirmed that only linear designs are
+  supported this round; cyclic and disulfide-constrained peptides are not.
+  Our designs are linear by construction, so this is satisfied by default.
+- **Immobilisation is on the C-terminus.** Confirmed twice in Slack by
+  Tudor-Stefan Cotet, in two separate threads. This is the basis for the
+  C-terminal clearance metric above.
+- **Sequence clearance is a proxy, not the quantity of interest.** The
+  clearance metric above is a 1-D sequence-distance proxy. The intended
+  metric is the *spatial* distance and angle between the C-terminal residue
+  and the paratope centroid in the design structure, which captures whether
+  the paratope actually faces the immobilisation surface. That structural
+  metric is deferred until the design structures are retrievable from the
+  Modal volume (currently over its spend limit).
