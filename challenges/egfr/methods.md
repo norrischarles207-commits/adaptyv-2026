@@ -2,6 +2,19 @@
 
 Append-only historical log, one dated entry per run or pass (see `../README.md`). Entries are never rewritten. The design-run entries from `brief.md` ("Methods-log seed") have not been added yet; this file starts with the literature pass.
 
+## Topic index
+
+Pointer map, subject → dated entry heading. Navigation only; entries below are append-only and are never reordered or rewritten.
+
+- **Numbering conventions** → 2026-09-29 "Phase 1 probe runs…" §1 NUMBERING (precursor = mature + 24; slice/complex renumbering traps); numbering hazards also in 2026-09-30 "Platform spec…" (mature N444 ≠ precursor N444).
+- **Hotspot derivation** → 2026-09-29 "Phase 1 probe runs…" §2 EPITOPE DERIVATION (cetuximab contact patch; hotspot set history v3/v3b/v3c); cetuximab/G5V2 contact lists in 2026-09-30 "Platform spec…".
+- **Glycosylation** → 2026-09-29 "Phase 1 probe runs…" §4 GLYCOSYLATION; resolved in 2026-09-30 "Platform spec…" (A384 in the ordered glycan stem; N420 mature = N444 precursor).
+- **Species alignment** → 2026-09-30 "Species alignment reproduced…" (in-repo human/mouse domain III, 87.3%); species specificity + divergent-interface filter in 2026-09-30 "Filters 2 & 3 computed…" and "Platform spec…".
+- **pH mechanism** → 2026-09-29 "Phase 1 probe runs…" §6 pH STRATEGY; G532 mechanism + pH thermodynamics (pKa swing) in 2026-09-30 "Platform spec…".
+- **Selection metrics** → 2026-09-29 "Pre-registered v3c acceptance criteria" (ipSAE_min ≥ 0.60 on min, SC ≥ 0.58); provenance in 2026-09-30 "Platform spec…"; applied in 2026-09-30 "Filters 2 & 3 computed…".
+- **Pre-registration** → 2026-09-29 "Pre-registered v3c acceptance criteria"; 2026-09-30 "AMENDMENT … C-terminal paratope clearance"; 2026-09-30 "Species alignment … two filters pre-registered"; 2026-09-30 "Operational notes … pre-registered submission decisions".
+- **Corrections** → 2026-09-30 "Phase 1 v3c — core arm" (Correction to the record; Correction 2 — && guard); 2026-09-30 "Platform spec…" (Corrections to earlier entries); curvature correction in 2026-09-29 "Phase 1 probe runs…" §3.
+
 ---
 
 ## 2026-09-28 — Literature pass (M. lit review)
