@@ -1217,3 +1217,32 @@ plus the next-best by composite, each labelled pass or sub-threshold, and NOT fi
 slots.** By composite the order after the sole passer is: l93 (PASS) → l75 → l64 → l89 →
 l91 → l79 → l67. The size of the sub-threshold tail to include is a submission-strategy
 decision, recorded for the operator, not auto-selected here.
+
+## 2026-09-30 — PRE-REGISTERED control interpretation (recorded BEFORE the control is run)
+
+2026-09-30, recorded BEFORE the control is run.
+
+Stage 2 applied the pre-registered threshold ipSAE_min >= 0.60 to ~700-residue
+complexes (621-aa full-length ECD + 64-93 aa binder). That threshold derives from a
+meta-analysis (bioRxiv 2025.08.14.670059) whose benchmark set is dominated by
+minibinder-target complexes of roughly 200-400 residues. Applying it at 700 residues is
+out of the validated domain, and ipSAE is a PAE-derived confidence measure whose values
+generally degrade with system size. Six of seven designs shifted down by a similar
+magnitude (slice 0.72-0.82 -> full-length 0.45-0.65), which is more consistent with a
+systematic offset than with six independent failures.
+
+CONTROL: co-fold human EGF (mature, ~53 aa, a genuine nanomolar binder of this receptor
+and the right size class) against the same full-length ECD construct, with identical tool,
+settings and --diffusion_samples 3.
+
+INTERPRETATION, FIXED IN ADVANCE:
+(i)  EGF mean ipSAE_min >= 0.60 -> the threshold holds at this size. Stage 2 stands as
+     scored. One design passes. Pre-commitment (b) applies unchanged.
+(ii) EGF mean ipSAE_min < 0.60 -> the threshold is out of domain at this complex size.
+     The pre-registered absolute cut is then measuring system size rather than design
+     quality. Designs will be ranked by full-length score RELATIVE to the EGF control,
+     this will be stated explicitly in the submission writeup, and the original
+     absolute-threshold result will also be reported.
+
+This is a calibration check on the instrument, not an adjustment of the threshold to
+admit designs. The outcome can equally confirm the original result.
