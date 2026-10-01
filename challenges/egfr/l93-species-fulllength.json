@@ -1,0 +1,50 @@
+{
+  "stage": "crossreact",
+  "diffusion_samples": 3,
+  "total_gpu_seconds": 591.2,
+  "aborted": false,
+  "rows": [
+    {
+      "design": "egfr_l93_s713816_parent",
+      "human_mean": 0.6526,
+      "human_range": 0.0086,
+      "human_samples": [
+        0.6529,
+        0.6568,
+        0.6482
+      ],
+      "mouse_mean": 0.6476,
+      "mouse_range": 0.0316,
+      "mouse_samples": [
+        0.6561,
+        0.6592,
+        0.6276
+      ],
+      "diff": 0.005,
+      "noise_floor": 0.0316,
+      "verdict": "indistinguishable",
+      "gpu_seconds": 307.4
+    },
+    {
+      "design": "l93_H36E",
+      "human_mean": 0.6715,
+      "human_range": 0.0224,
+      "human_samples": [
+        0.6798,
+        0.6774,
+        0.6574
+      ],
+      "mouse_mean": 0.4652,
+      "mouse_range": 0.3693,
+      "mouse_samples": [
+        0.6704,
+        0.424,
+        0.3011
+      ],
+      "diff": 0.2063,
+      "noise_floor": 0.3693,
+      "verdict": "indistinguishable",
+      "gpu_seconds": 283.8
+    }
+  ]
+}

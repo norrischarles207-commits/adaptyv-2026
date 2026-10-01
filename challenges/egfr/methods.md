@@ -1524,3 +1524,49 @@ The human arm of this run is a THIRD independent measurement of l93_H36E
 against human (0.6656 in the variant round). If it does not reproduce within
 sampling noise, the species gaps from this run are not interpretable and that
 is reported rather than worked around.
+
+## 2026-10-01 — full-length species comparison, result
+
+Run: ap-HOetEuPfR3rBI7dR0qOEqI, 591 GPU-s, 4 co-folds, aborted=False.
+
+    design                    human mean[range]   mouse mean[range]   gap     noise   verdict
+    egfr_l93_s713816_parent   0.6526[0.0086]      0.6476[0.0316]      +0.0050 0.0316  indist.
+    l93_H36E                  0.6715[0.0224]      0.4652[0.3693]      +0.2063 0.3693  indist.
+
+VALIDITY CHECK PASSED. l93_H36E against human reads 0.6715 here against
+0.6656 in the variant round (delta 0.006). The parent reads 0.6526 against
+0.6387 (variant round) and 0.6514 (Stage 2). Both reproduce within sampling
+noise, so the species gaps from this run are interpretable.
+
+PARENT: cross-reactive. Human 0.6526 and mouse 0.6476 both clear 0.60, the
+gap is 0.0050 against a noise floor of 0.0316, and both arms are tightly
+determined. This is the first demonstrated full-length cross-reactivity in
+the project.
+
+l93_H36E: NOT cross-reactive, and the verdict column misrepresents it. Mouse
+samples were 0.6704, 0.424, 0.3011 -- a range of 0.3693, the largest spread
+anywhere in this project. The rule returns "indistinguishable" only because
+that noise floor exceeds the 0.2063 gap. The values are not close; the
+measurement is unusable.
+
+BRANCH APPLIED: (c), mouse ipSAE_min 0.4652 < 0.60. Recorded consequence --
+report plainly, do not change the submission, since selection was made on
+human binding and criterion-1 geometry.
+
+Branch (b) half-fires and is recorded as such: the gap IS materially larger
+than the parent's (0.2063 vs 0.0050) but is NOT above noise. Stating only the
+mechanical verdict would be misleading.
+
+CONSEQUENCE FOR THE SUBMISSION. The two lead designs are complementary and
+neither is complete:
+
+    l93_H36E           pH switch at 3.21 A, human 0.67, FAILS mouse
+    egfr_l93_s713816   clean cross-reactivity, human 0.65, NO pH mechanism
+
+Both were already submitted. The set addresses criteria 1 and 2; no single
+design in it does.
+
+NOT DONE, deliberately: re-running l93_H36E against mouse at greater sampling
+depth to resolve the 0.3693 range. Deepening sampling after seeing an
+unfavourable result would undermine the pre-registration. The score is
+labelled poorly determined, as l75's was.
