@@ -1,208 +1,154 @@
 #!/usr/bin/env python3
 """
-Build and validate submission.csv for Adaptyv Challenge 1 / Track 3.
+Build and validate submission.csv. Writes nothing unless everything passes.
 
-Reads sequences from challenges/egfr/v3c-core-designs.csv, selects the
-pre-registered submission set, and writes challenges/egfr/submission.csv
-with columns: name,sequence,molecule_class
-
-Refuses to write anything if ANY validation fails. Loud failure by design —
-a silently malformed submission is worse than no submission.
-
-Usage:
-    python3 challenges/egfr/build_submission.py
-    python3 challenges/egfr/build_submission.py --dry-run
+Five designs, two sources: four parents from the v3c designs CSV, and the
+H36E variant from the variant FASTA. Order is submission order, lead first.
 """
+import csv, os, sys
 
-import argparse
-import csv
-import os
-import sys
+CSV_SRC = "challenges/egfr/v3c-core-designs.csv"
+FASTA_SRC = "challenges/egfr/fasta/l93_variants.fasta"
+DST = "challenges/egfr/submission.csv"
+DRY = "--dry-run" in sys.argv
 
-# ---------------------------------------------------------------- config
-
-SOURCE = "challenges/egfr/v3c-core-designs.csv"
-DEST = "challenges/egfr/submission.csv"
-
-# Pre-registered submission set: the single Stage 2 passer plus the two
-# next-best by composite. Order is submission order.
-SUBMISSION_SET = [
-    "egfr_l93_s713816",
-    "egfr_l75_s674224_mpnn14",
-    "egfr_l64_s902794_mpnn2",
+# (submission name, source, key in that source, expected length)
+ORDER = [
+    ("l93_H36E",                "fasta", "l93_H36E",                93),
+    ("egfr_l93_s713816",        "csv",   "egfr_l93_s713816",        93),
+    ("egfr_l75_s674224_mpnn14", "csv",   "egfr_l75_s674224_mpnn14", 75),
+    ("egfr_l64_s902794_mpnn2",  "csv",   "egfr_l64_s902794_mpnn2",  64),
+    ("egfr_l91_s124145_mpnn1",  "csv",   "egfr_l91_s124145_mpnn1",  91),
 ]
 
-MOLECULE_CLASS = "protein"
-
-MIN_LEN, MAX_LEN = 10, 250
-STANDARD_AA = set("ACDEFGHIKLMNPQRSTVWY")
-
-# Expected lengths from the Stage 2 run, as an independent cross-check.
-# If the CSV disagrees with these, we pulled the wrong sequence.
-EXPECTED_LEN = {
-    "egfr_l93_s713816": 93,
-    "egfr_l75_s674224_mpnn14": 75,
-    "egfr_l64_s902794_mpnn2": 64,
-}
-
-# Candidate column names, checked case-insensitively.
-NAME_COLS = ("design", "name", "design_name", "id")
-SEQ_COLS = ("sequence", "seq", "binder_sequence", "aa_sequence")
-
-# ---------------------------------------------------------------- helpers
+AA = set("ACDEFGHIKLMNPQRSTVWY")
 
 
-def die(msg):
-    print("FAIL: %s" % msg, file=sys.stderr)
-    sys.exit(1)
+def die(m):
+    sys.exit("FAIL: " + m)
 
 
-def pick_column(fieldnames, candidates, what):
-    lowered = {f.lower().strip(): f for f in fieldnames}
-    for c in candidates:
-        if c in lowered:
-            return lowered[c]
-    die("no %s column in %s.\n      looked for: %s\n      found: %s"
-        % (what, SOURCE, ", ".join(candidates), ", ".join(fieldnames)))
-
-
-def load_source():
-    if not os.path.exists(SOURCE):
-        die("%s not found. Run from the repo root." % SOURCE)
-
-    with open(SOURCE, newline="") as fh:
-        reader = csv.DictReader(fh)
-        if not reader.fieldnames:
-            die("%s has no header row." % SOURCE)
-        name_col = pick_column(reader.fieldnames, NAME_COLS, "design-name")
-        seq_col = pick_column(reader.fieldnames, SEQ_COLS, "sequence")
-        rows = list(reader)
-
-    print("source:  %s" % SOURCE)
-    print("columns: name=%r sequence=%r" % (name_col, seq_col))
-    print("rows:    %d\n" % len(rows))
-
-    table = {}
+def load_csv():
+    if not os.path.exists(CSV_SRC):
+        die(CSV_SRC + " not found. Run from the repo root.")
+    with open(CSV_SRC, newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        die(CSV_SRC + " is empty or headerless")
+    low = {c.lower().strip(): c for c in rows[0].keys()}
+    ncol = next((low[c] for c in ("name", "design", "design_name", "id") if c in low), None)
+    scol = next((low[c] for c in ("sequence", "seq", "binder_sequence") if c in low), None)
+    if not ncol or not scol:
+        die("no name/sequence column in %s; header = %s"
+            % (CSV_SRC, ", ".join(rows[0].keys())))
+    print("csv    : %s  (name=%r seq=%r, %d rows)" % (CSV_SRC, ncol, scol, len(rows)))
+    tbl = {}
     for r in rows:
-        key = (r.get(name_col) or "").strip()
-        seq = (r.get(seq_col) or "").strip().upper()
-        if not key:
+        k = (r.get(ncol) or "").strip()
+        v = (r.get(scol) or "").strip().upper()
+        if not k:
             continue
-        if key in table and table[key] != seq:
-            die("design %r appears twice in %s with different sequences."
-                % (key, SOURCE))
-        table[key] = seq
-    return table
+        if k in tbl and tbl[k] != v:
+            die("design %r appears twice in the CSV with different sequences" % k)
+        tbl[k] = v
+    return tbl
 
 
-def validate(name, seq):
-    """Return list of problems; empty list means clean."""
-    problems = []
-
-    if not seq:
-        problems.append("empty sequence")
-        return problems
-
-    bad = sorted(set(seq) - STANDARD_AA)
-    if bad:
-        problems.append("non-standard residues: %s" % " ".join(bad))
-
-    if not (MIN_LEN <= len(seq) <= MAX_LEN):
-        problems.append("length %d outside [%d, %d]"
-                        % (len(seq), MIN_LEN, MAX_LEN))
-
-    want = EXPECTED_LEN.get(name)
-    if want is not None and len(seq) != want:
-        problems.append("length %d but Stage 2 recorded %d — WRONG SEQUENCE"
-                        % (len(seq), want))
-
-    return problems
-
-
-# ---------------------------------------------------------------- main
+def load_fasta():
+    if not os.path.exists(FASTA_SRC):
+        die(FASTA_SRC + " not found. Run make_variants.py first.")
+    tbl, name, buf = {}, None, []
+    for ln in open(FASTA_SRC):
+        ln = ln.strip()
+        if ln.startswith(">"):
+            if name:
+                tbl[name] = "".join(buf)
+            name, buf = ln[1:], []
+        elif ln:
+            buf.append(ln)
+    if name:
+        tbl[name] = "".join(buf)
+    print("fasta  : %s  (%d records)" % (FASTA_SRC, len(tbl)))
+    return tbl
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true",
-                    help="validate and print, write nothing")
-    args = ap.parse_args()
+    csv_tbl = load_csv()
+    fa_tbl = load_fasta()
+    print()
 
-    table = load_source()
-
-    missing = [n for n in SUBMISSION_SET if n not in table]
-    if missing:
-        print("designs present in source:", file=sys.stderr)
-        for k in sorted(table):
-            print("    %s" % k, file=sys.stderr)
-        die("submission set names not found in %s: %s"
-            % (SOURCE, ", ".join(missing)))
-
-    records = []
-    failed = False
-    print("VALIDATION")
-    print("%-28s %6s  %s" % ("design", "len", "status"))
-    print("-" * 68)
-    for name in SUBMISSION_SET:
-        seq = table[name]
-        problems = validate(name, seq)
-        if problems:
-            failed = True
-            print("%-28s %6d  FAIL: %s" % (name, len(seq), "; ".join(problems)))
+    out, bad = [], False
+    print("%-26s %-6s %5s  %s" % ("design", "source", "len", "status"))
+    print("-" * 72)
+    for name, src, key, want in ORDER:
+        tbl = csv_tbl if src == "csv" else fa_tbl
+        if key not in tbl:
+            print("%-26s %-6s %5s  FAIL: not present in source" % (name, src, "-"))
+            bad = True
+            continue
+        s = tbl[key]
+        errs = []
+        if not s:
+            errs.append("empty sequence")
+        if set(s) - AA:
+            errs.append("non-standard residues: " + "".join(sorted(set(s) - AA)))
+        if not 10 <= len(s) <= 250:
+            errs.append("length %d outside [10,250]" % len(s))
+        if len(s) != want:
+            errs.append("length %d but expected %d -- WRONG SEQUENCE" % (len(s), want))
+        if errs:
+            print("%-26s %-6s %5d  FAIL: %s" % (name, src, len(s), "; ".join(errs)))
+            bad = True
         else:
-            print("%-28s %6d  ok" % (name, len(seq)))
-            records.append((name, seq))
+            print("%-26s %-6s %5d  ok" % (name, src, len(s)))
+            out.append((name, s))
 
-    seqs = [s for _, s in records]
-    if len(set(seqs)) != len(seqs):
-        failed = True
-        print("\nFAIL: duplicate sequences in submission set.")
-
-    names = [n for n, _ in records]
+    names = [n for n, _ in out]
+    seqs = [s for _, s in out]
     if len(set(names)) != len(names):
-        failed = True
-        print("\nFAIL: duplicate names in submission set.")
-
-    if failed:
+        die("duplicate names in submission set")
+    if len(set(seqs)) != len(seqs):
+        die("duplicate sequences in submission set")
+    if bad:
         die("validation failed. Nothing written.")
 
-    print("\n%d designs validated." % len(records))
+    # H36E must differ from its parent at exactly one position.
+    d = dict(out)
+    if "l93_H36E" in d and "egfr_l93_s713816" in d:
+        a, b = d["egfr_l93_s713816"], d["l93_H36E"]
+        if len(a) != len(b):
+            die("H36E and parent differ in length")
+        diff = [(i + 1, a[i], b[i]) for i in range(len(a)) if a[i] != b[i]]
+        if len(diff) != 1:
+            die("H36E differs from parent at %d positions, expected 1" % len(diff))
+        p, old, new = diff[0]
+        if (p, old, new) != (36, "H", "E"):
+            die("H36E substitution is %s%d%s, expected H36E" % (old, p, new))
+        print("\nparent/variant check: single substitution H36E confirmed")
 
-    if args.dry_run:
-        print("\n--dry-run: not writing %s" % DEST)
+    print("\n%d designs validated." % len(out))
+    if DRY:
+        print("--dry-run: not writing %s" % DST)
         return
 
-    with open(DEST, "w", newline="") as fh:
+    with open(DST, "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["name", "sequence", "molecule_class"])
-        for name, seq in records:
-            w.writerow([name, seq, MOLECULE_CLASS])
+        for n, s in out:
+            w.writerow([n, s, "protein"])
 
-    # Round-trip: read back what we wrote and compare to the source table.
-    with open(DEST, newline="") as fh:
+    with open(DST, newline="") as fh:
         back = list(csv.DictReader(fh))
+    if len(back) != len(out):
+        die("round-trip row count: wrote %d read %d" % (len(out), len(back)))
+    for b_, (n, s) in zip(back, out):
+        if b_["name"] != n or b_["sequence"] != s:
+            die("round-trip mismatch on " + n)
+        if b_["molecule_class"] != "protein":
+            die("round-trip molecule_class mismatch on " + n)
 
-    if len(back) != len(records):
-        die("round-trip row count mismatch: wrote %d, read %d"
-            % (len(records), len(back)))
-
-    for row, (name, seq) in zip(back, records):
-        if row["name"] != name:
-            die("round-trip name mismatch: %r != %r" % (row["name"], name))
-        if row["sequence"] != seq:
-            die("round-trip sequence mismatch for %s" % name)
-        if row["sequence"] != table[name]:
-            die("round-trip lost fidelity against source for %s" % name)
-        if row["molecule_class"] != MOLECULE_CLASS:
-            die("round-trip molecule_class mismatch for %s" % name)
-
-    print("round-trip verified against source: %d/%d exact.\n"
-          % (len(back), len(records)))
-    print("wrote %s" % DEST)
-    print("\n%-28s %6s  %s" % ("name", "len", "molecule_class"))
-    print("-" * 56)
-    for name, seq in records:
-        print("%-28s %6d  %s" % (name, len(seq), MOLECULE_CLASS))
+    print("round-trip verified against source: %d/%d exact." % (len(back), len(out)))
+    print("wrote %s" % DST)
 
 
 if __name__ == "__main__":

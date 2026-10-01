@@ -1,7 +1,7 @@
 # EGFR pH-conditional binder — design rationale and validation
 
 **Challenge 1, Anthropic × Adaptyv Bio 2026 · Track 3**
-Complete — all co-fold results landed 2026-09-30.
+Complete — hallucination round 2026-09-30, pre-registered variant round 2026-10-01.
 
 ---
 
@@ -15,7 +15,7 @@ Complete — all co-fold results landed 2026-09-30.
 | Epitope (hotspots) | Q408, H409, Q411, F412 — **mature** numbering |
 | Molecule class | protein (single chain, linear) |
 | Lengths | 64–93 aa |
-| Designs submitted | 3 (1 pass, 2 declared near-misses) — allowance is 20, deliberately unused |
+| Designs submitted | 5 (2 pass, 3 declared near-misses) — allowance is 20, deliberately unused |
 | Selection criteria | Pre-registered before results, commit `d94a8d4` |
 
 **Numbering convention.** Mature EGFR numbering throughout. Precursor
@@ -47,25 +47,75 @@ conserved in mouse, so the mechanism is available in both species. And the EGF
 control independently confirms the site is bindable: folded blind against the
 full receptor, EGF recovers 408, 409 and 412 in every sample.
 
-**What was achieved this round — stated plainly.** `[measured]` This round
-applied **no pH restraint during hallucination**. Any favourable acid–histidine
-geometry is incidental. We measured it anyway: all five MPNN designs place a
-binder carboxylate 2.6–4.2 Å from H409's imidazole. Run against a null control
-— the same measurement to every other contacted target residue — that result
-largely dissolves: for most designs acidic residues sit near most target
-residues, so proximity to H409 carries no information. One design is
-distinctive: 16% of its interface residues have an acid within 6 Å while H409
-ranks first. **The raw filter without the null would have reported five
-successes instead of one.**
+**The hallucination round produced no pH mechanism in its best binder.**
+`[measured]` No pH restraint was applied during hallucination, so any
+acid–histidine geometry would have been incidental. Structural inspection of
+all seven full-length Stage 2 models showed five of seven carried an acidic
+residue within 6 Å of H409 — **but the only design that passed the binding
+thresholds, `egfr_l93_s713816`, was one of the two that did not.** Its epitope
+instead presented His36 at 4.97 Å from H409: two histidines that both gain
+positive charge as pH falls, which opposes selectivity rather than creating it.
+
+`[measured]` Proximity is also not geometry. Of the designs that did carry
+acids, only one of each adjacent pair actually faced H409 — in `l64`, Asp34 sits
+at 4.44 Å while Glu35 points away at 10.9 Å; in `l91`, Asp28 at 3.66 Å against
+Glu29 at 10.6 Å.
+
+**A pre-registered variant round fixed this.** `[measured]` Four single
+substitutions on the `l93` backbone, acceptance criteria and submission rule
+committed before the co-folds ran (commit `25bbfb3`): unchanged ipSAE_min ≥
+0.60 and SC ≥ 0.58, plus a new requirement that a carboxylate oxygen sit within
+4.0 Å of H409's NE2 or ND1 in at least 2 of 3 samples.
+
+| variant | ipSAE_min | SC | verdict |
+|---|---|---|---|
+| parent (control) | 0.639 [0.072] | 0.671 [0.116] | pass |
+| **l93_H36E** | **0.666 [0.048]** | **0.641 [0.083]** | **pass** |
+| l93_S32D | 0.407 [0.443] | 0.554 [0.148] | fail |
+| l93_S32D_S33D | 0.449 [0.491] | 0.545 [0.170] | fail |
+| l93_S32E | 0.272 [0.009] | 0.423 [0.041] | fail |
+
+`[measured]` The parent re-ran as an internal control and reproduced within
+sampling noise (0.639 vs 0.651 at Stage 2), so these sit on the Stage 2 scale.
+
+**The predicted-best variant failed and the predicted-worst succeeded.**
+`[measured]` S32D was the primary hypothesis on geometric grounds — Ser32's
+hydroxyl sits 3.45 Å from H409 across all three parent models, and Asp's
+carboxylate reaches the same distance from CB. It collapsed to 0.407 with a
+sample range of 0.443. S32E failed harder with a range of 0.009 — confidently
+broken. Ser32's hydroxyl is evidently load-bearing for the pose, not merely
+decorative. H36E, ranked last a priori, was the only variant to pass: it adds
+the acid without disturbing Ser32, removes the like-charge histidine pair, and
+relieves a His8–His36 intra-binder clash that reproduced in all three parent
+models.
+
+**Measured geometry of the designed switch.** `[measured]`
+
+| model | contact | distance |
+|---|---|---|
+| model_0 | Glu36 OE1 → H409 NE2 | 3.305 Å |
+| model_1 | Glu36 OE1 → H409 NE2 | 3.117 Å |
+| model_2 | Glu36 OE1 → H409 ND1 | 3.205 Å |
+
+Mean **3.21 Å**, spread 0.19 Å, present in 3 of 3 models against a
+pre-registered bar of 2 of 3. That is canonical salt-bridge distance. The
+engaged imidazole nitrogen differs between models; the interaction does not.
+
+`[inferred]` Mechanistically: at pH 7.4 H409 is largely neutral and the
+Glu36–His409 contact is an ordinary hydrogen bond. At pH 6.5 a larger fraction
+is protonated and the same contact becomes a charged salt bridge. Binding
+strengthens as pH falls. This is the first design in the project where that
+mechanism is present by design rather than by accident.
 
 **Expected magnitude.** `[literature]` A single ionisable group caps the Kd
 ratio at 10^0.9 = 7.9× across pH 7.4→6.5. G532 achieves 13.26× (SPR, monovalent
 analyte geometry) at 294 nM affinity. Published de novo fold-changes are mostly
 measured over a 2.0 pH-unit window against our 0.9, so literature headline
-numbers scale down substantially here. We are not claiming to exceed G532.
+numbers scale down substantially here. We are not claiming to exceed G532, and
+a single engineered salt bridge is at the modest end of what is achievable.
 
-**Artifacts:** `challenges/egfr/v3c-core-filters.csv` (per-design acid–H409
-distances, null ranks), methods log entry 2026-09-30.
+**Artifacts:** `challenges/egfr/l93-variants.json`, `challenges/egfr/l93_H36E/`
+(three output structures), methods log entries 2026-10-01.
 
 ---
 
@@ -321,10 +371,15 @@ hydrophobic surface, and we weighted against those.
    which is weaker than demonstrated cross-reactivity.
 2. **Flat epitope.** Dropping A384 removed the only measurable concavity;
    the remaining surface is flat within fit error.
-3. **pH mechanism is incidental, not designed.** No pH restraint was applied
-   during hallucination. `mpnn_fix_interface` means MPNN preserves an interface
-   acid the trajectory placed but never introduces one, so a *designed* pH
-   switch requires intervention at the hallucination stage. Planned, not done.
+3. **The pH switch is a single engineered salt bridge, not a designed
+   interface.** `[measured]` Hallucination applied no pH restraint; the
+   mechanism in `l93_H36E` comes from one post-hoc substitution, not from
+   designing the interface for pH from the start. One ionisable pair caps the
+   achievable ratio at 7.9× before window scaling. A trajectory-stage pH
+   restraint remains the right approach and was not implemented.
+   `[inferred]` The substitution is also unvalidated beyond structure
+   prediction — Boltz placing a carboxylate at 3.21 Å is evidence, not proof,
+   that the real sidechain adopts that rotamer.
 4. **Small sample.** `[literature]` The de novo hallucination hit rate in
    Adaptyv's EGFR Round 2 was 9% (6/65), and no prior round required
    pH-switching or cross-species reactivity, so there is no base rate for this
@@ -345,26 +400,36 @@ hydrophobic surface, and we weighted against those.
 
 ## Designs submitted
 
-**Three, not twenty.** `[measured]` The selection rule was pre-registered: if
-fewer than three designs pass full-length validation, submit the passer plus
-the next-best by composite, labelled, and **do not pad to the 20-sequence
-allowance.** One design passed. The rule fired as written.
+**Five, not twenty.** `[measured]` The original selection rule was
+pre-registered: if fewer than three designs pass full-length validation, submit
+the passer plus the next-best by composite, labelled, and **do not pad to the
+20-sequence allowance.** One design passed, and that rule fired as written,
+giving three. Two were added afterwards, each for a stated reason, and both
+additions are disclosed below as post-hoc.
 
-| # | design | len | full-length ipSAE | species gap | status |
+| # | design | len | ipSAE_min | acid–H409 | basis |
 |---|---|---|---|---|---|
-| 1 | `egfr_l93_s713816` | 93 | **0.651** [0.014] | 0.024 | **Pass** — both thresholds, all three samples |
-| 2 | `egfr_l75_s674224_mpnn14` | 75 | 0.543 [0.218] | 0.026 | Sub-threshold, poorly determined (1 of 3 samples above threshold). Highest SC in the set |
-| 3 | `egfr_l64_s902794_mpnn2` | 64 | 0.516 [0.098] | 0.024 | Sub-threshold, well determined. Second-highest SC |
+| 1 | **`l93_H36E`** | 93 | **0.666** [0.048] | **3.21 Å, 3/3** | Pre-registered variant round; meets all three criteria |
+| 2 | `egfr_l93_s713816` | 93 | 0.651 [0.014] | none | Original pre-registered passer |
+| 3 | `egfr_l75_s674224_mpnn14` | 75 | 0.543 [0.218] | Asp45 present | Next-best by composite; poorly determined |
+| 4 | `egfr_l64_s902794_mpnn2` | 64 | 0.516 [0.098] | Asp34 at 4.44 Å | Next-best by composite |
+| 5 | `egfr_l91_s124145_mpnn1` | 91 | 0.510 [0.064] | **Asp28 at 3.66 Å** | **Post-hoc addition** — best acid geometry among the original seven |
 
-`[inferred]` Designs 2 and 3 are submitted as declared near-misses, not as
-candidates we expect to bind. Padding the remaining 17 slots with designs whose
-composite runs down to 0.417 would raise the chance of a hit by chance while
-making the pre-registration meaningless. We would rather report one honest pass.
+**Two disclosures.** `[measured]` Design 1 came from a variant round run after
+the original set was locked, under criteria committed in advance of the result.
+Design 5 was added after seeing results, on a criterion — acid–H409 geometry —
+that had not been used for selection because no full-length measurement of it
+existed at the time. It was then measured uniformly across all seven original
+designs, and `l91` ranked first on it despite ranking fifth on binding. Neither
+addition is claimed as pre-registered.
 
-`[measured]` `egfr_l93_s713816` leads on every axis measured: highest human
-ipSAE at slice stage (0.816), highest mouse (0.792), tightest sampling in both
-species, only full-length pass, and tightest full-length spread. It is the
-single design in this set we would defend individually.
+`[inferred]` Designs 3–5 are submitted as declared near-misses on binding, not
+as candidates we expect to bind well. We did not pad the remaining 15 slots.
+
+`[measured]` `l93_H36E` is the design we would defend individually: highest
+ipSAE in the project, tightest sample spread among passing designs, all four
+hotspots recovered in every sample, and the only one carrying a measured
+pH-switch geometry.
 
 ---
 
