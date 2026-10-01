@@ -173,7 +173,10 @@ divergent, 88.7% identity, H409/H346 and all four hotspots conserved.
 | design | human | mouse | gap | noise floor |
 |---|---|---|---|---|
 | `egfr_l93_s713816` | 0.653 [0.009] | **0.648** [0.032] | +0.005 | 0.032 |
-| `l93_H36E` | 0.672 [0.022] | **0.465** [0.369] ⚠ | +0.206 | 0.369 |
+| `l93_H36E` | 0.672 [0.022] | **0.593** [0.423] ⚠ | +0.079 | 0.423 |
+
+H36E's mouse value is from a 6-sample re-measurement (below); every other cell
+in this table is 3 samples.
 
 `[measured]` Validity check: `l93_H36E` against human reads 0.672 here against
 0.666 in the variant round; the parent reads 0.653 against 0.639 and 0.651 in
@@ -185,17 +188,44 @@ threshold, the gap is 0.005 against a noise floor of 0.032, and both arms are
 tightly determined. Unlike the slice-stage verdicts above, this is a positive
 result rather than an unresolved one.
 
-**The lead design is not cross-reactive, and the verdict column says otherwise
-for the wrong reason.** `[measured]` `l93_H36E`'s mouse samples were 0.670,
-0.424, 0.301 — a range of 0.369, the largest spread anywhere in this project.
-The pre-registered rule returns "indistinguishable" only because that noise
-floor exceeds the 0.206 gap. The values are not close; the measurement is
-unusable. We report the mean as failing the threshold and flag the score as
-poorly determined rather than claim the verdict.
+**The lead design does not meet criterion 2, and the reason is worth stating
+precisely.** `[measured]` H36E's first mouse measurement gave samples 0.670,
+0.424, 0.301 — range 0.369, the largest spread in the project and 2.5× the
+0.15 precision bar used elsewhere. Because the trigger was the *range* and not
+the unfavourable mean, the same rule would have fired on a favourable result
+with that spread, so it was re-measured at 6 samples. The rule, all three
+outcome branches, and a stop rule were committed before the run
+(`methods.md` 2026-10-01, commit `92206e1`).
 
-`[measured]` We did not re-run it at greater sampling depth. Deepening sampling
-after seeing an unfavourable result would undermine the pre-registration, and
-`l75` was handled the same way.
+Six samples: **0.6746, 0.6588, 0.6729, 0.6538, 0.6451, 0.2513.** Mean 0.5927,
+range 0.4233, median 0.6563. **The pre-registered statistic is the mean, the
+mean is 0.5927, and it fails the 0.60 threshold by 0.0073. Criterion 2 is not
+met for `l93_H36E`.** The stop rule was applied and no third measurement was
+taken.
+
+`[measured]` **Post-hoc observation, labelled as such and not used to rescue
+the result.** The distribution is bimodal rather than scattered: five samples
+span 0.645–0.675, one sits at 0.2513. Per-sample hotspot recovery separates
+them objectively — each of the five clustered samples recovered **4/4**
+hotspots (SC 0.649–0.750); the outlier recovered **0/4** (SC 0.426). The
+outlier is a docking failure, not a weaker pose. This makes the mean a poor
+summary statistic here, which is a statement about the statistic and **not**
+grounds for substituting the median. The median is reported above so a reader
+can see the difference; the verdict stands on the mean.
+
+`[inferred]` What this does and does not license. It supports: *when H36E
+engages the mouse epitope it does so comparably to human (0.645–0.675 vs
+0.672), and it engages less reliably than any other pairing measured here.*
+It does not support a failure rate — n = 6 cannot separate a real ~15%
+failure from one unlucky draw — and it does not support calling H36E
+cross-reactive.
+
+`[measured]` **Symmetry check, so outlier structure is not invoked only where
+it helps.** No other measured pairing shows it: parent/mouse range 0.032,
+H36E/human range 0.022 and 0.048. The instability is specific to H36E against
+mouse, which is at least consistent with the H→E substitution having removed a
+histidine that contributed to initial recognition — an untested hypothesis, not
+a conclusion.
 
 **The two leads are complementary, and neither is complete.** `[measured]`
 
@@ -418,7 +448,7 @@ Generation, by arm — four arms were launched, two produced nothing:
 | `phase1-probe-v3` | not logged | ≥1, all failed | 0 | 0 | `RESOURCE_EXHAUSTED` in `design_logits` on every seed — 29.26–42.59 GiB requested against a 24 GB A10G, on the untruncated 609-residue chain |
 | `phase1-probe-v3b` | 100 | 10 | 9 | 2 | killed at 10 seeds; arm later retired on the glycan argument, never validated |
 | `phase1-v3c-core` | 10 | 10 | 7 | 5 | every completed design carried forward |
-| `phase1-v3c-q408` | 10 | 0 | 0 | 0 | never started — spend limit hit during arm 1 |
+| `phase1-v3c-q408` | 10 | 0 | 0 | 0 | launched, but the workspace was already disabled; the app died on the spend limit with no container ever running |
 | **total** | **≥120** | **≥20** | **16** | **7** | |
 
 The v3 probe's seed count was not recorded at run time and is not reconstructed
@@ -434,7 +464,7 @@ Validation, on the `v3c-core` set:
 | Variants designed | 4 | single substitutions on the `l93` backbone |
 | Computationally screened | 11 | all 7 originals and all 4 variants, full-length co-fold |
 | Passed pre-registered criteria | 2 | `egfr_l93_s713816`, `l93_H36E` |
-| **Submitted** | **5** | 2 passing, 3 labelled near-misses |
+| **Submitted** | **5** | 2 passing, 3 labelled near-misses — out of **20 permitted** per team |
 | Selected and expressed | — | sponsor-determined |
 | Experimentally positive | — | sponsor-determined |
 
@@ -442,12 +472,20 @@ The two `v3b` accepted designs are counted in the generation table and excluded
 from validation: the arm was retired before any full-length check was run on
 them, so there is no validation number to report. Neither is submitted.
 
+`[measured]` **Five of twenty permitted slots are used.** Three further designs
+completed and were computationally screened but are not submitted
+(`egfr_l67_s528267`, `egfr_l89_s399498_mpnn2`, `egfr_l79_s846567_mpnn5`), as are
+the three failed variants. Filling the remaining fifteen slots was available and
+declined: the selection rule was fixed before the results existed, and
+submitting everything that ran would discard the only thing that makes the
+five-design set meaningful.
+
 **No yield rate is quoted from these numbers, deliberately.** `[measured]`
 Both arms that produced designs were terminated by **account-level compute
 events** rather than by designs failing: v3b by
 `GRPCError FAILED_PRECONDITION: workspace ... is disabled`, and the v3c pair by
-the workspace spend limit, which stopped arm 1 partway and arm 2 before it
-started. In v3b, 10 of 100 requested seeds reached a container at all;
+the workspace spend limit, which stopped arm 1 partway and killed arm 2 at
+launch. In v3b, 10 of 100 requested seeds reached a container at all;
 of those, seeds 3/5/8 failed on their own merits (Clashing, LowConfidence)
 while seeds 2/4/7/9 were interrupted mid-MPNN holding completed trajectories.
 In v3c-core, seeds 4, 8 and 9 never produced a report block. **The
@@ -484,10 +522,15 @@ committed under `challenges/egfr/fulllength-v3c/` and
 
 1. **The pH mechanism and cross-reactivity are coupled, and we could not have
    both.** `[measured]` The single substitution that creates the acid–H409
-   salt bridge (H36E) also drops mouse binding from 0.648 to 0.465. Every
-   alternative position tested destroyed human binding. No design in this
-   submission satisfies criteria 1 and 2 simultaneously; the set does, the
-   individual molecules do not.
+   salt bridge (H36E) takes mouse binding from 0.648 (tight, range 0.032) to a
+   mean of 0.593 at 6 samples, below the 0.60 threshold. The failure is one of
+   *reliability* rather than of pose quality: five of six predictions land on
+   the epitope at 0.645–0.675 with 4/4 hotspot recovery, one misses entirely.
+   Every alternative acid position tested (32, 33, 32+33) destroyed human
+   binding, so within this scaffold position 36 is the only site that can carry
+   the mechanism and it is the same site that carries cross-reactivity. **No
+   design in this submission satisfies criteria 1 and 2 simultaneously; the set
+   does, the individual molecules do not.**
 2. **Interface-level mouse divergence, and a systematic slice-stage gap.** All
    designs contact ≥2 species-divergent positions, and all seven scored higher
    against human than mouse at slice stage (sign test p = 0.016 two-tailed).
@@ -521,6 +564,15 @@ committed under `challenges/egfr/fulllength-v3c/` and
    resolving it: either our criteria admit something BindCraft correctly
    rejected, or BindCraft's defaults are miscalibrated for this target. The
    wet-lab result decides.
+8. **Both leads share one scaffold, and it is the least solubility-optimised in
+   the set.** `[measured]` Designs 1 and 2 differ by a single residue, so any
+   expression or aggregation failure takes both. That scaffold has the highest
+   surface hydrophobicity of the four submitted (0.43 vs 0.22–0.34) because it
+   is the only submitted sequence that never passed through SolubleMPNN — all
+   twenty MPNN variants of `l93` failed AF2 re-prediction. With 0.2% Tween-20
+   in the buffer and a split-GFP expression readout, that risk reads as failed
+   expression rather than failed binding, and it is **not independently
+   mitigable within the two leads**. Designs 3–5 are the mitigation.
 
 ---
 
@@ -535,7 +587,7 @@ additions are disclosed below as post-hoc.
 
 | # | design | len | ipSAE_min | acid–H409 | basis |
 |---|---|---|---|---|---|
-| 1 | **`l93_H36E`** | 93 | **0.666** [0.048] | **3.21 Å, 3/3** | Pre-registered variant round; meets all three criteria. Fails mouse (0.465 ⚠) |
+| 1 | **`l93_H36E`** | 93 | **0.666** [0.048] | **3.21 Å, 3/3** | Pre-registered variant round; meets criteria 1 and 3. Mouse 0.593 at 6 samples — fails criterion 2 on the mean, 5/6 samples on-epitope |
 | 2 | **`egfr_l93_s713816`** | 93 | 0.651 [0.014] | none | Original pre-registered passer. **Cross-reactive** (mouse 0.648, clean) |
 | 3 | `egfr_l75_s674224_mpnn14` | 75 | 0.543 [0.218] | Asp45 present | Next-best by composite; poorly determined |
 | 4 | `egfr_l64_s902794_mpnn2` | 64 | 0.516 [0.098] | Asp34 at 4.44 Å | Next-best by composite |
@@ -551,6 +603,47 @@ addition is claimed as pre-registered.
 
 `[inferred]` Designs 3–5 are submitted as declared near-misses on binding, not
 as candidates we expect to bind well. We did not pad the remaining 15 slots.
+
+**Designs 3–5 also carry an unplanned function: they are scaffold insurance
+against a correlated failure in designs 1 and 2.** `[measured]` The two leads
+are the same backbone one residue apart, so every property governing whether
+the molecule is physically obtainable — fold stability, aggregation propensity,
+surface hydrophobicity — is shared. If that scaffold does not express, both
+leads are lost in the same well. Designs 3–5 are three independent backbones at
+64, 75 and 91 residues.
+
+`[measured]` **Surface hydrophobicity of the submitted sequences, and why the
+leads are highest.** The assay buffer carries 0.2% Tween-20, which competes for
+exposed nonpolar surface, and expression is quantified by split-GFP
+complementation, so an aggregation-prone design reads as failed expression
+rather than as failed binding.
+
+| submitted design | surface hydrophobicity | sequence origin |
+|---|---|---|
+| `egfr_l93_s713816` / `l93_H36E` | **0.43** † | AF2 trajectory — **never SolubleMPNN-redesigned** |
+| `egfr_l64_s902794_mpnn2` | 0.34 | SolubleMPNN |
+| `egfr_l91_s124145_mpnn1` | 0.26 | SolubleMPNN |
+| `egfr_l75_s674224_mpnn14` | 0.22 | SolubleMPNN |
+
+† **Provenance differs and is marked rather than smoothed over.** The three
+MPNN figures are `Average_Surface_Hydrophobicity` from
+`challenges/egfr/v3c-core-designs.csv`. `l93` has no value in that column —
+no MPNN variant of it was ever accepted — so its figure is
+`Surface_Hydrophobicity` from the trajectory stats table in `v3c-core.log`.
+Same metric and same code, each computed on the molecule actually submitted,
+but trajectory and MPNN statistics are not interchangeable in general and
+conflating them produced a documented error earlier in this project
+(`methods.md`, 2026-09-30, correction 2).
+
+`[inferred]` The gap is not coincidence. All twenty SolubleMPNN variants of
+`l93` failed AF2 re-prediction filters, so the submitted `l93` sequence is the
+raw hallucinated trajectory — the only design in the set that never received
+the sequence-design step whose explicit purpose is lowering surface
+hydrophobicity. The same fact that made `l93` unusual enough to survive
+full-length validation when its MPNN children did not is the fact that leaves
+it least optimised for solubility. **This is a stated expression risk on both
+leads, not a prediction of failure**, and it is the reason the three remaining
+slots went to other scaffolds rather than to more `l93` variants.
 
 `[measured]` **Designs 1 and 2 are the two we would defend, and they are
 complementary rather than ranked.** `l93_H36E` is the only design carrying a
