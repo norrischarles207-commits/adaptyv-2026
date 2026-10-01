@@ -135,7 +135,7 @@ def main():
         w = csv.writer(fh)
         w.writerow(["name", "sequence", "molecule_class"])
         for n, s in out:
-            w.writerow([n, s, "protein"])
+            w.writerow([n, s, "single_chain"])
 
     with open(DST, newline="") as fh:
         back = list(csv.DictReader(fh))
@@ -144,7 +144,7 @@ def main():
     for b_, (n, s) in zip(back, out):
         if b_["name"] != n or b_["sequence"] != s:
             die("round-trip mismatch on " + n)
-        if b_["molecule_class"] != "protein":
+        if b_["molecule_class"] != "single_chain":
             die("round-trip molecule_class mismatch on " + n)
 
     print("round-trip verified against source: %d/%d exact." % (len(back), len(out)))

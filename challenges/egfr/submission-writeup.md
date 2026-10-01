@@ -13,7 +13,7 @@ Complete — hallucination round 2026-09-30, pre-registered variant round 2026-1
 | Starting point | None. PDB 6ARU used for epitope selection only; all backbones hallucinated |
 | Target region | Human EGFR domain III, mature 311–514 |
 | Epitope (hotspots) | Q408, H409, Q411, F412 — **mature** numbering |
-| Molecule class | protein (single chain, linear) |
+| Molecule class | `single_chain` (per Adaptyv submission template) |
 | Lengths | 64–93 aa |
 | Designs submitted | 5 (2 complementary leads, 3 declared near-misses) — allowance is 20, deliberately unused |
 | Selection criteria | Pre-registered before results, commit `d94a8d4` |
