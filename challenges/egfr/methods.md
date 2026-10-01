@@ -1607,3 +1607,38 @@ already determined.
 **The submission does not change under any outcome.** The five designs in
 `submission.csv` are frozen; H36E is already the lead. This measurement
 changes what the writeup can honestly claim, not what is submitted.
+
+## 2026-10-01 — H36E vs mouse, 6 samples: branch (c), indeterminate
+
+216 GPU-s. `challenges/egfr/l93_H36E-mouse-6sample.json`.
+
+    ipSAE_min samples : 0.6746 0.6588 0.6729 0.6538 0.6451 0.2513
+    mean 0.5927   range 0.4233   median 0.6563
+    SC mean 0.6439 (PASS)
+
+**Pre-registered outcome: branch (c).** Range 0.4233 > 0.15, and the mean
+0.5927 < 0.60. The criterion is NOT met. STOP RULE APPLIED: no third
+measurement. The submission remains frozen at the five designs in
+`submission.csv`, as pre-registered.
+
+**Post-hoc observation, labelled as such.** The distribution is not scattered,
+it is bimodal: five samples span 0.645-0.675, one sits at 0.2513. The
+per-sample hotspot recovery separates them objectively — the five clustered
+samples each recovered **4/4** hotspots (SC 0.6492-0.7495); the outlier
+recovered **0/4** (SC 0.4257). The outlier is a docking failure, not a weaker
+pose. The mean is therefore a poor summary statistic here, which is an
+observation about the statistic, NOT grounds for substituting the median.
+
+**What may and may not be claimed.** May: when H36E engages the mouse epitope
+it does so comparably to human (0.645-0.675 vs human 0.6715), and it engages
+less reliably. May NOT: that H36E is mouse cross-reactive (criterion unmet),
+or that the failure rate is ~1/6 (n=6 cannot separate a real rate from one
+unlucky draw).
+
+**Symmetry check, so the outlier reading is not applied only where it helps.**
+No other measured combination shows this structure: parent/mouse range 0.0316,
+H36E/human range 0.0224 and 0.0479. The instability is specific to
+H36E against mouse.
+
+**Unchanged conclusion.** The two leads remain complementary and still conflict
+at position 36. This measurement sharpened the limitation; it did not remove it.

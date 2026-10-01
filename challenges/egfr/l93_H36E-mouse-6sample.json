@@ -1,0 +1,37 @@
+{
+  "stage": "fulllength",
+  "diffusion_samples": 6,
+  "ipsae_pass": 0.6,
+  "sc_pass": 0.58,
+  "total_gpu_seconds": 216.0,
+  "rows": [
+    {
+      "design": "l93_H36E",
+      "binder_len": 93,
+      "ipsae_mean": 0.5927,
+      "ipsae_range": 0.4233,
+      "ipsae_samples": [
+        0.6746,
+        0.6588,
+        0.6729,
+        0.6538,
+        0.6451,
+        0.2513
+      ],
+      "sc_mean": 0.6439,
+      "sc_range": 0.3238,
+      "sc_samples": [
+        0.6796,
+        0.7069,
+        0.7495,
+        0.6524,
+        0.6492,
+        0.4257
+      ],
+      "ipsae_pass": false,
+      "sc_pass": true,
+      "overall_pass": false,
+      "gpu_seconds": 216.0
+    }
+  ]
+}
