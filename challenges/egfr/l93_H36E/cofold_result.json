@@ -1,0 +1,125 @@
+{
+  "run_id": "l93_H36E",
+  "target_len": 621,
+  "binder_len": 93,
+  "diffusion_samples": 3,
+  "gpu_seconds": 182.2,
+  "per_sample": [
+    {
+      "model": 0,
+      "ipsae_min": 0.6563,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 241,
+          "n_int_b": 90,
+          "d0": 6.646,
+          "ipsae": 0.6563
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 90,
+          "n_int_b": 241,
+          "d0": 6.646,
+          "ipsae": 0.7056
+        }
+      ],
+      "iptm": 0.9498,
+      "ptm": 0.6767,
+      "complex_plddt": 0.8881,
+      "saved_pdb": "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_0.pdb"
+    },
+    {
+      "model": 1,
+      "ipsae_min": 0.6942,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 246,
+          "n_int_b": 90,
+          "d0": 6.69,
+          "ipsae": 0.6942
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 90,
+          "n_int_b": 246,
+          "d0": 6.69,
+          "ipsae": 0.7322
+        }
+      ],
+      "iptm": 0.9576,
+      "ptm": 0.6901,
+      "complex_plddt": 0.886,
+      "saved_pdb": "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_1.pdb"
+    },
+    {
+      "model": 2,
+      "ipsae_min": 0.6463,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 247,
+          "n_int_b": 90,
+          "d0": 6.699,
+          "ipsae": 0.6463
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 90,
+          "n_int_b": 247,
+          "d0": 6.699,
+          "ipsae": 0.693
+        }
+      ],
+      "iptm": 0.9427,
+      "ptm": 0.7745,
+      "complex_plddt": 0.8619,
+      "saved_pdb": "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_2.pdb"
+    }
+  ],
+  "ipsae_min_samples": [
+    0.6563,
+    0.6942,
+    0.6463
+  ],
+  "ipsae_min_mean": 0.6656,
+  "ipsae_min_min": 0.6463,
+  "ipsae_min_max": 0.6942,
+  "ipsae_min_range": 0.0479,
+  "ipsae_min": 0.6656,
+  "ipsae_pass": true,
+  "ipsae_pairs": [
+    {
+      "a": "A",
+      "b": "B",
+      "n_int_a": 241,
+      "n_int_b": 90,
+      "d0": 6.646,
+      "ipsae": 0.6563
+    },
+    {
+      "a": "B",
+      "b": "A",
+      "n_int_a": 90,
+      "n_int_b": 241,
+      "d0": 6.646,
+      "ipsae": 0.7056
+    }
+  ],
+  "iptm": 0.9498,
+  "ptm": 0.6767,
+  "complex_plddt": 0.8881,
+  "saved_pdb": "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_0.pdb",
+  "saved_pdbs": [
+    "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_0.pdb",
+    "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_1.pdb",
+    "/designs/egfr/l93-variants/l93_H36E/l93_H36E_model_2.pdb"
+  ]
+}

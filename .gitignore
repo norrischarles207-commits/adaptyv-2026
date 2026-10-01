@@ -33,3 +33,5 @@ challenges/egfr/phase1-probe-v3b-partial/
 
 # regenerable confidence matrices
 challenges/egfr/fulllength-v3c/**/*.npz
+
+challenges/egfr/l93_H36E/**/*.npz
