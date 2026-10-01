@@ -1570,3 +1570,40 @@ NOT DONE, deliberately: re-running l93_H36E against mouse at greater sampling
 depth to resolve the 0.3693 range. Deepening sampling after seeing an
 unfavourable result would undermine the pre-registration. The score is
 labelled poorly determined, as l75's was.
+
+## 2026-10-01 — Pre-registration: H36E vs mouse at 6 samples
+
+**Trigger is the range, not the value.** The 3-sample mouse measurement for
+`l93_H36E` gave ipSAE_min 0.4652 with range 0.3693 (samples 0.6704, 0.4240,
+0.3011). The project's precision bar is range <= 0.15; this is 2.5x it. The
+same rule would fire on a favourable mean with this spread, so re-measuring
+is symmetric, not result-chasing.
+
+**Run:** `fulllength_pass`, H36E only, mouse full-length ECD, 6 diffusion
+samples, hotspots 408,409,411,412. ~300 GPU-s.
+
+**Human is NOT re-run.** It has two independent 3-sample measurements that
+agree: 0.6656 (variant round) and 0.6715 (species run), spread 0.0059. It is
+already determined.
+
+**Outcomes, fixed now:**
+
+  (a) mouse mean >= 0.60 AND range <= 0.15
+      -> H36E is cross-reactive at full length. It becomes the only design in
+         the project meeting all three criteria. Criterion 2 in the writeup is
+         rewritten around it.
+
+  (b) mouse mean < 0.60 AND range <= 0.15
+      -> the tradeoff at position 36 is real and determined. Reported as a
+         positive finding: His36 buys cross-reactivity, Glu36 buys the pH
+         switch, and this scaffold cannot hold both.
+
+  (c) range still > 0.15
+      -> not determinable at this depth with this tool. Reported as
+         indeterminate. **STOP RULE: no third measurement.** Sampling until a
+         favourable answer appears is the failure mode this rule exists to
+         prevent.
+
+**The submission does not change under any outcome.** The five designs in
+`submission.csv` are frozen; H36E is already the lead. This measurement
+changes what the writeup can honestly claim, not what is submitted.
