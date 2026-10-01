@@ -1476,3 +1476,51 @@ one). The interaction is present in all three regardless.
 RESULT UNDER THE PRE-REGISTERED RULE: l93_H36E meets (1), (2) and (3) and is
 submitted, leading the criterion-1 discussion. The three failing variants are
 not submitted. The parent remains submitted.
+
+## 2026-10-01 — pre-registration: full-length species comparison for the
+## submitted lead
+
+Gap in the record this closes: Stage 1 measured human-vs-mouse at the domain
+III SLICE stage, for the original seven designs only. l93_H36E did not exist
+then, so the design now leading the submission has no cross-reactivity
+measurement at all, and criterion 2 is measured at a different scale from
+criterion 3.
+
+Run, committed before execution: redundancy.py::crossreact, two binders
+(l93 parent and l93_H36E) against human and mouse FULL-LENGTH ECD, 3
+diffusion samples each, 4 co-folds, budget capped at 20 GPU-min.
+
+Mouse target built by build_mouse_fulllength.py: human and mouse precursors
+globally aligned, mouse partner residue taken at every position of mature
+1-621, keeping the human numbering frame. 70 of 621 positions divergent
+(88.7% identity); H409 and H346 conserved; hotspots 408/409/411/412 read
+QHQF in mouse, consistent with species_align.out.
+
+INTERPRETATION, fixed now:
+
+  gap        = human_mean - mouse_mean, per binder
+  noise      = max(human_range, mouse_range), per binder
+  verdict    = REAL if |gap| > noise, else indistinguishable
+
+  This is the same rule Stage 1 applied, carried over unchanged.
+
+What each outcome means, decided before seeing it:
+
+  (a) H36E gap <= parent gap, both within noise
+      -> the substitution did not cost cross-reactivity. Report both as
+         indistinguishable at this sampling depth. No claim of demonstrated
+         cross-reactivity; a null result is not a positive one.
+
+  (b) H36E gap materially larger than the parent's and above noise
+      -> the substitution cost cross-reactivity. This is a liability and is
+         reported as one in the limitations, not buried.
+
+  (c) H36E mouse ipSAE_min < 0.60
+      -> the lead design does not clear the binding threshold against mouse.
+         Reported plainly; it does not change the submission, since the
+         submission was selected on human binding and criterion 1 geometry.
+
+The human arm of this run is a THIRD independent measurement of l93_H36E
+against human (0.6656 in the variant round). If it does not reproduce within
+sampling noise, the species gaps from this run are not interpretable and that
+is reported rather than worked around.
