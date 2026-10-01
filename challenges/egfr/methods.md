@@ -1429,3 +1429,50 @@ Submission rule, fixed now:
     post-hoc addition made after results were seen, on a criterion
     (acid-H409 geometry) measured uniformly across all seven designs. It is
     disclosed as post-hoc and is not claimed as pre-registered.
+
+## 2026-10-01 — variant round result; pre-registered rule applied
+
+Run: adaptyv-designs ap-pSlpk8vk6dHCuepokCGHJm, 878 GPU-s, 5 sequences x 3
+diffusion samples against the 621-residue human ECD, identical settings to
+Stage 2.
+
+    design                    ipSAE mean[range]   SC mean[range]    verdict
+    egfr_l93_s713816_parent   0.6387[0.072]       0.6705[0.1155]    PASS
+    l93_H36E                  0.6656[0.0479]      0.6406[0.083]     PASS
+    l93_S32D                  0.4065[0.4426]      0.5535[0.1482]    fail
+    l93_S32D_S33D             0.4487[0.4905]      0.5453[0.1698]    fail
+    l93_S32E                  0.2715[0.0085]      0.423 [0.0411]    fail
+
+INTERNAL CONTROL. The parent reproduced at 0.6387 against its Stage 2 value
+of 0.6514 (difference 0.013, within sampling noise), so these numbers are on
+the same scale as Stage 2.
+
+THE PRIMARY HYPOTHESIS FAILED. S32D was predicted to be the best candidate
+on geometric grounds (Asp OD and Ser OG sit at comparable distance from CB).
+It dropped to 0.4065 with a sample range of 0.4426 -- not merely worse but
+unstable across predictions. S32E failed harder and with a tiny range
+(0.2715 [0.0085]), i.e. confidently broken. The reasoning about reach was
+sound; the assumption that a conservative substitution would leave the pose
+intact was not. Ser32's hydroxyl appears to be structurally load-bearing.
+
+H36E, ranked last of the four a priori, was the only variant to pass. It
+adds an acid without touching Ser32, removes the His36-His409 like-charge
+proximity, and addresses the His8-His36 intra-binder clash that reproduced
+in all three parent models.
+
+CRITERION (3), measured in ChimeraX on the three output models:
+
+    model_0   Glu36 OE1 -> H409 NE2   3.305 A
+    model_1   Glu36 OE1 -> H409 NE2   3.117 A
+    model_2   Glu36 OE1 -> H409 ND1   3.205 A
+
+    mean 3.21 A, range 0.19. Contact present in 3 of 3 models; the
+    pre-registered bar was 2 of 3. In model_2 both carboxylate oxygens fall
+    within 4 A of ND1 (3.205, 3.343).
+
+The engaged imidazole nitrogen differs between models (NE2 in two, ND1 in
+one). The interaction is present in all three regardless.
+
+RESULT UNDER THE PRE-REGISTERED RULE: l93_H36E meets (1), (2) and (3) and is
+submitted, leading the criterion-1 discussion. The three failing variants are
+not submitted. The parent remains submitted.

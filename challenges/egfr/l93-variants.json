@@ -1,0 +1,119 @@
+{
+  "stage": "fulllength",
+  "diffusion_samples": 3,
+  "ipsae_pass": 0.6,
+  "sc_pass": 0.58,
+  "total_gpu_seconds": 877.9,
+  "rows": [
+    {
+      "design": "egfr_l93_s713816_parent",
+      "binder_len": 93,
+      "ipsae_mean": 0.6387,
+      "ipsae_range": 0.072,
+      "ipsae_samples": [
+        0.6638,
+        0.6604,
+        0.5918
+      ],
+      "sc_mean": 0.6705,
+      "sc_range": 0.1155,
+      "sc_samples": [
+        0.7141,
+        0.6989,
+        0.5986
+      ],
+      "ipsae_pass": true,
+      "sc_pass": true,
+      "overall_pass": true,
+      "gpu_seconds": 130.4
+    },
+    {
+      "design": "l93_S32D",
+      "binder_len": 93,
+      "ipsae_mean": 0.4065,
+      "ipsae_range": 0.4426,
+      "ipsae_samples": [
+        0.6476,
+        0.367,
+        0.205
+      ],
+      "sc_mean": 0.5535,
+      "sc_range": 0.1482,
+      "sc_samples": [
+        0.6497,
+        0.5015,
+        0.5092
+      ],
+      "ipsae_pass": false,
+      "sc_pass": false,
+      "overall_pass": false,
+      "gpu_seconds": 199.7
+    },
+    {
+      "design": "l93_S32D_S33D",
+      "binder_len": 93,
+      "ipsae_mean": 0.4487,
+      "ipsae_range": 0.4905,
+      "ipsae_samples": [
+        0.6481,
+        0.5405,
+        0.1576
+      ],
+      "sc_mean": 0.5453,
+      "sc_range": 0.1698,
+      "sc_samples": [
+        0.6154,
+        0.5749,
+        0.4456
+      ],
+      "ipsae_pass": false,
+      "sc_pass": false,
+      "overall_pass": false,
+      "gpu_seconds": 190.9
+    },
+    {
+      "design": "l93_S32E",
+      "binder_len": 93,
+      "ipsae_mean": 0.2715,
+      "ipsae_range": 0.0085,
+      "ipsae_samples": [
+        0.2758,
+        0.2673,
+        null
+      ],
+      "sc_mean": 0.423,
+      "sc_range": 0.0411,
+      "sc_samples": [
+        0.3959,
+        0.4362,
+        0.437
+      ],
+      "ipsae_pass": false,
+      "sc_pass": false,
+      "overall_pass": false,
+      "gpu_seconds": 174.7
+    },
+    {
+      "design": "l93_H36E",
+      "binder_len": 93,
+      "ipsae_mean": 0.6656,
+      "ipsae_range": 0.0479,
+      "ipsae_samples": [
+        0.6563,
+        0.6942,
+        0.6463
+      ],
+      "sc_mean": 0.6406,
+      "sc_range": 0.083,
+      "sc_samples": [
+        0.6863,
+        0.6322,
+        0.6033
+      ],
+      "ipsae_pass": true,
+      "sc_pass": true,
+      "overall_pass": true,
+      "gpu_seconds": 182.2
+    }
+  ]
+}
