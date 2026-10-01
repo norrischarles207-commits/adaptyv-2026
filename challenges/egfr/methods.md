@@ -1354,3 +1354,78 @@ the printed numeric ranges above, not by AlphaFold habit.
 Still outstanding from this inspection: clash count restricted to the binder,
 and the identity of the acidic residue within 5 A of H409 in each of the three
 models.
+
+## 2026-10-01 — pH-mechanism screen across all seven designs, and a
+## pre-registered variant round
+
+Structural inspection of the committed Stage 2 models (no compute). Binder
+residues within 6 A of H409 NE2, per design, model_0:
+
+    rank design              acids present        other ionizable
+      1  l93_s713816         NONE                 His8, His36, Lys40
+      2  l75_s674224_mpnn14  Asp45, Glu57         Arg6
+      3  l64_s902794_mpnn2   Asp34, Glu35         His33
+      4  l89_s399498_mpnn2   Asp31                Arg5
+      5  l91_s124145_mpnn1   Asp28, Glu29         Lys32
+      6  l79_s846567_mpnn5   Glu18                Lys41
+      7  l67_s528267         NONE                 Lys44
+
+Five of seven carry an acid at the epitope. The submitted lead, l93, is one
+of the two that do not.
+
+Proximity is not geometry. Carboxylate O -> H409 NE2:
+
+    l64  Asp34 OD1   4.435      Glu35 OE1  10.931  (points away)
+    l91  Asp28 OD1   3.658      Glu29 OE1  10.611  (points away)
+
+In both designs only ONE of the two acids faces H409; sequence adjacency did
+not imply engagement. l91 has the best acid-H409 geometry in the set at
+3.658 A, and was NOT in the pre-registered submission (composite rank 5).
+
+l93's epitope geometry, measured in all three Stage 2 models:
+
+    Ser32 OG -> H409 NE2   3.332 / 3.397 / 3.628 A   mean 3.45, range 0.30
+    Ser33 OG -> H409 NE2   4.452 A        (model_0)
+    His36 NE2 -> H409 NE2  4.971 A        (model_0)
+    His36 ND1 -> H409 ND1  5.905 A        (model_0)
+    Lys40 NZ -> H409 NE2   8.402 A        (model_0)
+
+Lys40 at 8.4 A is too distant to act as a meaningful opposing charge; an
+earlier concern that it did was wrong and is withdrawn.
+
+INTERPRETATION. Ser32's hydroxyl is reproducibly hydrogen bonded to His409
+at 3.45 A mean. A Ser-His hydrogen bond is largely pH-insensitive, which is
+a sufficient explanation for l93 showing no pH selectivity despite good
+binding. Asp OD and Ser OG sit at nearly the same distance from CB (~2.4-2.5
+A), so S32D should place a carboxylate at the same position: a weak neutral
+H-bond at pH 7.4, a salt bridge against protonated His409 at pH 6.5.
+
+Clash burden, binder-restricted, per model: 7 / 10 / 10. Reproducing in all
+three: His8-His36 (intra-binder, 0.638/0.645/0.651) and Val15-Ser32
+(0.663/0.697/0.668). An ARG353-TRP49 clash at 1.217 overlap in model_0 does
+NOT reproduce (0.679 in model_1, absent in model_2) and is sampling noise.
+
+PRE-REGISTERED, before the variant co-folds are run:
+
+Variants to test (built by make_variants.py from the l93 parent):
+    l93_S32D        primary; predicted ~3.3 A carboxylate-His409
+    l93_S32D_S33D   adds a second acid at 4.45 A
+    l93_S32E        tests whether the longer sidechain overshoots
+    l93_H36E        converts the His-His pair to acid-His at ~5 A
+
+Acceptance, all three required:
+    (1) ipSAE_min >= 0.60   (mean of 3 diffusion samples)
+    (2) SC >= 0.58
+    (3) a carboxylate O within 4.0 A of H409 NE2 or ND1 in >= 2 of 3 samples
+
+Submission rule, fixed now:
+  - A variant meeting all three is submitted and leads the criterion-1
+    discussion.
+  - A variant meeting (1) and (2) but not (3) is NOT submitted; it gains no
+    mechanism and would only dilute.
+  - A variant failing (1) is NOT submitted regardless of geometry.
+  - The parent l93 remains submitted either way.
+  - l91 is ADDED to the submission on the basis of this screen. This is a
+    post-hoc addition made after results were seen, on a criterion
+    (acid-H409 geometry) measured uniformly across all seven designs. It is
+    disclosed as post-hoc and is not claimed as pre-registered.
