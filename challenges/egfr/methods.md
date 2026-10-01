@@ -1295,3 +1295,62 @@ found independently, but this is derivation, not recovery.
 
 **Corrective:** future runs go through `modal/run_logged.sh`, which tees
 the full command line and output to a committed log.
+
+## 2026-10-01 — structural inspection of egfr_l93_s713816 (ChimeraX 1.12)
+
+All three full-length Stage 2 models inspected visually. No compute; local
+PDBs from `challenges/egfr/fulllength-v3c/egfr_l93_s713816/`.
+
+**Domain III superimposes near-exactly across the three predictions.**
+Aligning on mature 311-514 only:
+
+    matchmaker #2/A:311-514 to #1/A:311-514
+    model_0 chain A (#1) with model_1 chain A (#2), alignment score 1050.7
+    RMSD between 204 pruned atom pairs is 0.352 angstroms
+    (across all 204 pairs: 0.352)          <- zero residues pruned
+
+    matchmaker #3/A:311-514 to #1/A:311-514
+    model_0 chain A (#1) with model_2 chain A (#3), alignment score 1026.1
+    RMSD between 203 pruned atom pairs is 0.285 angstroms
+    (across all 204 pairs: 0.369)          <- one residue pruned
+
+Compare the unrestricted full-chain alignment, which gave 236 pruned pairs
+at 0.342 A but 31.039 A across all 621: the distal domains adopt different
+arrangements per sample while domain III does not. Consistent with the known
+flexibility of the EGFR ECD; not a prediction defect.
+
+**Buried interface area.** `measure buriedarea`, per model, binder (chain B)
+against two different definitions of the target:
+
+    target = full receptor (chain A, 621 res):
+      #1 1120.5   #2 1494.8   #3 1607.7     mean 1407.7, range 487.2 (34.6%)
+
+    target = domain III only (chain A, mature 311-514):
+      #1 1120.5   #2 1142.9   #3 1108.8     mean 1124.1, range  34.1 ( 3.0%)
+
+The 34.6% spread on the full-receptor measure is an artifact of distal-domain
+flexibility, not of the interface. Contact outside domain III: 0.0 A^2 (#1),
+351.9 (#2), 498.9 (#3) — incidental, different per sample. In model 0 the
+binder contacts domain III exclusively.
+
+**Designed interface = 1124 A^2 mean, reproducible to 3%.** Large for a
+93-residue binder; de novo minibinders commonly bury 700-1000 A^2.
+
+**Per-residue confidence** (B-factor column, 0-100 scale):
+
+    whole model #1        49.5 - 97.5   (714 residues)
+    binder chain #1/B     65.2 - 93.3   ( 93 residues)
+    hotspot region
+      #1/A:405-415        90.3 - 95.7   ( 11 residues)
+
+The epitope neighbourhood is in the top band of the entire structure. The
+binder's low value (65.2) lies away from the interface.
+
+Caveat on method: `color byattribute ... palette blue:white:red` maps the
+MINIMUM value to blue and the maximum to red — the reverse of the AlphaFold
+convention. Colours in any screenshot from this session must be read against
+the printed numeric ranges above, not by AlphaFold habit.
+
+Still outstanding from this inspection: clash count restricted to the binder,
+and the identity of the acidic residue within 5 A of H409 in each of the three
+models.
