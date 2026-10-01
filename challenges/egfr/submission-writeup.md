@@ -15,7 +15,7 @@ Complete — hallucination round 2026-09-30, pre-registered variant round 2026-1
 | Epitope (hotspots) | Q408, H409, Q411, F412 — **mature** numbering |
 | Molecule class | protein (single chain, linear) |
 | Lengths | 64–93 aa |
-| Designs submitted | 5 (2 pass, 3 declared near-misses) — allowance is 20, deliberately unused |
+| Designs submitted | 5 (2 complementary leads, 3 declared near-misses) — allowance is 20, deliberately unused |
 | Selection criteria | Pre-registered before results, commit `d94a8d4` |
 
 **Numbering convention.** Mature EGFR numbering throughout. Precursor
@@ -162,11 +162,55 @@ be reading a null result as a positive one. The defensible claim is narrower:
 five of seven show a species gap too small to resolve at this sampling depth,
 and two show a gap roughly 2.7× larger that is clearly real.
 
-**Convergence worth noting.** `[measured]` The three submitted designs were
-selected on Stage 2 full-length composite, with no reference to Stage 1. They
-happen to be three of the five smallest species gaps, and both large-gap
-designs fall outside the submission set. The two selection criteria agree
-without having been made to.
+**Full-length measurement for the two lead designs.** `[measured]` Stage 1
+above was run on the domain III slice, before `l93_H36E` existed. Both leads
+were therefore re-measured against human and mouse **full-length** ECD in a
+single run, under an interpretation rule committed beforehand (commit
+`4e656f4`). The mouse target was built by substituting mouse residues at every
+divergent position of mature 1–621 in the human numbering frame — 70 of 621
+divergent, 88.7% identity, H409/H346 and all four hotspots conserved.
+
+| design | human | mouse | gap | noise floor |
+|---|---|---|---|---|
+| `egfr_l93_s713816` | 0.653 [0.009] | **0.648** [0.032] | +0.005 | 0.032 |
+| `l93_H36E` | 0.672 [0.022] | **0.465** [0.369] ⚠ | +0.206 | 0.369 |
+
+`[measured]` Validity check: `l93_H36E` against human reads 0.672 here against
+0.666 in the variant round; the parent reads 0.653 against 0.639 and 0.651 in
+two earlier runs. Both reproduce, so these gaps are interpretable.
+
+**The parent is cross-reactive. This is the project's one clean criterion-2
+result.** `[measured]` Human 0.653 and mouse 0.648 both clear the 0.60
+threshold, the gap is 0.005 against a noise floor of 0.032, and both arms are
+tightly determined. Unlike the slice-stage verdicts above, this is a positive
+result rather than an unresolved one.
+
+**The lead design is not cross-reactive, and the verdict column says otherwise
+for the wrong reason.** `[measured]` `l93_H36E`'s mouse samples were 0.670,
+0.424, 0.301 — a range of 0.369, the largest spread anywhere in this project.
+The pre-registered rule returns "indistinguishable" only because that noise
+floor exceeds the 0.206 gap. The values are not close; the measurement is
+unusable. We report the mean as failing the threshold and flag the score as
+poorly determined rather than claim the verdict.
+
+`[measured]` We did not re-run it at greater sampling depth. Deepening sampling
+after seeing an unfavourable result would undermine the pre-registration, and
+`l75` was handled the same way.
+
+**The two leads are complementary, and neither is complete.** `[measured]`
+
+| | pH mechanism | cross-reactivity | human binding |
+|---|---|---|---|
+| `l93_H36E` | **yes**, 3.21 Å | **no** | yes, 0.67 |
+| `egfr_l93_s713816` | no | **yes**, clean | yes, 0.65 |
+
+`[inferred]` These differ by a single residue, position 36. His gives
+cross-reactivity without a mechanism; Glu gives the mechanism and costs mouse
+binding. The two properties are coupled at one position rather than being
+independently optimisable, and every alternative position we tested (S32D,
+S32D/S33D, S32E) destroyed human binding outright. We submit both and state
+plainly that the submission as a set addresses criteria 1 and 2 while no single
+design in it does.
 
 **Epitope-level conservation.** `[measured]` Global alignment of P00533 against
 mouse Q01279, computed in-repo against live UniProt. Domain III identity
@@ -362,16 +406,95 @@ hydrophobic surface, and we weighted against those.
 
 ---
 
+## Funnel — every denominator, not a hit rate
+
+`[measured]` Reporting a single success rate hides which denominator it was
+computed on. Counts for every stage, including the runs that failed:
+
+Generation, by arm — four arms were launched, two produced nothing:
+
+| arm | seeds requested | containers started | trajectories completed | accepted | fate |
+|---|---|---|---|---|---|
+| `phase1-probe-v3` | not logged | ≥1, all failed | 0 | 0 | `RESOURCE_EXHAUSTED` in `design_logits` on every seed — 29.26–42.59 GiB requested against a 24 GB A10G, on the untruncated 609-residue chain |
+| `phase1-probe-v3b` | 100 | 10 | 9 | 2 | killed at 10 seeds; arm later retired on the glycan argument, never validated |
+| `phase1-v3c-core` | 10 | 10 | 7 | 5 | every completed design carried forward |
+| `phase1-v3c-q408` | 10 | 0 | 0 | 0 | never started — spend limit hit during arm 1 |
+| **total** | **≥120** | **≥20** | **16** | **7** | |
+
+The v3 probe's seed count was not recorded at run time and is not reconstructed
+here, so the request and container totals are lower bounds. The two numbers
+that matter for it — trajectories and accepted designs — are both zero and are
+recorded: it contributed nothing downstream.
+
+Validation, on the `v3c-core` set:
+
+| stage | count | note |
+|---|---|---|
+| Carried to validation | 7 | 5 accepted, plus seeds 0 and 6 which BindCraft **rejected** and we retained deliberately |
+| Variants designed | 4 | single substitutions on the `l93` backbone |
+| Computationally screened | 11 | all 7 originals and all 4 variants, full-length co-fold |
+| Passed pre-registered criteria | 2 | `egfr_l93_s713816`, `l93_H36E` |
+| **Submitted** | **5** | 2 passing, 3 labelled near-misses |
+| Selected and expressed | — | sponsor-determined |
+| Experimentally positive | — | sponsor-determined |
+
+The two `v3b` accepted designs are counted in the generation table and excluded
+from validation: the arm was retired before any full-length check was run on
+them, so there is no validation number to report. Neither is submitted.
+
+**No yield rate is quoted from these numbers, deliberately.** `[measured]`
+Both arms that produced designs were terminated by **account-level compute
+events** rather than by designs failing: v3b by
+`GRPCError FAILED_PRECONDITION: workspace ... is disabled`, and the v3c pair by
+the workspace spend limit, which stopped arm 1 partway and arm 2 before it
+started. In v3b, 10 of 100 requested seeds reached a container at all;
+of those, seeds 3/5/8 failed on their own merits (Clashing, LowConfidence)
+while seeds 2/4/7/9 were interrupted mid-MPNN holding completed trajectories.
+In v3c-core, seeds 4, 8 and 9 never produced a report block. **The
+denominators are truncated by infrastructure, not by biology**, so dividing
+accepted by requested would produce a number that understates the method and
+means nothing. The counts are reported; the ratio is not.
+
+`[measured]` All four arms are in the table, including the two that produced
+nothing: the 100-seed v3 probe that OOM'd before writing a trajectory, and the
+`v3c-q408` arm that never got a container because the spend limit was reached
+while arm 1 was still running. Each is dated in `methods.md` with its failure
+reason and whatever partial output survived.
+
+`[measured]` Note the asymmetry in the "carried to validation" row: `l93`,
+which became a submitted lead and passed both pre-registered thresholds, is one
+of the two designs BindCraft's own default filters **rejected**. Retaining
+rejected designs was a decision made before the validation results existed.
+
+**Reviewer attestation.** `[measured]` Every submitted design was individually
+inspected by the submitting researcher, not accepted on score alone. For the
+two leads this covered: pose reproducibility across three independent
+predictions (domain III RMSD 0.35–0.37 Å), buried interface area measured
+against domain III rather than the flexible full receptor (1124 Å², 3.0%
+spread), per-residue confidence at the epitope (90.3–95.7, top band of the
+structure), binder-restricted clash counts with severities, and the identity
+and geometry of every residue within 5–6 Å of H409. Dates, commands and
+outputs are in `methods.md` under 2026-10-01; the structures inspected are
+committed under `challenges/egfr/fulllength-v3c/` and
+`challenges/egfr/l93_H36E/`.
+
+---
+
 ## Limitations
 
-1. **Interface-level mouse divergence, and a systematic species gap.** All
-   designs contact ≥2 species-divergent positions, and all seven score higher
-   against human than mouse (sign test p = 0.016 two-tailed). The designs are
-   not species-agnostic; the submitted three have gaps near the noise floor,
-   which is weaker than demonstrated cross-reactivity.
-2. **Flat epitope.** Dropping A384 removed the only measurable concavity;
+1. **The pH mechanism and cross-reactivity are coupled, and we could not have
+   both.** `[measured]` The single substitution that creates the acid–H409
+   salt bridge (H36E) also drops mouse binding from 0.648 to 0.465. Every
+   alternative position tested destroyed human binding. No design in this
+   submission satisfies criteria 1 and 2 simultaneously; the set does, the
+   individual molecules do not.
+2. **Interface-level mouse divergence, and a systematic slice-stage gap.** All
+   designs contact ≥2 species-divergent positions, and all seven scored higher
+   against human than mouse at slice stage (sign test p = 0.016 two-tailed).
+   The full-length parent result is the one clean exception.
+3. **Flat epitope.** Dropping A384 removed the only measurable concavity;
    the remaining surface is flat within fit error.
-3. **The pH switch is a single engineered salt bridge, not a designed
+4. **The pH switch is a single engineered salt bridge, not a designed
    interface.** `[measured]` Hallucination applied no pH restraint; the
    mechanism in `l93_H36E` comes from one post-hoc substitution, not from
    designing the interface for pH from the start. One ionisable pair caps the
@@ -380,15 +503,18 @@ hydrophobic surface, and we weighted against those.
    `[inferred]` The substitution is also unvalidated beyond structure
    prediction — Boltz placing a carboxylate at 3.21 Å is evidence, not proof,
    that the real sidechain adopts that rotamer.
-4. **Small sample.** `[literature]` The de novo hallucination hit rate in
-   Adaptyv's EGFR Round 2 was 9% (6/65), and no prior round required
-   pH-switching or cross-species reactivity, so there is no base rate for this
-   problem type. We expect below 9%.
-5. **SC criterion is probably mis-set.** `[measured]` The EGF control scores
+5. **Small sample, and no base rate for this problem type.** `[literature]`
+   Two independent anchors: the de novo hallucination hit rate in Adaptyv's
+   EGFR Round 2 was 9% (6/65); a prior Proteinbase challenge ran 1,196 tested
+   → 1,028 expressed → 111 bound, i.e. 10.8% among expressed designs. Neither
+   round required pH-switching or cross-species reactivity, so there is no
+   base rate for a problem with three stacked criteria. We expect below both
+   figures.
+6. **SC criterion is probably mis-set.** `[measured]` The EGF control scores
    SC = 0.499 at our own epitope, below our 0.58 cutoff — the criterion would
    reject a known ligand. Left unchanged because it was pre-registered and
    changing it rescues nothing, but it should not be reused as-is.
-6. **The passer was rejected by BindCraft's own filters.** `[measured]`
+7. **The passer was rejected by BindCraft's own filters.** `[measured]`
    `egfr_l93_s713816` is a trajectory sequence that BindCraft's default filter
    set declined. It passes our independent full-length criteria with the
    tightest sampling spread in the run. We report the disagreement rather than
@@ -409,8 +535,8 @@ additions are disclosed below as post-hoc.
 
 | # | design | len | ipSAE_min | acid–H409 | basis |
 |---|---|---|---|---|---|
-| 1 | **`l93_H36E`** | 93 | **0.666** [0.048] | **3.21 Å, 3/3** | Pre-registered variant round; meets all three criteria |
-| 2 | `egfr_l93_s713816` | 93 | 0.651 [0.014] | none | Original pre-registered passer |
+| 1 | **`l93_H36E`** | 93 | **0.666** [0.048] | **3.21 Å, 3/3** | Pre-registered variant round; meets all three criteria. Fails mouse (0.465 ⚠) |
+| 2 | **`egfr_l93_s713816`** | 93 | 0.651 [0.014] | none | Original pre-registered passer. **Cross-reactive** (mouse 0.648, clean) |
 | 3 | `egfr_l75_s674224_mpnn14` | 75 | 0.543 [0.218] | Asp45 present | Next-best by composite; poorly determined |
 | 4 | `egfr_l64_s902794_mpnn2` | 64 | 0.516 [0.098] | Asp34 at 4.44 Å | Next-best by composite |
 | 5 | `egfr_l91_s124145_mpnn1` | 91 | 0.510 [0.064] | **Asp28 at 3.66 Å** | **Post-hoc addition** — best acid geometry among the original seven |
@@ -426,10 +552,12 @@ addition is claimed as pre-registered.
 `[inferred]` Designs 3–5 are submitted as declared near-misses on binding, not
 as candidates we expect to bind well. We did not pad the remaining 15 slots.
 
-`[measured]` `l93_H36E` is the design we would defend individually: highest
-ipSAE in the project, tightest sample spread among passing designs, all four
-hotspots recovered in every sample, and the only one carrying a measured
-pH-switch geometry.
+`[measured]` **Designs 1 and 2 are the two we would defend, and they are
+complementary rather than ranked.** `l93_H36E` is the only design carrying a
+measured pH-switch geometry and has the highest human ipSAE in the project, but
+fails the threshold against mouse. Its parent is the only design with clean
+full-length cross-reactivity, but carries no pH mechanism. They differ by one
+residue, and that residue is where the two properties conflict.
 
 ---
 

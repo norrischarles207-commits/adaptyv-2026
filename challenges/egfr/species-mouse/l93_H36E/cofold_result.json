@@ -1,0 +1,125 @@
+{
+  "run_id": "l93_H36E__mouse",
+  "target_len": 621,
+  "binder_len": 93,
+  "diffusion_samples": 3,
+  "gpu_seconds": 170.3,
+  "per_sample": [
+    {
+      "model": 0,
+      "ipsae_min": 0.6704,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 238,
+          "n_int_b": 90,
+          "d0": 6.619,
+          "ipsae": 0.6704
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 90,
+          "n_int_b": 238,
+          "d0": 6.619,
+          "ipsae": 0.7128
+        }
+      ],
+      "iptm": 0.9503,
+      "ptm": 0.667,
+      "complex_plddt": 0.8732,
+      "saved_pdb": "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_0.pdb"
+    },
+    {
+      "model": 1,
+      "ipsae_min": 0.424,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 442,
+          "n_int_b": 86,
+          "d0": 8.126,
+          "ipsae": 0.4774
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 86,
+          "n_int_b": 442,
+          "d0": 8.126,
+          "ipsae": 0.424
+        }
+      ],
+      "iptm": 0.768,
+      "ptm": 0.8276,
+      "complex_plddt": 0.8449,
+      "saved_pdb": "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_1.pdb"
+    },
+    {
+      "model": 2,
+      "ipsae_min": 0.3011,
+      "ipsae_pairs": [
+        {
+          "a": "A",
+          "b": "B",
+          "n_int_a": 193,
+          "n_int_b": 87,
+          "d0": 6.165,
+          "ipsae": 0.3093
+        },
+        {
+          "a": "B",
+          "b": "A",
+          "n_int_a": 87,
+          "n_int_b": 193,
+          "d0": 6.165,
+          "ipsae": 0.3011
+        }
+      ],
+      "iptm": 0.7165,
+      "ptm": 0.7833,
+      "complex_plddt": 0.8454,
+      "saved_pdb": "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_2.pdb"
+    }
+  ],
+  "ipsae_min_samples": [
+    0.6704,
+    0.424,
+    0.3011
+  ],
+  "ipsae_min_mean": 0.4652,
+  "ipsae_min_min": 0.3011,
+  "ipsae_min_max": 0.6704,
+  "ipsae_min_range": 0.3693,
+  "ipsae_min": 0.4652,
+  "ipsae_pass": false,
+  "ipsae_pairs": [
+    {
+      "a": "A",
+      "b": "B",
+      "n_int_a": 238,
+      "n_int_b": 90,
+      "d0": 6.619,
+      "ipsae": 0.6704
+    },
+    {
+      "a": "B",
+      "b": "A",
+      "n_int_a": 90,
+      "n_int_b": 238,
+      "d0": 6.619,
+      "ipsae": 0.7128
+    }
+  ],
+  "iptm": 0.9503,
+  "ptm": 0.667,
+  "complex_plddt": 0.8732,
+  "saved_pdb": "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_0.pdb",
+  "saved_pdbs": [
+    "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_0.pdb",
+    "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_1.pdb",
+    "/designs/egfr/l93-species-fl/mouse/l93_H36E/l93_H36E__mouse_model_2.pdb"
+  ]
+}
