@@ -494,7 +494,7 @@ accepted by requested would produce a number that understates the method and
 means nothing. The counts are reported; the ratio is not.
 
 `[measured]` All four arms are in the table, including the two that produced
-nothing: the 100-seed v3 probe that OOM'd before writing a trajectory, and the
+nothing: the v3 probe that OOM'd before writing a trajectory, and the
 `v3c-q408` arm that never got a container because the spend limit was reached
 while arm 1 was still running. Each is dated in `methods.md` with its failure
 reason and whatever partial output survived.
@@ -568,8 +568,9 @@ committed under `challenges/egfr/fulllength-v3c/` and
    the set.** `[measured]` Designs 1 and 2 differ by a single residue, so any
    expression or aggregation failure takes both. That scaffold has the highest
    surface hydrophobicity of the four submitted (0.43 vs 0.22–0.34) because it
-   is the only submitted sequence that never passed through SolubleMPNN — all
-   twenty MPNN variants of `l93` failed AF2 re-prediction. With 0.2% Tween-20
+   is the only submitted sequence that never passed through SolubleMPNN — none
+   of its twenty MPNN variants was accepted (eighteen failed AF2 re-prediction;
+   two cleared it and failed BindCraft's interface filters). With 0.2% Tween-20
    in the buffer and a split-GFP expression readout, that risk reads as failed
    expression rather than failed binding, and it is **not independently
    mitigable within the two leads**. Designs 3–5 are the mitigation.
@@ -635,8 +636,9 @@ but trajectory and MPNN statistics are not interchangeable in general and
 conflating them produced a documented error earlier in this project
 (`methods.md`, 2026-09-30, correction 2).
 
-`[inferred]` The gap is not coincidence. All twenty SolubleMPNN variants of
-`l93` failed AF2 re-prediction filters, so the submitted `l93` sequence is the
+`[inferred]` The gap is not coincidence. None of `l93`'s twenty SolubleMPNN
+variants was accepted — eighteen failed AF2 re-prediction, two cleared it only
+to fail BindCraft's interface filters — so the submitted `l93` sequence is the
 raw hallucinated trajectory — the only design in the set that never received
 the sequence-design step whose explicit purpose is lowering surface
 hydrophobicity. The same fact that made `l93` unusual enough to survive
