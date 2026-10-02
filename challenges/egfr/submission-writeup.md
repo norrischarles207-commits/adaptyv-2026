@@ -46,13 +46,13 @@ glycosylated. H409 is also conserved in mice, so the mechanism is available in
 both species. And the EGF control independently confirms the site is bindable: 
 folded blind against the full receptor, EGF recovers 408, 409 and 412 in every sample. 
 
-**Bindcraft hallucination** `[measured]` Initial hallucination ran four arms and largely
-failed. v3 OOM'd because the full 609 residue chain was mistakenly ran, and the modal 
+**BindCraft hallucination** `[measured]` Initial hallucination ran four arms and largely
+failed. v3 OOM'd because the full 609 residue chain was mistakenly run, and the Modal 
 spend ceiling was reached, killing v3c-q408. To fix this domain III mature 
-311-514 was ran instead; in this area we had v3b and v3-core. Of v3b, 2 models were 
-accepted but retired based on the glycosylation finding. of v3c-core, 5/7 
-trajectories were accepted and seven carried forward - 0 and 6, the failed trajectories,
-were deliberately retained... 193 (the submitted lead) is the end product of seed 6.
+311-514 was run instead; in this area we had v3b and v3c-core. Of v3b, 2 models were 
+accepted but retired based on the glycosylation finding. Of v3c-core, 5/7 
+trajectories were accepted and seven carried forward - 0 and 6, the two BindCraft rejected,
+were deliberately retained... `l93` (the submitted lead) is the end product of seed 6.
 See methods.md:699 for a deeper explanation as to the reasoning for retaining. In short,
 Seed 6 had the highest AF2 i_pTM and the largest C-terminal clearance. 
 
