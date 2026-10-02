@@ -31,30 +31,46 @@ project, artifact in repo), `[literature]` (published, cited), `[inferred]`
 
 ## Criterion 1 — pH-selective binding (6.5 over 7.4)
 
-**Mechanism targeted.** `[literature]` The pH switch is placed on *EGFR's own*
-histidine rather than engineered into the binder. Liu et al. 2022 (Mol Ther
-Oncolytics, [PMC9703009](https://pmc.ncbi.nlm.nih.gov/articles/PMC9703009/))
-showed that the cross-reactive, pH-dependent anti-EGFR antibody G532 derives
-its pH dependence from receptor histidines paired with antibody-side acidic
-residues: LCDR1 Glu32 against H433 (precursor) = **H409** (mature), and LCDR2
-Asp52/Asp53 facing H370 = **H346**. The effect is supported bidirectionally —
-Y32E created it (~13× gain, Fab format), reverting E32→His destroyed it
-(~5× loss), H433A abolishes binding, H370A reduces both affinity and pH
-dependence.
+**Mechanism targeted.** `[literature]` The pH switch is placed on EGFR's own
+histidine rather than engineered into the binder. In plain language, Liu et al. 
+2022 found that pH dependence is based best on EGFR's own His409, rather than 
+dependent on the binder itself. By pairing a binder-side carboxylate to the histidine, 
+the resulting pH drop to pH 6.5 turns the hydrogen bond into a charged salt bridge. 
+This was found in the literature review before running any compute. Liu et al. 2022 
+elaborates on the mechanism.
 
-**Why this epitope.** H409 is in the hotspot set. `[measured]` It is also
-conserved in mouse, so the mechanism is available in both species. And the EGF
-control independently confirms the site is bindable: folded blind against the
-full receptor, EGF recovers 408, 409 and 412 in every sample.
+**Why this epitope.** `[measured]` H409 is in the hotspot set, positions 408, 409,  
+411, and 412. These were decided upon after ruling out an adjacent patch that
+initially looked promising but upon further inspection was "covered in sugar" - 
+glycosylated. H409 is also conserved in mice, so the mechanism is available in 
+both species. And the EGF control independently confirms the site is bindable: 
+folded blind against the full receptor, EGF recovers 408, 409 and 412 in every sample. 
+
+**Bindcraft hallucination** `[measured]` Initial hallucination ran four arms and largely
+failed. v3 OOM'd because the full 609 residue chain was mistakenly ran, and the modal 
+spend ceiling was reached, killing v3c-q408. To fix this domain III mature 
+311-514 was ran instead; in this area we had v3b and v3-core. Of v3b, 2 models were 
+accepted but retired based on the glycosylation finding. of v3c-core, 5/7 
+trajectories were accepted and seven carried forward - 0 and 6, the failed trajectories,
+were deliberately retained... 193 (the submitted lead) is the end product of seed 6.
+See methods.md:699 for a deeper explanation as to the reasoning for retaining. In short,
+Seed 6 had the highest AF2 i_pTM and the largest C-terminal clearance. 
 
 **The hallucination round produced no pH mechanism in its best binder.**
 `[measured]` No pH restraint was applied during hallucination, so any
 acid–histidine geometry would have been incidental. Structural inspection of
 all seven full-length Stage 2 models showed five of seven carried an acidic
 residue within 6 Å of H409 — **but the only design that passed the binding
-thresholds, `egfr_l93_s713816`, was one of the two that did not.** Its epitope
-instead presented His36 at 4.97 Å from H409: two histidines that both gain
-positive charge as pH falls, which opposes selectivity rather than creating it.
+thresholds, `egfr_l93_s713816`, was one of the two that did not.** What it
+presented instead was Ser32, hydrogen bonded to H409 at 3.45 Å [0.30] across
+all three models. A Ser–His hydrogen bond survives the histidine's
+protonation — the hydroxyl donates to the neutral imidazole and accepts from
+the protonated one — so nothing is gained as pH falls. That alone explains
+good binding with no pH selectivity. His36 sits nearby at 4.97 Å and, being a
+second histidine, gains positive charge alongside H409 as pH drops, which
+works against selectivity rather than for it. The useful consequence: Ser32
+was already making a reproducible contact with the target histidine. It was
+the wrong kind of contact, which made substituting it the first thing to try.
 
 `[measured]` Proximity is also not geometry. Of the designs that did carry
 acids, only one of each adjacent pair actually faced H409 — in `l64`, Asp34 sits
