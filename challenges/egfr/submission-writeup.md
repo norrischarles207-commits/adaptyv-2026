@@ -29,15 +29,19 @@ project, artifact in repo), `[literature]` (published, cited), `[inferred]`
 
 ---
 
-## Criterion 1 — pH-selective binding (6.5 over 7.4)
-
 **Mechanism targeted.** `[literature]` The pH switch is placed on EGFR's own
-histidine rather than engineered into the binder. In plain language, Liu et al. 
-2022 found that pH dependence is based best on EGFR's own His409, rather than 
-dependent on the binder itself. By pairing a binder-side carboxylate to the histidine, 
-the resulting pH drop to pH 6.5 turns the hydrogen bond into a charged salt bridge. 
-This was found in the literature review before running any compute. Liu et al. 2022 
-elaborates on the mechanism.
+histidine rather than engineered into the binder. Liu et al. 2022 (Mol Ther
+Oncolytics, [PMC9703009](https://pmc.ncbi.nlm.nih.gov/articles/PMC9703009/))
+found that the pH-dependent anti-EGFR antibody G532 takes its pH dependence
+from receptor histidines paired against antibody-side acids — LCDR1 Glu32
+against H433 (precursor) = **H409** (mature), and LCDR2 Asp52/Asp53 facing
+H370 = **H346**. In plain language: the switch belongs to the receptor, not
+the binder. Pair a binder-side carboxylate to that histidine and, as pH falls
+to 6.5, the histidine protonates and an ordinary hydrogen bond becomes a
+charged salt bridge. The evidence runs both directions — Y32E created the
+effect (~13× gain, Fab format), reverting E32→His destroyed it (~5× loss),
+H433A abolishes binding, and H370A reduces both affinity and pH dependence.
+This was settled in the literature review, before any compute ran.
 
 **Why this epitope.** `[measured]` H409 is in the hotspot set, positions 408, 409,  
 411, and 412. These were decided upon after ruling out an adjacent patch that
