@@ -29,6 +29,8 @@ project, artifact in repo), `[literature]` (published, cited), `[inferred]`
 
 ---
 
+## Criterion 1 — pH-selective binding (6.5 over 7.4)
+
 **Mechanism targeted.** `[literature]` The pH switch is placed on EGFR's own
 histidine rather than engineered into the binder. Liu et al. 2022 (Mol Ther
 Oncolytics, [PMC9703009](https://pmc.ncbi.nlm.nih.gov/articles/PMC9703009/))
