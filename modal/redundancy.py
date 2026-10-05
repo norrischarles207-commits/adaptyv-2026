@@ -77,7 +77,10 @@ image = (
 # Filter). BindCraft's Average_ShapeComplementarity column is on the pyrosetta
 # 0-1 scale (Lawrence & Colman convention), verified against the smoke run
 # (VEGF_l95_s144661_mpnn18 reports 0.67). The Adaptyv calibration point ~58
-# in 0-100 units is 0.58 here.
+# in 0-100 units is 0.58 here. NOTE: that check verified the SCALE, not the
+# operating point -- 0.58 is inherited, not derived off the ROC curve. Demoting
+# SC to a ranking term was proposed and rejected on 2026-10-05; the reasoning,
+# and what evidence would reopen it, are in notes/calibration.md.
 SC_PASS = 0.58
 
 # Primary decision + rank metric: Dunbrack 2025 ipSAE_min. 0.60 is the

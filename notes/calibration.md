@@ -33,7 +33,7 @@ So the recipe below is the recipe the meta-analysis independently arrived at.
 
 | constant           | value | rationale                                                              |
 | ------------------ | ----- | ---------------------------------------------------------------------- |
-| `SC_PASS`          | 0.58  | Adaptyv calibration point (often reported as ~58 in 0-100 units); on pyrosetta's native 0-1 SC scale, that's 0.58. Verified against the smoke run: BindCraft's `Average_ShapeComplementarity` for VEGF_l95_s144661_mpnn18 is 0.67, matching pyrosetta convention. |
+| `SC_PASS`          | 0.58  | Adaptyv calibration point (often reported as ~58 in 0-100 units); on pyrosetta's native 0-1 SC scale, that's 0.58. The smoke-run check (BindCraft's `Average_ShapeComplementarity` for VEGF_l95_s144661_mpnn18 is 0.67) verified the **scale**, not the operating point — **this number is inherited, not derived.** See "SC gate reviewed" below. |
 | `IPSAE_MIN_PASS`   | 0.60  | The bioRxiv 2025.08.14.670059 operating point; consistent with the Adaptyv AUC=0.615 crossover. |
 | `IPSAE_PAE_CUTOFF` | 10.0 Å | Dunbrack 2025 default for identifying interface residues. |
 | `IPSAE_PLDDT_CUTOFF` | 70   | Dunbrack 2025 default (pLDDT on 0-100). |
@@ -89,6 +89,54 @@ reference script uses, only restricted to inter-chain pairs.
   SC and flagged in `SC_source` as `computed_burial_proxy` so a reader never
   mistakes the proxy for pyrosetta SC.
 - If both are missing, `SC_source == "missing"` and `cross_val_pass == False`.
+
+## SC gate reviewed and kept — 2026-10-05
+
+Reviewed between challenges 1 and 2, deliberately at a moment when no result
+was riding on the answer. The proposal was to demote SC from a gate to a
+ranking term. **Rejected.** Recorded because a rule that survived examination
+is worth more than one that was never examined, and because the next person to
+have this idea should find the reasoning rather than repeat it.
+
+**The case for demoting, and why it did not hold:**
+
+- *0.58 was never derived.* True, and the table above now says so. But the fix
+  for an undocumented threshold is to derive or justify one, not to delete the
+  gate. This argument attacks the number; it does not attack the metric.
+- *SC never independently decided anything across the 12 molecules scored in
+  challenge 1.* True but near-worthless as evidence: one target, one scaffold
+  family, mostly one backbone. Poor designs tend to score poorly on both axes,
+  so correlated failure is the expected pattern in a small homogeneous set —
+  not a demonstration of redundancy.
+- *The EGF control scored SC 0.499 at our own epitope, so the gate would have
+  rejected a known nanomolar ligand.* n=1, and EGF is a natural ligand whose
+  interface in the intact receptor is bipartite across domains I and III. Its
+  SC at a domain III patch says little about what a designed minibinder should
+  score.
+
+**The case for keeping it, which is stronger:**
+
+- SC has the better AUC of the two decision metrics — **0.68 against ipSAE's
+  0.615** — on the same ~2,600-design wet-lab dataset. It is the strongest
+  single signal available here.
+- The two are orthogonal in the way that matters. ipSAE measures whether a
+  *predictor* is confident about an interface; SC measures whether the geometry
+  physically interlocks. A confidently-predicted bad pose is exactly the
+  failure mode SC exists to catch, and ipSAE cannot catch it by construction.
+- Removing it would leave a single ungated metric deciding everything.
+
+**What would actually settle this:** the underlying ~2,600-design dataset,
+which is not in this repo (`data/` holds a README only). With it, an operating
+point could be computed off the SC ROC curve the way the meta-analysis did for
+ipSAE, and 0.58 could be replaced by a number with a derivation. The published
+Lawrence–Colman literature was checked and does not substitute: it reports
+per-interface-class means (antibody–peptide 0.75 ± 0.06; antibody–protein
+comparable to enzyme and obligate complexes) but no separation value between a
+real interface and a non-specific one.
+
+Until that dataset is in hand, 0.58 stands as inherited and is labelled as
+such. Changing a pre-registered threshold on reasoning this thin would cost
+more than the threshold is worth.
 
 ## What changed vs the previous cross-val
 
