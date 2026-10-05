@@ -38,3 +38,6 @@ challenges/egfr/l93_H36E/**/*.npz
 
 # regenerable confidence matrices, any location
 challenges/egfr/**/*.npz
+
+# submission bundle: derived from tracked PDBs + figure, checksum in methods.md
+challenges/egfr/*.zip

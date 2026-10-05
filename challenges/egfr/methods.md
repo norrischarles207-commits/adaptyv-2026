@@ -600,7 +600,8 @@ fact.)
 ## 2026-09-30 — Phase 1 v3c — core arm
 
 First real two-arm launch. Arm A (the 4-residue core) completed enough to answer
-the question the split was built for; Arm B never started. Full per-design metrics
+the question the split was built for; Arm B never started **[superseded — see
+Correction 2 below: Arm B did launch, and died on the spend limit]**. Full per-design metrics
 for all 7 completed designs are in `challenges/egfr/v3c-core-designs.csv` (36
 columns); the key columns are tabulated below.
 
@@ -609,7 +610,8 @@ columns); the key columns are tabulated below.
 - Launched **2026-09-29 23:16 MDT** from `main`, plain terminal, foreground,
   `caffeinate` active.
 - Arm A, tag `phase1-v3c-core`: hotspots **A408,A409,A411,A412**.
-- Arm B, tag `phase1-v3c-q408`: hotspots **A384,A408,A409,A411,A412** — **NOT RUN**.
+- Arm B, tag `phase1-v3c-q408`: hotspots **A384,A408,A409,A411,A412** — **NOT RUN**
+  **[superseded — see Correction 2 below: it launched, then died on the spend limit]**.
 - Both arms: `--target-residue-range 311-514`, `--lengths 60,100`, `--n 10`.
 - Chained with `&&` so Arm B would start only on a clean Arm A exit.
 - Confirmed at launch: `chains A=204res`, lengths `[60,100]`, correct hotspot string.
@@ -622,6 +624,9 @@ columns); the key columns are tabulated below.
   **$50.16** total usage.
 - **Cost: $6.86** (Modal usage breakdown, Ephemeral Apps, Sep 30 UTC).
 - Arm B never started — correct behaviour of the `&&` guard. Nothing to undo.
+  **[superseded — see Correction 2 below. All three claims in this line are wrong:
+  Arm B launched, the `&&` guard did not guard, and the spend limit stopped it.
+  "Nothing to undo" still holds — no Arm B design was produced.]**
 
 ### Results
 
@@ -735,6 +740,15 @@ interface scoring was run on any variant; their clearance is derived from the
 **trajectory-backbone** interface set instead (same fold, so paratope location
 is essentially unchanged) and is a reference value only — these designs are
 not accepted and will not be submitted.
+
+**[Superseded 2026-10-01.** Both non-accepted designs were carried to full-length
+validation anyway, under the plan recorded in the "Still pending" block of the
+same day's v3c-core entry (full-length co-fold of **all 7** against `d94a8d4`).
+Seed 6 `egfr_l93_s713816` was the only design in the run to clear both
+pre-registered thresholds and is a submitted lead; `l93_H36E`, a single
+substitution on that backbone, is the other. Seed 0 `egfr_l67_s528267` was
+screened and not submitted, as this line says. The sentence records a narrower
+intention that the validation run overtook; it is kept rather than edited.**]
 
 **Values recorded** (new columns `Cterm_clearance_res`, `Cterm_clearance_frac`
 in `v3c-core-designs.csv`):
@@ -1642,3 +1656,64 @@ H36E against mouse.
 
 **Unchanged conclusion.** The two leads remain complementary and still conflict
 at position 36. This measurement sharpened the limitation; it did not remove it.
+
+## 2026-10-05 — Challenge 1 submitted; closing entry
+
+Submitted to Proteinbase under the team display name **2GuysBuildProteins**
+(Charles Norris, Malachi Cardona). Track 3, open track.
+
+**Repository state at submission:** `5b586b56097c353ab0b86106e2bdf240cd9d0885`.
+
+**Artifacts, with checksums taken from the submitted copies:**
+
+    submission.csv                   5 designs
+      sha256 8e9edaf09194c3c9087ac9928b0f9bb1f826f80e2b444ebd438bc022c8abd126
+    submission-writeup.md            687 lines
+      sha256 42a0e701f749c775ece8f8df0cd39806ab66e6051bc939d67089341386a082df
+    h36e_his409_saltbridge.png       ChimeraX 1.12, model_0, Glu36-His409 3.305 A
+      sha256 012ef74fee4f3e04fd0789d60a21e0cc0acc007e87ec1a3d77ec7a927b724996
+    l93_H36E_structures.zip          README + figure + 3 PDB models, 1626717 bytes
+      sha256 427b5abce61a67000a604c16eb68e3d55cc1b0edf8ed7b40ad26337fce19a040
+
+The zip is derived from tracked files (the three `l93_H36E/` models plus the
+figure) and is gitignored rather than committed; the checksum above identifies
+the exact bundle uploaded.
+
+**Supporting files attached:** `submission-writeup.md` and
+`l93_H36E_structures.zip`. The portal accepted `.md` and `.zip` only, so the
+figure and the PDB models travelled inside the zip with a README giving the
+chain/numbering key, the three Glu36-His409 distances, and the ChimeraX
+commands to regenerate the figure from the structure.
+
+**Design method linked:** BindCraft, as a single method. SolubleMPNN was not
+offered as a separate entry on Proteinbase, so its configuration was folded
+into the BindCraft entry, along with the statement that neither lead is a
+SolubleMPNN output and that `l93_H36E` is a manual single substitution on a
+BindCraft backbone.
+
+**Novelty check:** all five designs scored 3 or 4 on the Proteinbase 1-4 scale.
+That scale compares against SwissProt/PDB/patent/antibody databases, not
+against other entrants, so the 98.9% identity between the two leads carried no
+penalty.
+
+**What was claimed, and what was not.** One design (`egfr_l93_s713816`) meets
+the pre-registered binding thresholds at full length and is cleanly
+cross-reactive. One design (`l93_H36E`) carries the measured pH-switch geometry
+and fails criterion 2 on the mean at 6 samples. No single molecule meets
+criteria 1 and 2 together, and the submission says so in the methodology field
+as well as in the writeup. Designs 3-5 are declared near-misses carried as
+scaffold insurance against the expression risk the two leads share.
+
+**Open items not resolved before the deadline**, recorded so they are not
+rediscovered as surprises:
+
+- `l93_H36D` was never tested. It is the one remaining single substitution at
+  position 36 that could in principle carry an acid with a shorter sidechain.
+  Not run on expected-value grounds against the base rate, not on evidence.
+- The SC threshold (0.58) is probably mis-set; the EGF control scores 0.499 at
+  our own epitope. Left unchanged because it was pre-registered. It should not
+  be reused as-is on the next challenge.
+- A trajectory-stage pH restraint was never implemented. The mechanism in
+  `l93_H36E` is one post-hoc substitution, not a designed interface.
+- Stage 1 and Stage 2 exact invocations were not captured at run time and were
+  reconstructed. `modal/run_logged.sh` is the corrective for future runs.

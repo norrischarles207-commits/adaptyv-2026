@@ -9,6 +9,30 @@ Extracted from an earlier VEGF-A-specific project; see
 [`notes/calibration.md`](notes/calibration.md) for the scoring calibration
 that project produced, which this pipeline inherits.
 
+## Challenges
+
+**Challenge 1 — pH-conditional EGFR binder.** Track 3, submitted 2026-10-05.
+Five de novo designs: two complementary leads plus three declared near-misses.
+The pH switch is placed on EGFR's own His409 rather than engineered into the
+binder, following Liu et al. 2022 on antibody G532 — a binder-side carboxylate
+raises that histidine's pKa, so the contact converts from hydrogen bond to
+salt bridge as pH falls toward 6.5.
+
+The result, stated as it stands: `egfr_l93_s713816` clears both pre-registered
+thresholds against the full 621-residue receptor and is cleanly cross-reactive
+with mouse. A single substitution on that backbone, `l93_H36E`, places a
+carboxylate 3.21 Å from His409 in 3 of 3 predictions but fails the mouse
+threshold on the pre-registered statistic. **No single molecule meets both
+criteria** — the two properties conflict at one residue, and the submission
+says so rather than picking a winner.
+
+- [`challenges/egfr/submission-writeup.md`](challenges/egfr/submission-writeup.md)
+  — the submitted document: rationale, every measurement, eight limitations.
+- [`challenges/egfr/methods.md`](challenges/egfr/methods.md) — the dated run
+  log, including corrections to its own earlier claims.
+- [`challenges/egfr/submission.csv`](challenges/egfr/submission.csv) — the five
+  submitted sequences.
+
 ## Pipeline, end to end
 
 ```
@@ -28,8 +52,8 @@ that project produced, which this pipeline inherits.
                       ┌─────────────────────────────────────────────────┐
                       │ 3. Design            modal/run_bindcraft.py     │
                       │    BindCraft on A10G: AlphaFold hallucination   │
-                      │    → ProteinMPNN redesign → AF2 re-prediction   │
-                      │    → BindCraft's ~40-criterion filter set.      │
+                      │    → SolubleMPNN redesign → AF2 re-prediction   │
+                      │    → BindCraft's default filter set.            │
                       │    Fan out N attempts in parallel; one          │
                       │    trajectory per call. Every MPNN              │
                       │    re-prediction is logged (pass or fail).      │
@@ -63,9 +87,13 @@ move.
 
 Short version:
 
-- **Pre-filter:** shape complementarity ≥ 0.58 (pyrosetta SC, 0–1 scale).
-  From BindCraft's `Average_ShapeComplementarity`; biopython burial-fraction
-  proxy as a flagged fallback.
+- **Shape complementarity ≥ 0.58** (Lawrence–Colman, 0–1 scale). Measured at
+  two stages: at design time from BindCraft's `Average_ShapeComplementarity`,
+  and again at cross-validation, where `redundancy.py` runs pyrosetta's
+  `ShapeComplementarityFilter` on the Boltz complex itself. **The
+  cross-validation value is the one that decides.** A biopython
+  burial-fraction proxy exists as a flagged fallback and is never compared
+  against the 0.58 bar — it is not Lawrence–Colman SC.
 - **Primary rank + decision:** Boltz `ipSAE_min` ≥ 0.60 (Dunbrack 2025
   formulation — interface residues by PAE + pLDDT, TM-score `d0`, min across
   binder ↔ target chain directions).
@@ -134,7 +162,13 @@ adaptyv-2026/
 ├── data/                    # shared, cross-challenge reference data (see data/README.md)
 ├── challenges/
 │   ├── README.md             # per-challenge layout convention
-│   └── <slug>/                # one per challenge: target intake, epitope notes, methods log
+│   └── egfr/                 # Challenge 1 — complete, submitted 2026-10-05
+│       ├── methods.md          # dated run log, including corrections to its own record
+│       ├── submission-writeup.md  # the document submitted to Proteinbase
+│       ├── submission.csv      # the 5 submitted designs
+│       ├── l93_H36E/           # the pH-switch lead, 3 Boltz models
+│       ├── fulllength-v3c/     # Stage 2 complexes, all 7 designs
+│       └── v3c-core.log        # BindCraft run log (trajectory stats live here)
 └── notes/
     ├── calibration.md        # LIVE thresholds + calibration sources, shared across challenges
     └── onboarding.md         # what a new collaborator reads first + role notes
