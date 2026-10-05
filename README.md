@@ -195,4 +195,15 @@ Modal-side state that doesn't live in the repo, namespaced by `<slug>`:
 
 ## License
 
-TBD (MIT or CC-BY recommended for open science).
+[MIT](LICENSE), covering everything in this repository.
+
+The written record — `challenges/*/methods.md`, the submission writeups, and
+`notes/calibration.md` — is additionally offered under
+[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/) for anyone who would
+rather cite it under a content licence than a software one. Either is fine;
+both ask only for attribution.
+
+Designed sequences and predicted structures under `challenges/` are published
+so the work can be checked and built on. If you use a design, please cite the
+repository and the relevant `methods.md` entry — predictions here are
+computational and, as of this writing, none has been validated at the bench.
