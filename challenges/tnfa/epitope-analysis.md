@@ -94,3 +94,32 @@ Not a decision. The epitope is not chosen until the hotspot set is pre-registere
   uncertainty; the contact *set* is more reliable than any individual distance.
 - Contacts are geometric. Which of them carry binding energy is not answerable
   from structure — that is the open literature-pass item.
+
+## The groove is bipartite, and lopsided
+
+`[measured]` A single receptor site (3ALQ, TNFR2 chain R) draws 15 contacts
+from each of two protomers — a clean split, confirming the site exists only in
+the assembled trimer.
+
+| | contacts | conserved | divergent |
+|---|---|---|---|
+| **protomer 1 face** | 15 | **13 (87%)** — 21, 23, 32, 33, 63, 67, 113, 115, 143, 144, 145, 146, 149 | 20 (P→H), 31 (R→Q, charge) |
+| **protomer 2 face** | 15 | 9 (60%) — 75, 77, 86, 87, 88, 90, 91, 92, 128 | 71 (S→D, charge), 72 (indel), 73 (H→Y), 85 (V→I), 89 (T→E, charge), 97 (I→V) |
+
+`[measured]` Every structural species liability in this epitope — the indel, the
+lost histidine, both charge changes — is on the **protomer 2** face. The
+protomer 1 face carries the 143–146 run and is 87% conserved.
+
+`[measured]` Contact density does not follow that split. **S86 and Y87, on the
+divergent face, are the densest contacts in the site** (42 and 45 atom pairs
+against a typical 5–20) and both are conserved.
+
+`[inferred]` So the reading is not "design against protomer 1 only". It is:
+weight the interface toward the protomer 1 face, keep 86/87 from the other
+side, and keep the binder away from 71, 72, 73 and 89. Whether a hallucinated
+backbone can be steered that finely is an open question — it is a hotspot
+weighting, not a guarantee.
+
+**Consequence for target preparation.** Hotspots must be chain-prefixed, since
+the epitope spans two chains of the target slice. A two-protomer target is the
+minimum viable input; a monomer does not contain the site.
