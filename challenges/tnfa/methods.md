@@ -319,3 +319,85 @@ closest-cationic-nitrogen to closest-cationic-nitrogen and governs histidine
 placement. 19.6 A for the same pair is side-chain centroid to centroid and
 governs binder footprint. Both are correct for their purpose; neither
 substitutes for the other.
+
+---
+
+## Amendment 2 — 2026-10-11, before any cross-reactivity result exists
+
+Written while the first Boltz fold is still running. No human-vs-mouse number
+has been seen for any design.
+
+### ipSAE_min is a harsher test on this target than where it was calibrated
+
+`[computed]` ipSAE_min is defined as the minimum over (binder <-> target
+subchain) directional pairs -- deliberately, "the weakest side of the
+interface". On challenge 1 the target was a **single chain**, so ipSAE_min was
+the weakest direction of one interface.
+
+TNF-alpha's receptor site exists only in the groove between two protomers, so
+our target is **two chains**, and the epitope is lopsided by design: the
+protomer-1 face carries 32/143/145/146 and the protomer-2 face carries
+86/87/90. ipSAE_min is therefore set by whichever protomer contributes the
+*thinner* contact, even when total binding is strong.
+
+`[literature]` The 0.60 operating point comes from bioRxiv 2025.08.14.670059
+and is consistent with the AUC 0.615 crossover on the Adaptyv N~2600 set --
+both single-chain-target data. **Applying 0.60 to a two-protomer groove is not
+a like-for-like application of the calibration.** It is stricter, by an amount
+we have not quantified and cannot quantify before the deadline.
+
+### Decision, fixed now: the threshold does not change
+
+**ipSAE_min >= 0.60 stands, unchanged.** We are recording that it is strict
+here, not relaxing it. A threshold loosened after seeing which designs it
+excludes is not a threshold, and this project's only real asset is that its
+criteria predate its results.
+
+What changes is **reporting, not gating**: alongside ipSAE_min we report the
+per-pair ipSAE values (binder<->protomer-1 and binder<->protomer-2, both
+directions), which `_compute_ipsae` already returns in `pairs`. That lets a
+near-miss be diagnosed as "thin second-protomer contact" rather than "weak
+interface", which is information a reader needs and which the single number
+hides. It does not promote any design.
+
+Designs landing at 0.55-0.59 are **failures** under the pre-registered gate.
+They may enter the submission only under the rule already written in this file
+-- if fewer than three designs pass, submit the passers plus the next-best by
+composite, explicitly labelled as near-misses. No new rule is created here.
+
+### Code correction that affects this metric (commit 1850f24)
+
+`[measured]` `_compute_ipsae` scored **every** ordered inter-chain pair. With a
+multi-protomer target that silently included the **protomer-protomer**
+interface in ipSAE_min. Because a dimer is not TNF-alpha's native state, a
+poorly modelled protomer-protomer packing could have set ipSAE_min for every
+design identically -- presenting as "no binder works" when it in fact meant
+"the target multimer was modelled badly". Pairs are now restricted to those
+involving the binder chain.
+
+`[computed]` This does **not** change any challenge-1 number. With a
+single-chain target every inter-chain pair already involved the binder, so the
+fix is a verified no-op there (2-chain: A->B, B->A both retained; 3-chain:
+A->B, B->A excluded). The EGFR submission's reported metrics stand as
+submitted.
+
+### Target multimer state — decision recorded in advance
+
+We co-fold the binder against **two** protomers, matching the two-chain slice
+the designs were made against. TNF-alpha's biological unit is a **trimer**, so
+this is a known approximation.
+
+Rule fixed now: if the smoke fold shows the two protomers failing to pack into
+the groove geometry seen in 7KPB, the two-protomer result is **discarded, not
+reported**, and the comparison is re-run against three protomers. We do not
+report a mouse-vs-human difference computed on a target that did not fold into
+the right state, in either direction.
+
+### Significance, not eyeballing
+
+Cross-reactivity is scored as `|human_mean - mouse_mean|` against a noise floor
+of `max(human_range, mouse_range)` over diffusion samples, with the verdict
+`REAL` only when the difference exceeds that floor. Means over samples, never
+best-of-N. A difference inside the noise floor is reported as
+**indistinguishable** -- which, for objective 2, is the outcome we want and is
+not the same as "no difference measured".
