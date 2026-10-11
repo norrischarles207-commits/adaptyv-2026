@@ -177,6 +177,127 @@ def _extract_chains(pdb_path, gap_split=GAP_SPLIT):
 
 
 # --------------------------------------------------------------------------- #
+# Interface report computed ON THE MODAL SIDE, from the Boltz model.
+#
+# Without this, interpreting a crossreact result means downloading PDBs and
+# re-deriving geometry locally. ipSAE_min alone cannot distinguish "the binder
+# missed" from "the binder grips one protomer and barely touches the other"
+# (which sets the min on a two-protomer groove) from "the target multimer did
+# not fold". All three need different responses, so all three are measured here
+# and returned with the scores.
+#
+# Boltz is handed one full mature sequence per chain, so each target chain is
+# numbered 1..N in MATURE numbering -- no merged-chain offset, unlike BindCraft
+# output. Anchors R32 and K65 both sit before the human T72 indel, so the same
+# number addresses them in human (157 aa) and mouse (156 aa).
+# --------------------------------------------------------------------------- #
+_ANCHOR_SPEC = {32: ("ARG", ("NH1", "NH2", "NE")), 65: ("LYS", ("NZ",))}
+_HIS_IMIDAZOLE = ("ND1", "NE2")
+_PH_CUTOFF_A = 6.0          # pre-registered, from Baker 2025's 3.7-7.6 A range
+_CONTACT_A = 4.5
+
+
+def _interface_report(pdb_path, binder_chain_id):
+    """Per-protomer contact counts, anchor engagement, and the pre-registered
+    His->cation distances, measured on the Boltz model. Pure geometry, CPU."""
+    import math
+    from collections import defaultdict
+
+    res = defaultdict(dict)
+    for line in open(pdb_path):
+        if not line.startswith(("ATOM", "HETATM")):
+            continue
+        if line[76:78].strip() == "H":
+            continue
+        ch = line[21]
+        num = int(line[22:26])
+        key = (ch, num)
+        rec = res[key]
+        if not rec:
+            rec["rn"] = line[17:20].strip()
+            rec["at"] = {}
+        rec["at"][line[12:16].strip()] = (
+            float(line[30:38]), float(line[38:46]), float(line[46:54]))
+
+    def dist(a, b):
+        return math.sqrt(sum((a[i] - b[i]) ** 2 for i in range(3)))
+
+    binder = {k: v for k, v in res.items() if k[0] == binder_chain_id}
+    targets = sorted({k[0] for k in res if k[0] != binder_chain_id})
+    if not binder or not targets:
+        return {"error": "binder or target chain missing from model"}
+
+    out = {"binder_chain": binder_chain_id, "target_chains": targets,
+           "per_chain": {}, "anchors": [], "ph_rule_hits": []}
+
+    for tc in targets:
+        tres = {k: v for k, v in res.items() if k[0] == tc}
+        n_pairs = 0
+        touched = set()
+        for (_, bn), br in binder.items():
+            for (_, tn), tr in tres.items():
+                hit = False
+                for ba in br["at"].values():
+                    for ta in tr["at"].values():
+                        if (abs(ba[0] - ta[0]) < _CONTACT_A
+                                and abs(ba[1] - ta[1]) < _CONTACT_A
+                                and abs(ba[2] - ta[2]) < _CONTACT_A
+                                and dist(ba, ta) < _CONTACT_A):
+                            n_pairs += 1
+                            hit = True
+                if hit:
+                    touched.add(tn)
+        out["per_chain"][tc] = {
+            "atom_pairs": n_pairs,
+            "n_target_residues_contacted": len(touched),
+            "target_residues_contacted": sorted(touched),
+        }
+
+    # anchors + the pre-registered pH rule, on this model
+    for tc in targets:
+        for anum, (expect_rn, tips) in _ANCHOR_SPEC.items():
+            rec = res.get((tc, anum))
+            if not rec:
+                continue
+            ok_identity = rec["rn"] == expect_rn
+            tip_xyz = [v for k, v in rec["at"].items() if k in tips]
+            entry = {"chain": tc, "resnum": anum, "resname": rec["rn"],
+                     "identity_as_expected": ok_identity,
+                     "cation_atoms_present": len(tip_xyz)}
+            if tip_xyz:
+                near = []
+                for (_, bn), br in binder.items():
+                    if br["rn"] != "HIS":
+                        continue
+                    im = [v for k, v in br["at"].items() if k in _HIS_IMIDAZOLE]
+                    if not im:
+                        continue
+                    d = min(dist(i, t) for i in im for t in tip_xyz)
+                    near.append((round(d, 2), bn))
+                near.sort()
+                entry["nearest_binder_his"] = near[:3]
+                for d, bn in near:
+                    if d <= _PH_CUTOFF_A:
+                        out["ph_rule_hits"].append(
+                            {"his_resnum": bn, "anchor_chain": tc,
+                             "anchor_resnum": anum, "distance_A": d})
+            out["anchors"].append(entry)
+
+    pc = out["per_chain"]
+    # "weakest" must be the weakest ENGAGED protomer. Taking the min over all
+    # target chains would report 0 whenever a chain is present but not part of
+    # the groove -- which is exactly what happens if a 3-protomer target is used.
+    engaged = sorted((v["atom_pairs"] for v in pc.values() if v["atom_pairs"] > 0),
+                     reverse=True)
+    out["n_target_chains_contacted"] = len(engaged)
+    out["contacts_both_protomers"] = len(engaged) >= 2
+    out["weakest_protomer_atom_pairs"] = engaged[-1] if engaged else 0
+    out["strongest_protomer_atom_pairs"] = engaged[0] if engaged else 0
+    out["ph_anchors_satisfied"] = sorted(
+        {h["anchor_resnum"] for h in out["ph_rule_hits"]})
+    return out
+
+# --------------------------------------------------------------------------- #
 # ipSAE (Dunbrack 2025, https://github.com/DunbrackLab/IPSAE)
 # --------------------------------------------------------------------------- #
 
@@ -1047,10 +1168,17 @@ def cofold_seqs(run_id: str, target_seq, binder_seq: str, save_rel: str,
             for src in glob.glob(os.path.join(out_dir, "**", pattern), recursive=True):
                 shutil.copy(src, os.path.join(save_dir, os.path.basename(src)))
         saved_pdbs.append(sample_pdb)
+        iface = None
+        if sample_pdb:
+            try:
+                iface = _interface_report(sample_pdb, slices[-1][0])
+            except Exception as _e:          # diagnosis must never fail a run
+                iface = {"error": f"{type(_e).__name__}: {_e}"}
         per_sample.append({
             "model": n,
             "ipsae_min": ipsae["ipsae_min"],
             "ipsae_pairs": ipsae["pairs"],
+            "interface": iface,
             "iptm": round(iptm, 4) if iptm is not None else None,
             "ptm": round(float(conf["ptm"]), 4) if conf.get("ptm") is not None else None,
             "complex_plddt": (round(float(conf["complex_plddt"]), 4)
@@ -1073,6 +1201,8 @@ def cofold_seqs(run_id: str, target_seq, binder_seq: str, save_rel: str,
         "ipsae_min_min": round(min(vals), 4) if vals else None,
         "ipsae_min_max": round(max(vals), 4) if vals else None,
         "ipsae_min_range": round(max(vals) - min(vals), 4) if vals else None,
+        "ipsae_pairs_per_sample": [x.get("ipsae_pairs") for x in per_sample],
+        "interface_per_sample": [x.get("interface") for x in per_sample],
         # backward-compatible keys: the scored value is the MEAN
         "ipsae_min": mean_ipsae,
         "ipsae_pass": (mean_ipsae is not None and mean_ipsae >= IPSAE_MIN_PASS),
@@ -1332,12 +1462,52 @@ def crossreact(
         mm, mr = m["ipsae_min_mean"], m["ipsae_min_range"]
         diff = round(hm - mm, 4)
         floor = round(max(hr, mr), 4)
-        verdict = "REAL" if abs(diff) > floor else "indistinguishable"
+        # With one diffusion sample the range is 0 by construction, so the noise
+        # floor is 0 and ANY nonzero difference would read as "REAL". That is an
+        # artefact of n=1, not a result: refuse to render a verdict instead.
+        if diffusion_samples < 2:
+            verdict = "n/a (1 sample: no noise floor)"
+        else:
+            verdict = "REAL" if abs(diff) > floor else "indistinguishable"
         print(f"{name:<26}{hm:.4f}[{hr:.4f}]      {mm:.4f}[{mr:.4f}]      {diff:+.4f}     {floor:.4f}      {verdict}")
         summary.append(dict(design=name, human_mean=hm, human_range=hr, human_samples=h["ipsae_min_samples"],
                             mouse_mean=mm, mouse_range=mr, mouse_samples=m["ipsae_min_samples"],
                             diff=diff, noise_floor=floor, verdict=verdict,
+                            human_ipsae_pairs=h.get("ipsae_pairs_per_sample"),
+                            mouse_ipsae_pairs=m.get("ipsae_pairs_per_sample"),
+                            human_interface=h.get("interface_per_sample"),
+                            mouse_interface=m.get("interface_per_sample"),
                             gpu_seconds=round(h["gpu_seconds"] + m["gpu_seconds"], 1)))
+    # ---- diagnosis table: what ipSAE_min alone cannot tell you ----
+    print("\n" + "=" * 112)
+    print("STAGE 1b -- INTERFACE DIAGNOSIS (model 0, human). ipSAE_min is the WEAKEST")
+    print("binder<->protomer pair, so a thin second-protomer contact sets it even when")
+    print("total binding is strong. These columns separate that from a genuine miss.")
+    print("=" * 112)
+    print(f"{'design':<26}{'ipsae_min':>10}{'pairs(binder<->each)':>34}"
+          f"{'contacts(strong/weak)':>23}{'both?':>7}{'pH anchors':>12}")
+    for name, pair in rows.items():
+        h = pair.get("human")
+        if not h:
+            continue
+        ifr = (h.get("interface_per_sample") or [None])[0] or {}
+        prs = (h.get("ipsae_pairs_per_sample") or [None])[0] or []
+        bp = ", ".join(f"{q['a']}->{q['b']}:{q['ipsae']}" for q in prs
+                       if q.get("ipsae") is not None)
+        strong = ifr.get("strongest_protomer_atom_pairs", "?")
+        weak = ifr.get("weakest_protomer_atom_pairs", "?")
+        both = "yes" if ifr.get("contacts_both_protomers") else "NO"
+        anch = ifr.get("ph_anchors_satisfied") or []
+        print(f"{name:<26}{h['ipsae_min_mean']:>10.4f}{bp:>34}"
+              f"{str(strong) + '/' + str(weak):>23}{both:>7}"
+              f"{(','.join(map(str, anch)) or '-'):>12}")
+        if ifr.get("error"):
+            print(f"{'':<26}  !! interface report failed: {ifr['error']}")
+    print("\n  both?=NO means the binder touched only one protomer -- the groove was")
+    print("  not engaged, and ipSAE_min is then measuring the wrong thing.")
+    print("  pH anchors = target residues (32/65) with a binder His within 6.0 A,")
+    print("  i.e. the pre-registered rule evaluated on the Boltz model.")
+
     print(f"\nTOTAL GPU-seconds (stage 1): {cum_gpu:.0f}  (= {cum_gpu/60:.1f} GPU-min)   aborted={aborted}")
     with open(out_json, "w") as f:
         json.dump(dict(stage="crossreact", diffusion_samples=diffusion_samples,
