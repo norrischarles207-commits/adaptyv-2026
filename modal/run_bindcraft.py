@@ -117,7 +117,7 @@ AF_PARAMS_DIR = "/weights"
 
 # Leave room inside the 3600s function timeout to commit partial results:
 # a hard timeout kills the container before anything is persisted.
-DESIGN_BUDGET_S = 3300
+DESIGN_BUDGET_S = 5100
 
 # Launcher that monkey-patches BindCraft's predict_binder_complex() to log the
 # post-MPNN AF2 re-prediction metrics (i_pTM / i_pAE / pLDDT / pTM / pAE) for
@@ -191,7 +191,7 @@ runpy.run_path("/opt/bindcraft/bindcraft.py", run_name="__main__")
     gpu="A10G",
     image=image,
     volumes={"/weights": weights, "/designs": designs},
-    timeout=3600,
+    timeout=5400,
 )
 def design_one(
     seed: int,
@@ -200,6 +200,7 @@ def design_one(
     target_chains: str,
     hotspots: str,
     i_ptm_threshold: float = 0.0,
+    gate_mode: str = "stock",
     run_tag: str = "default",
     advanced_preset: str = DEFAULT_ADVANCED_PRESET,
     lengths: str = DEFAULT_LENGTHS,
@@ -334,7 +335,50 @@ def design_one(
     if not os.path.exists(advanced_src):
         raise RuntimeError(f"advanced preset not found: {advanced_src}")
 
-    if i_ptm_threshold and i_ptm_threshold > 0:
+    if gate_mode == "prereg":
+        # Pre-registered-gate mode. BindCraft's stock default_filters.json is a
+        # SEPARATE, stricter, uncalibrated gate that we never pre-registered and
+        # never derived. In tnfa-v1-core it returned 0 accepted designs from 22
+        # trajectories while six MPNN variants cleared the AF2 filters (best
+        # i_pTM 0.78, SC 0.65 -- above our own SC threshold of 0.58).
+        #
+        # Our pre-registered criteria are ipSAE_min >= 0.60 and SC >= 0.58, both
+        # computed downstream from the written structures. So null every stock
+        # threshold here and let BindCraft record the full distribution instead
+        # of rejecting on criteria we did not choose. Nothing is loosened: the
+        # gate moves to where it was pre-registered, and recording the whole
+        # distribution is strictly more informative than seeing only survivors.
+        with open(filters_src) as fh:
+            filters = json.load(fh)
+        # Keep a LOW i_pTM floor. Nulling every threshold also removes
+        # BindCraft's early exit: predict_binder_complex() breaks after the
+        # first model that fails, so with nothing failing, every MPNN variant
+        # runs all AF2 models + FastRelax + full Rosetta scoring. Measured:
+        # 13 s/variant with stock filters vs 212 s/variant with all nulled --
+        # a 16x slowdown that makes most attempts hit the time budget.
+        #
+        # 0.35 is far below anything we would ever accept (our gate is
+        # ipSAE_min >= 0.60; v1's accepted variants ran 0.71-0.78), so this
+        # discards only true garbage while restoring the short-circuit. The
+        # pre-registered gate is unchanged.
+        I_PTM_FLOOR = 0.35
+        KEEP = ("Average_i_pTM", "1_i_pTM", "2_i_pTM")
+        nulled = 0
+        for _k, spec in filters.items():
+            if not isinstance(spec, dict) or spec.get("threshold") is None:
+                continue
+            if _k in KEEP:
+                spec["threshold"] = I_PTM_FLOOR
+            else:
+                spec["threshold"] = None
+                nulled += 1
+        filters_json = f"/tmp/filters_{seed}.json"
+        with open(filters_json, "w") as fh:
+            json.dump(filters, fh, indent=4)
+        print(f"filters: pre-registered-gate mode -- {nulled} stock thresholds "
+              f"nulled, i_pTM floor kept at {I_PTM_FLOOR} to preserve the "
+              f"early exit; ipSAE_min>=0.60 and SC>=0.58 applied downstream")
+    elif i_ptm_threshold and i_ptm_threshold > 0:
         # Relaxed-filter mode: override the three i_pTM keys BindCraft checks.
         with open(filters_src) as fh:
             filters = json.load(fh)
@@ -499,6 +543,7 @@ def main(
     hotspots: str,
     n: int = 1,
     i_ptm_threshold: float = 0.0,
+    gate_mode: str = "stock",
     run_tag: str = "default",
     advanced_preset: str = DEFAULT_ADVANCED_PRESET,
     lengths: str = DEFAULT_LENGTHS,
@@ -519,6 +564,11 @@ def main(
 
     Any knob can still be overridden per run, e.g. --i-ptm-threshold 0.45 to
     relax filters, or --advanced-preset default_4stage_multimer for plain mode.
+
+    --gate-mode prereg nulls every stock BindCraft filter threshold so that
+    acceptance is decided by our pre-registered gate (ipSAE_min >= 0.60 and
+    SC >= 0.58) downstream, rather than by BindCraft's uncalibrated defaults.
+    Use it for hard targets where the stock filters reject everything.
     Run one detached app at a time -- two concurrent detached `modal run`
     sessions from one client cancel each other.
     """
@@ -530,7 +580,7 @@ def main(
     # early each result surfaces.
     results = list(design_one.starmap(
         [(s, target, pdb_id, target_chains, hotspots,
-          i_ptm_threshold, run_tag, advanced_preset, lengths,
+          i_ptm_threshold, gate_mode, run_tag, advanced_preset, lengths,
           target_residue_range) for s in seeds],
         order_outputs=False,
     ))

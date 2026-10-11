@@ -108,3 +108,146 @@ pH claim in the writeup must be stated at that strength.
 Objective 3 asks for *no detectable binding* at pH 6.0, not a ratio. That is a
 switch, not a dial, and a harder bar than challenge 1's. We expect to be able
 to demonstrate the geometry and not the magnitude.
+
+---
+
+## Amendment 1 — 2026-10-11, written before the v2 run
+
+Everything below supersedes the hotspot set at line 36, the anchor rationale
+at lines 40-41, and the pH variant rule at lines 68, 76 and 87. The original
+text is left in place unedited: this file's value is that each claim provably
+predates its result, and silently rewriting a superseded line would destroy
+that. No compute has been spent against the revised set at the time of this
+commit.
+
+### Correction: the 13.7 A figure was wrong
+
+The original recorded **R32 and K90 as "13.7 A apart in this groove."**
+Remeasured from 7KPB coordinates, closest cationic nitrogen to closest
+cationic nitrogen:
+
+| pair | side-chain N-N | Ca-Ca |
+|---|---|---|
+| R32(B) - K90(C) | **21.5 A** | 15.9 A |
+| R32(B) - R82(C) | **13.9 A** | - |
+| R32(B) - K65(B) | **16.4 A** | - |
+
+`[computed]` The 13.7 A figure matches **R82**, not K90. The original was
+never attributed to a named atom pair, so this is recorded as a mismeasurement
+rather than a transcription slip. Our pre-registered anchor pair is ~8 A
+further apart than written down -- the difference between "one binder face
+reaches both" and "marginal."
+
+### New evidence: 7KP7 (mouse TNF-alpha + human TNFR1)
+
+`[computed]` 7KP7, 2.65 A, is human TNFR1 bound to **mouse** TNF-alpha. Both
+7KPB and 7KP7 have **wild-type TNF** (all SEQADV entries are on the receptor
+or are expression tags) and carry the **identical** receptor construct
+(N54D, C182S), so species is the only variable between them.
+
+- 30 of 32 human TNFR1 contacts are also mouse TNFR1 contacts.
+- **All six original hotspots are contacted in both species.**
+- Author numbering in 7KP7 is mouse-mature + 1; with the indel at human T72,
+  author N maps to human mature N for N>=73 and N-1 below. Validated by
+  residue identity at **148/148 residues, zero mismatches**.
+- Divergence re-derived from sequence independently: 33 positions,
+  124/156 = 79.5%, matching the organisers' stated figure.
+
+Objective 2 therefore rests on a solved complex of a protein that binds this
+site in both species, not on an inference from global sequence identity.
+
+### Correction: the TNFR1-and-TNFR2 consensus discarded two conserved cations
+
+`[computed]` Requiring contact with **both** receptors was conservative but
+unjustified -- the challenge asks us to bind TNF-alpha, not to block both
+receptors. Against the cross-species TNFR1 standard there are **four**
+conserved cations in the epitope, not two:
+
+| | contacts hum/mou | note |
+|---|---|---|
+| R32 | 82 / 128 | densest contact in the epitope; face-1 |
+| K65 | 28 / 45 | face-1, 16.4 A from R32; TNFR1-only, so the old intersect dropped it |
+| K90 | 7 / 20 | face-2; highest B-factors of any anchor (68-75) |
+| R82 | 1 / 3 | face-2; rim only, not meaningfully in the interface |
+
+K65 is also mutated (K65S) in 3ALQ, so it only became visible after the switch
+to wild-type 7KPB.
+
+`[computed]` Receptor F in 7KPB occupies the B+C groove and contacts chain B
+at 20, 21, 31, **32**, 33, **65**, 67, 113, 115, 143-147, 149. R32 and K65 are
+therefore contacted by the same receptor molecule in the same groove -- not
+merely close in space. Both side chains are fully modelled (B = 50-66 and
+48-62). **C32's side chain is absent** (residue mean B = 99) and was never a
+usable target.
+
+### Revised hotspots — fixed now
+
+```
+B32, B65, B145, C86, C87
+```
+
+B145 (52/81) replaces D143 (13/29) on contact density; C90 is dropped as an
+aiming point. All five are conserved and contacted in both species. Target
+remains 7KPB chains B,C: face-1 of B is a groove *wall*, so designing against
+isolated chain B would yield binders that clash with C in the real trimer.
+
+### Revised pH variant rule
+
+- **Required:** binder His ND1/NE2 within **6.0 A** of R32 NH1/NH2/NE **or**
+  K65 NZ, in at least 2 of 3 samples. Threshold unchanged and still set a
+  priori from Baker 2025's 3.7-7.6 A range.
+- **Two anchors (R32 and K65) rank above one.** This replaces the R32/K90
+  pairing at line 87.
+- **Three anchors (+K90) is a stretch goal, labelled as such.** R32/K65/K90
+  are mutually 16-21 A, so it is reachable in a 60-100 aa binder, but we are
+  not pre-registering a target we cannot reliably hit.
+
+### Declared asymmetry: the mouse His tag
+
+`[inferred]` The mouse assay construct TNA-M52H3 carries a C-terminal
+polyhistidine tag; human TNA-H4211 is tag-free. Objectives 2 and 3 are
+measured on tagged protein, objective 1 on untagged. A His tag is itself a
+cluster of titratable histidines, i.e. the same chemistry as our switch.
+
+`[computed]` Nearest approach from any modelled C-terminus (157) to any
+revised hotspot is **21.0 A**, with all distances 21-34 A. Thresholds were set
+before measuring: >25 A unreachable, <15 A real risk. A fully extended His6
+spans roughly 21 A, so this is **low risk but not zero.** K65 is the most
+tag-remote hotspot in the set (33.5 A); C90/C86/C87 are the closest (21-24 A),
+which independently favours the face-1 anchoring above.
+
+### Acceptance gate — disclosure
+
+Our pre-registered gate is **ipSAE_min >= 0.60 and SC >= 0.58**. BindCraft's
+stock `default_filters.json` is a *separate, stricter, uncalibrated* gate that
+we never pre-registered and never derived. In run tnfa-v1-core it returned
+**0 accepted designs from 22 trajectories** while six MPNN variants passed the
+AF2 filters (best i_pTM 0.78, SC 0.65 -- above our threshold). Stated plainly
+because it matters: v2 applies our pre-registered criteria and relaxes the
+stock filter. This is not a threshold loosened after seeing results -- the
+stock filter was never our criterion, and the evidence is that it was
+discarding designs that pass the criterion we did commit to.
+
+### Declared unknowns — not resolved, recorded
+
+1. **Does TNF-alpha itself change between pH 7.4 and 6.0?** Trimer stability
+   or dissociation at the acidic condition would confound objective 3's
+   readout for every entrant. Unanswered. Largest open risk and not ours to
+   fix; recorded so it cannot be invoked post-hoc.
+2. **propka is not relied upon.** Jacobson et al. 2025 report predicted pKa
+   was *not* predictive of which pH bin a design fell into. `[secondhand]`,
+   from the authors' own account. Our geometric rule above is the instrument.
+3. Calibration AUCs in notes/calibration.md still have no recorded source.
+
+### Independent corroboration
+
+`[secondhand]` Two expert panel discussions (Adaptyv competitor calls, video 1
+and 2) independently support three pre-registered positions: that one
+histidine is insufficient and more than one titratable group is needed; that
+structure predictors do not model protonation, so neutral-pH geometry shows
+availability and not function; and that **charge clash is more predictive of
+pH sensitivity than pH-sensitive hydrogen bonding** -- which is the mechanism
+class this file already specified. One panellist proposed binder-His against
+target-cation unprompted, which is the design recorded here. A counterpoint is
+also recorded: histidine *networks* may buffer rather than amplify pH
+response, so the anchors should stay spatially separated rather than clustered.

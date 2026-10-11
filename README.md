@@ -122,27 +122,27 @@ flags, not the challenge slug — see `--help` for the full option set.)
 
 **Design run on Modal (parallel, GPU):**
 ```
-modal run --detach modal/run_bindcraft.py::main \
+python3 -m modal run --detach modal/run_bindcraft.py::main \
   --target <slug> --pdb-id <PDBID> --target-chains <A,B> \
   --hotspots <A21,A25,A48,A63> --n 30 --run-tag hardtarget-focused4
 ```
 Override any knob at the CLI (`--advanced-preset`, `--lengths`,
 `--i-ptm-threshold`). Only run one detached app at a time — two concurrent
-detached `modal run` sessions from one client cancel each other.
+detached `python3 -m modal run` sessions from one client cancel each other.
 
 **Cross-validation on Modal (Boltz-2, GPU):**
 ```
 # smoke test on one accepted design:
-modal run --detach modal/redundancy.py::main --target <slug> --smoke
+python3 -m modal run --detach modal/redundancy.py::main --target <slug> --smoke
 
 # full accepted shortlist:
-modal run --detach modal/redundancy.py::main --target <slug>
+python3 -m modal run --detach modal/redundancy.py::main --target <slug>
 ```
 
 **Rescore already-run designs (CPU-only, no Boltz re-prediction):**
 ```
-modal run modal/redundancy.py::rescore_saved --target <slug> --smoke   # one design
-modal run modal/redundancy.py::rescore_saved --target <slug>           # full shortlist
+python3 -m modal run modal/redundancy.py::rescore_saved --target <slug> --smoke   # one design
+python3 -m modal run modal/redundancy.py::rescore_saved --target <slug>           # full shortlist
 ```
 Uses the cached `pae_*.npz` / `plddt_*.npz` / `confidence_*.json` that
 `crossval_boltz` writes next to each design. Use this after a threshold
