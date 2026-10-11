@@ -228,11 +228,25 @@ def _compute_ipsae(
             f"pLDDT length {plddt_0_100.shape} != PAE dim {N}"
         )
 
-    # Only inter-chain pairs. Same-chain pairs are excluded from ipsae by construction.
+    # Only inter-chain pairs INVOLVING THE BINDER. Same-chain pairs are excluded
+    # by construction, and target-target pairs must be excluded too: with a
+    # multi-protomer target (TNF-alpha's receptor site exists only in the groove
+    # between two protomers) the protomer-protomer interface is also an
+    # inter-chain pair, and including it lets a poorly-predicted target-target
+    # packing set ipsae_min for every design identically -- which would read as
+    # "no binder works" when it means "the target multimer was modelled badly".
+    #
+    # _chain_slices_for() always emits targets first and the binder last, so the
+    # binder is the final entry. For a single-chain target every inter-chain pair
+    # already involves the binder, so this is a no-op there (EGFR path unchanged)
+    # and a correctness fix for 3+ chains.
+    binder_id = chain_slices[-1][0]
     pairs = []
     for a_id, a_slice in chain_slices:
         for b_id, b_slice in chain_slices:
             if a_id == b_id:
+                continue
+            if binder_id not in (a_id, b_id):
                 continue
 
             pae_ab = pae[a_slice, b_slice]                     # (nA, nB), PAE A->B
@@ -942,9 +956,10 @@ sc_image = (
     gpu="A100-40GB",
     image=image,
     volumes={"/designs": designs, BOLTZ_CACHE: boltz_weights},
-    timeout=7200,
+    timeout=1800,   # bounds cost: crossreact's first design runs unbudgeted
+
 )
-def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str,
+def cofold_seqs(run_id: str, target_seq, binder_seq: str, save_rel: str,
                 diffusion_samples: int = 1):
     """Co-fold `binder_seq` against `target_seq` with Boltz-2; score ipSAE_min on
     every diffusion sample.
@@ -966,16 +981,25 @@ def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str,
 
     os.environ["BOLTZ_CACHE"] = BOLTZ_CACHE
 
-    yaml_doc = {"version": 1, "sequences": [
-        {"protein": {"id": "A", "sequence": target_seq}},
-        {"protein": {"id": "B", "sequence": binder_seq}},
-    ]}
+    # target_seq may be ONE sequence or a LIST of subchain sequences. TNF-alpha's
+    # receptor site exists only in the groove between two protomers, so a
+    # single-chain target would reproduce no groove and the cross-species answer
+    # would be meaningless. Mirrors the chain layout used on the redundancy path.
+    target_seqs = [target_seq] if isinstance(target_seq, str) else list(target_seq)
+    letters = [chr(ord("A") + i) for i in range(len(target_seqs) + 1)]
+    yaml_doc = {"version": 1, "sequences": []}
+    for _i, _s in enumerate(target_seqs):
+        yaml_doc["sequences"].append({"protein": {"id": letters[_i], "sequence": _s}})
+    yaml_doc["sequences"].append(
+        {"protein": {"id": letters[len(target_seqs)], "sequence": binder_seq}})
     work = f"/tmp/{run_id}"
     os.makedirs(work, exist_ok=True)
     yaml_path = f"{work}/{run_id}.yaml"
     with open(yaml_path, "w") as fh:
         yaml.safe_dump(yaml_doc, fh, sort_keys=False)
-    print(f"{run_id}: target {len(target_seq)} aa (chain A), binder {len(binder_seq)} aa (chain B), diffusion_samples={diffusion_samples}")
+    print(f"{run_id}: target chains {[len(x) for x in target_seqs]} "
+          f"({'+'.join(letters[:len(target_seqs)])}), binder {len(binder_seq)} aa "
+          f"({letters[len(target_seqs)]}), diffusion_samples={diffusion_samples}")
 
     out_dir = f"{work}/out"
     cmd = [
@@ -995,8 +1019,8 @@ def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str,
     subprocess.run(cmd, check=True, env={**os.environ, "BOLTZ_CACHE": BOLTZ_CACHE})
     gpu_seconds = round(_time.time() - _t0, 1)
 
-    slices = _chain_slices_for([target_seq], binder_seq)
-    n_expected = len(target_seq) + len(binder_seq)
+    slices = _chain_slices_for(target_seqs, binder_seq)
+    n_expected = sum(len(x) for x in target_seqs) + len(binder_seq)
     save_dir = f"/designs/{save_rel}"
     os.makedirs(save_dir, exist_ok=True)
 
@@ -1038,7 +1062,8 @@ def cofold_seqs(run_id: str, target_seq: str, binder_seq: str, save_rel: str,
     mean_ipsae = round(sum(vals) / len(vals), 4) if vals else None
     result = {
         "run_id": run_id,
-        "target_len": len(target_seq),
+        "target_len": sum(len(x) for x in target_seqs),
+        "target_chain_lens": [len(x) for x in target_seqs],
         "binder_len": len(binder_seq),
         "diffusion_samples": diffusion_samples,
         "gpu_seconds": gpu_seconds,
@@ -1253,11 +1278,28 @@ def crossreact(
     import json
 
     hu = _read_fasta_local(human_fasta); mo = _read_fasta_local(mouse_fasta)
-    assert len(hu) == 1 and len(mo) == 1, "human/mouse fasta must each hold one record"
-    human_seq = hu[0][1]; mouse_seq = mo[0][1]
-    assert len(human_seq) == len(mouse_seq), f"human {len(human_seq)} != mouse {len(mouse_seq)}"
+    assert hu and mo, "human/mouse fasta must each hold at least one record"
+    # Every record is one target subchain, so a two-protomer groove is expressed
+    # as two records. Equal total length is NOT required: human mature TNF-alpha
+    # is 157 aa and mouse 156 (indel at human T72), so asserting equality (as the
+    # EGFR single-domain path did) would be wrong here.
+    human_seq = [r[1] for r in hu]; mouse_seq = [r[1] for r in mo]
+    if len(hu) == 1 and len(mo) == 1:
+        # Single-record path (EGFR domain III / full ECD): the mouse target is
+        # built in the human numbering frame, so equal length is a real
+        # invariant and downstream index asserts depend on it. Keep it.
+        assert len(human_seq[0]) == len(mouse_seq[0]), (
+            f"single-record targets must be equal length: "
+            f"human {len(human_seq[0])} != mouse {len(mouse_seq[0])}")
+    elif sum(map(len, human_seq)) != sum(map(len, mouse_seq)):
+        print(f"note: human {sum(map(len,human_seq))} aa vs mouse "
+              f"{sum(map(len,mouse_seq))} aa -- expected for a multi-protomer "
+              f"target when the species differ by an indel (human TNF-alpha is "
+              f"157 aa, mouse 156)")
     binders = _read_fasta_local(binders_fasta)
-    print(f"binders {len(binders)} | human {len(human_seq)} aa | mouse {len(mouse_seq)} aa | samples {diffusion_samples} | budget {gpu_budget_min} GPU-min")
+    print(f"binders {len(binders)} | human chains {[len(x) for x in human_seq]} "
+          f"| mouse chains {[len(x) for x in mouse_seq]} | samples {diffusion_samples} "
+          f"| budget {gpu_budget_min} GPU-min")
 
     budget_s = gpu_budget_min * 60.0
     cum_gpu = 0.0
