@@ -401,3 +401,83 @@ of `max(human_range, mouse_range)` over diffusion samples, with the verdict
 best-of-N. A difference inside the noise floor is reported as
 **indistinguishable** -- which, for objective 2, is the outcome we want and is
 not the same as "no difference measured".
+
+---
+
+## Amendment 3 — 2026-10-11, before the trimer run
+
+Written after three dimer folds and before any trimer fold. Prompted by
+checking the code rather than by a result we disliked.
+
+### Measured: ipSAE's interface selection is over-inclusive on this target
+
+`[measured]` Dunbrack's interface rule (cross-chain PAE <= 10 A and pLDDT >= 70)
+classifies **104-136 of 157 target residues** as interface on our dimer folds.
+Our own heavy-atom contact analysis puts the real interface at ~15-20 residues
+per protomer. Boltz is confident about the whole rigid complex, so most of each
+protomer qualifies, and ipSAE is then averaged over ~130 residues of which ~20
+are contacts. The score is diluted by construction.
+
+This is not a defect in the implementation -- it is the published definition
+meeting a target type it was not calibrated on. The calibration (bioRxiv
+2025.08.14.670059; Adaptyv N~2600) is single-chain-target data.
+
+`[measured]` The metric is not uniformly broken here: tnfa_l69_s930894_mpnn1's
+strong groove wall reaches ipSAE **0.58-0.66** (C->A 0.6236, 0.6553), clearing
+0.60. The weak wall (0.21-0.41) sets ipsae_min.
+
+### Measured: a two-protomer target is orientationally ambiguous
+
+`[measured]` A dimer has one interface and Boltz builds it in either
+orientation. Across three diffusion samples of l69_mpnn2 the binder's H4 sat
+8.3 A from A65 (sample 0), 8.2 A from B65 (sample 1), 10.0 A from A65 (sample
+2) -- the protomers swapping which plays the face-1 role. ipsae_min samples
+were [0.2783, 0.2219, 0.0789], **range 0.1994**, which fails our own
+"sample range > 0.15 = poorly determined" convention.
+
+Per Amendment 2 this result is therefore **discarded, not reported**, and the
+comparison moves to three protomers, whose packing is directional and
+unambiguous (in 7KPB protomer A contacts B with 248 atom pairs and C with 166 --
+asymmetric, so each protomer's role is fixed).
+
+### Fixed now: how trimer ipSAE will and will not be used
+
+`[inferred]` On a trimer the binder occupies one groove and touches two of three
+protomers. A pair with no interface residues is excluded from ipsae_min
+(n_int == 0 -> None), but given that 104-136 residues qualify under the
+permissive rule above, the **uncontacted** protomer may still register
+n_int > 0, score spuriously low, and dominate ipsae_min for every design.
+
+Decisions, fixed before the run:
+
+1. **Trimer ipsae_min is NOT compared to the 0.60 operating point.** Not
+   because 0.60 is inconvenient -- Amendment 2 already refused to move it --
+   but because a trimer-derived value is not on the scale the threshold was
+   calibrated on. A number that is not comparable is not evidence either way,
+   and we will say so rather than quietly pass or fail designs on it.
+2. **The trimer run is used for objective 2 only: the human-vs-mouse
+   difference.** Any artefact that deflates the absolute value deflates both
+   species identically, so a paired comparison survives what would destroy an
+   absolute threshold. This is the whole reason the run is still worth doing.
+3. **Per-pair ipSAE is reported restricted to protomers the binder actually
+   contacts** (atom_pairs > 0, from the interface report). Pairs to an
+   uncontacted protomer are reported separately and excluded from any summary
+   statistic, because a chain that is not touched is not a side of the
+   interface.
+4. **The affinity gate is unchanged and is carried by SC >= 0.58** (Rosetta, on
+   the design models) plus the AF2 interface metrics, exactly as already
+   recorded. Boltz contributes the species comparison and a qualitative
+   sanity check on binding mode, not the affinity decision.
+
+### Consequence for objective 3, stated plainly
+
+`[measured]` In all three dimer samples **no binder histidine came within
+6.0 A of R32 or K65** -- H4's closest approach to any anchor was 8.2-10.0 A,
+against the 3.0-5.4 A that AF2 reported for H4->R32. Some of that is the
+orientation ambiguity, which the trimer should remove.
+
+But if the trimer also shows no anchor within 6.0 A, then **our objective-3
+evidence rests on AlphaFold2 alone**, and the writeup will say that in those
+words. It will not describe the pH mechanism as independently confirmed, and it
+will not report the AF2 geometry without noting that a second predictor did not
+reproduce it. Recorded now, while the trimer result is unknown.
