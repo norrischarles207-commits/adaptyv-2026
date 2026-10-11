@@ -251,3 +251,71 @@ class this file already specified. One panellist proposed binder-His against
 target-cation unprompted, which is the design recorded here. A counterpoint is
 also recorded: histidine *networks* may buffer rather than amplify pH
 response, so the anchors should stay spatially separated rather than clustered.
+
+---
+
+## Amendment 1a — 2026-10-11, after the v2 smoke (n=2), before the fan-out
+
+### Record-keeping note
+
+Amendment 1's content (this file's revision, 7KP7.pdb, and the five analysis
+scripts) was committed in **81839f9**, whose message describes only the
+i_pTM-floor change to run_bindcraft.py. Files left staged were swept in by a
+later `git commit`. The commit is already pushed and is not being rewritten.
+The substance is unaffected -- 81839f9 predates every v2 result -- but the
+message under-describes its contents, and this note is the correction.
+
+### The revised hotspot set underperformed at n=2; reverting it
+
+`[measured]` Run tnfa-v2-smoke, hotspots B32,B65,B145,C86,C87, gate-mode
+prereg, 2 attempts, $1.06. Both trajectories completed and both produced
+accepted designs *only because the stock thresholds were nulled*. MPNN
+variants after AF2 re-prediction:
+
+| trajectory | i_pTM (re-predicted) |
+|---|---|
+| tnfa_l79_s137625 | 0.38, 0.49, 0.51, 0.53 |
+| tnfa_l90_s948572 | 0.11, 0.11, 0.18, 0.19 |
+| **v1, old set, for comparison** | **0.71 - 0.78** |
+
+`[measured]` l90 reached i_pTM 0.86 during trajectory optimisation and
+collapsed to 0.11-0.19 after MPNN redesign and independent re-prediction.
+**Trajectory-stage confidence is not evidence of a real interface** and is not
+used as such anywhere in this project from here on.
+
+`[computed]` Hotspot-set dispersion, side-chain centroids:
+
+| set | max pair | Rg |
+|---|---|---|
+| v1 B32,B143,B146,C86,C87,C90 | 26.7 A | 10.7 A |
+| v2 B32,B65,B145,C86,C87 | **30.4 A** | 12.0 A |
+| B32,B145,C86,C87 | 24.1 A | 10.0 A |
+
+Adding B65 widened the aiming set by ~4 A, with B65-C86 the widest pair at
+30.4 A. For a 79-90 aa binder that is close to its full long dimension.
+
+**Caveat, stated plainly:** v1's 0.71-0.78 is from the single trajectory of 22
+whose variants were logged, so it is a best-of-22 against v2's both-of-2. n=2
+cannot establish that the new set is worse. The decision rests on asymmetry,
+not proof: there is no evidence the revised set is better, there is a
+mechanistic reason to expect it to be worse, and the proven set costs the same
+to run.
+
+**Decision: revert the hotspot set to the v1 configuration for the fan-out**
+and keep the i_pTM-floor and prereg-gate fixes. Two variables were changed at
+once (gate and hotspots) and the result was confounded; the gate fix is
+confirmed working, so the hotspot change is the one to withdraw. This isolates
+one variable per run.
+
+**K65 remains a pH anchor.** Dropping B65 as a BindCraft *aiming point* does
+not remove it as a histidine target: hotspots steer where the binder lands,
+and the variant round places histidines against whichever conserved cations
+fall within reach of the realised interface. R32 and K65 are 16.4 A apart
+(closest cationic nitrogens), so a binder landing on B32 will very likely have
+K65 in reach. The revised pH variant rule in Amendment 1 is unchanged.
+
+**Distance conventions, to stop these being conflated:** 16.4 A (R32-K65) is
+closest-cationic-nitrogen to closest-cationic-nitrogen and governs histidine
+placement. 19.6 A for the same pair is side-chain centroid to centroid and
+governs binder footprint. Both are correct for their purpose; neither
+substitutes for the other.
