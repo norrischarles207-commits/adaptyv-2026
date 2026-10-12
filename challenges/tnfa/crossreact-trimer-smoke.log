@@ -1,0 +1,166 @@
+✓ Initialized. View run at https://modal.com/apps/norrischarles207-commits/main/ap-WQG62L6bF2J3zFTkDSme3M
+✓ Created objects.
+├── 🔨 Created mount /Users/charlesnorris/adaptyv-2026/modal/redundancy.py
+├── 🔨 Created function download_boltz_weights.
+├── 🔨 Created function crossval_boltz.
+├── 🔨 Created function list_accepted.
+├── 🔨 Created function rescore_one.
+├── 🔨 Created function _persist_table.
+├── 🔨 Created function cofold_seqs.
+└── 🔨 Created function sc_and_contacts.
+note: human 471 aa vs mouse 468 aa -- expected for a multi-protomer target when the species differ by an indel (human TNF-alpha is 157 aa, mouse 156)
+binders 1 | human chains [157, 157, 157] | mouse chains [156, 156, 156] | samples 3 | budget 15.0 GPU-min
+tnfa_l69_s930894_mpnn2__human: target chains [157, 157, 157] (A+B+C), binder 69 aa (D), diffusion_samples=3
+running: boltz predict /tmp/tnfa_l69_s930894_mpnn2__human/tnfa_l69_s930894_mpnn2__human.yaml --out_dir /tmp/tnfa_l69_s930894_mpnn2__human/out --cache /boltz-cache --use_msa_server --write_full_pae --accelerator gpu --devices 1 --override --output_format pdb --diffusion_samples 3
+MSA server enabled: https://api.colabfold.com
+MSA server authentication: no credentials provided
+Checking input data.
+Processing 1 inputs with 1 threads.
+
+Generating MSA for /tmp/tnfa_l69_s930894_mpnn2__human/tnfa_l69_s930894_mpnn2__human.yaml with 2 protein entities.
+Calling MSA server for target tnfa_l69_s930894_mpnn2__human with 2 sequences
+MSA server URL: https://api.colabfold.com
+MSA pairing strategy: greedy
+No authentication provided for MSA server
+[1A  0%|          | 0/1 [00:00<?, ?it/s]
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+[1A100%|██████████| 1/1 [00:01<00:00,  1.26s/it]
+[1A100%|██████████| 1/1 [00:01<00:00,  1.26s/it]
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+Running structure prediction for 1 input.
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0
+You are using a CUDA device ('NVIDIA A100-SXM4-40GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+
+[1APredicting: |          | 0/? [00:00<?, ?it/s]
+[1APredicting:   0%|          | 0/1 [00:00<?, ?it/s]
+/usr/local/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[1APredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]/usr/local/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.
+  warn_eager_only(
+
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:47<00:00,  0.02it/s]Number of failed examples: 0
+
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:47<00:00,  0.02it/s]
+RESULT: {"run_id": "tnfa_l69_s930894_mpnn2__human", "target_len": 471, "target_chain_lens": [157, 157, 157], "binder_len": 69, "diffusion_samples": 3, "gpu_seconds": 94.5, "ipsae_min_samples": [0.538, 0.5077, 0.4526], "ipsae_min_mean": 0.4994, "ipsae_min_min": 0.4526, "ipsae_min_max": 0.538, "ipsae_min_range": 0.0854, "ipsae_pairs_per_sample": [[{"a": "A", "b": "D", "n_int_a": 140, "n_int_b": 61, "d0": 5.278, "ipsae": 0.7516}, {"a": "B", "b": "D", "n_int_a": 141, "n_int_b": 61, "d0": 5.291, "ipsae": 0.7843}, {"a": "C", "b": "D", "n_int_a": 139, "n_int_b": 60, "d0": 5.253, "ipsae": 0.6515}, {"a": "D", "b": "A", "n_int_a": 61, "n_int_b": 140, "d0": 5.278, "ipsae": 0.6657}, {"a": "D", "b": "B", "n_int_a": 61, "n_int_b": 141, "d0": 5.291, "ipsae": 0.7267}, {"a": "D", "b": "C", "n_int_a": 60, "n_int_b": 139, "d0": 5.253, "ipsae": 0.538}], [{"a": "A", "b": "D", "n_int_a": 140, "n_int_b": 61, "d0": 5.278, "ipsae": 0.7734}, {"a": "B", "b": "D", "n_int_a": 140, "n_int_b": 61, "d0": 5.278, "ipsae": 0.7332}, {"a": "C", "b": "D", "n_int_a": 139, "n_int_b": 60, "d0": 5.253, "ipsae": 0.64}, {"a": "D", "b": "A", "n_int_a": 61, "n_int_b": 140, "d0": 5.278, "ipsae": 0.7007}, {"a": "D", "b": "B", "n_int_a": 61, "n_int_b": 140, "d0": 5.278, "ipsae": 0.6424}, {"a": "D", "b": "C", "n_int_a": 60, "n_int_b": 139, "d0": 5.253, "ipsae": 0.5077}], [{"a": "A", "b": "D", "n_int_a": 135, "n_int_b": 59, "d0": 5.188, "ipsae": 0.5972}, {"a": "B", "b": "D", "n_int_a": 140, "n_int_b": 61, "d0": 5.278, "ipsae": 0.7281}, {"a": "C", "b": "D", "n_int_a": 141, "n_int_b": 61, "d0": 5.291, "ipsae": 0.6951}, {"a": "D", "b": "A", "n_int_a": 59, "n_int_b": 135, "d0": 5.188, "ipsae": 0.4526}, {"a": "D", "b": "B", "n_int_a": 61, "n_int_b": 140, "d0": 5.278, "ipsae": 0.6449}, {"a": "D", "b": "C", "n_int_a": 61, "n_int_b": 141, "d0": 5.291, "ipsae": 0.5846}]], "interface_per_sample": [{"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 105, "n_target_residues_contacted": 9, "target_residues_contacted": [75, 77, 82, 84, 86, 87, 91, 97, 127]}, "B": {"atom_pairs": 226, "n_target_residues_contacted": 15, "target_residues_contacted": [19, 21, 22, 23, 27, 29, 31, 32, 33, 34, 35, 115, 143, 146, 149]}, "C": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[33.67, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[27.93, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[16.08, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[4.62, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[40.63, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[30.45, 4]]}], "ph_rule_hits": [{"his_resnum": 4, "anchor_chain": "B", "anchor_resnum": 65, "distance_A": 4.62}], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 105, "strongest_protomer_atom_pairs": 226, "ph_anchors_satisfied": [65]}, {"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 241, "n_target_residues_contacted": 17, "target_residues_contacted": [19, 21, 22, 23, 27, 29, 31, 32, 33, 34, 35, 65, 115, 143, 146, 147, 149]}, "B": {"atom_pairs": 139, "n_target_residues_contacted": 11, "target_residues_contacted": [75, 77, 82, 86, 87, 89, 90, 91, 92, 97, 127]}, "C": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[16.38, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[4.46, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[32.31, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[27.53, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[40.12, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[30.29, 4]]}], "ph_rule_hits": [{"his_resnum": 4, "anchor_chain": "A", "anchor_resnum": 65, "distance_A": 4.46}], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 139, "strongest_protomer_atom_pairs": 241, "ph_anchors_satisfied": [65]}, {"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}, "B": {"atom_pairs": 261, "n_target_residues_contacted": 16, "target_residues_contacted": [19, 21, 22, 23, 27, 29, 30, 31, 32, 33, 34, 35, 115, 143, 146, 149]}, "C": {"atom_pairs": 130, "n_target_residues_contacted": 11, "target_residues_contacted": [75, 77, 82, 86, 87, 89, 91, 92, 97, 127, 137]}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[37.67, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[29.82, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[13.37, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[6.59, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[31.53, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[27.55, 4]]}], "ph_rule_hits": [], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 130, "strongest_protomer_atom_pairs": 261, "ph_anchors_satisfied": []}], "ipsae_min": 0.4994, "ipsae_pass": false, "iptm": 0.9687, "ptm": 0.9721, "complex_plddt": 0.8746, "saved_pdb": "/designs/tnfa/crossreact-trimer-smoke/human/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__human_model_0.pdb", "saved_pdbs": ["/designs/tnfa/crossreact-trimer-smoke/human/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__human_model_0.pdb", "/designs/tnfa/crossreact-trimer-smoke/human/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__human_model_1.pdb", "/designs/tnfa/crossreact-trimer-smoke/human/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__human_model_2.pdb"]}
+tnfa_l69_s930894_mpnn2__mouse: target chains [156, 156, 156] (A+B+C), binder 69 aa (D), diffusion_samples=3
+running: boltz predict /tmp/tnfa_l69_s930894_mpnn2__mouse/tnfa_l69_s930894_mpnn2__mouse.yaml --out_dir /tmp/tnfa_l69_s930894_mpnn2__mouse/out --cache /boltz-cache --use_msa_server --write_full_pae --accelerator gpu --devices 1 --override --output_format pdb --diffusion_samples 3
+MSA server enabled: https://api.colabfold.com
+MSA server authentication: no credentials provided
+Checking input data.
+Processing 1 inputs with 1 threads.
+
+Generating MSA for /tmp/tnfa_l69_s930894_mpnn2__mouse/tnfa_l69_s930894_mpnn2__mouse.yaml with 2 protein entities.
+Calling MSA server for target tnfa_l69_s930894_mpnn2__mouse with 2 sequences
+MSA server URL: https://api.colabfold.com
+MSA pairing strategy: greedy
+No authentication provided for MSA server
+[1A  0%|          | 0/1 [00:00<?, ?it/s]
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+[1A100%|██████████| 1/1 [00:01<00:00,  1.51s/it]
+[1A100%|██████████| 1/1 [00:01<00:00,  1.51s/it]
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+Running structure prediction for 1 input.
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0
+You are using a CUDA device ('NVIDIA A100-SXM4-40GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+
+[1APredicting: |          | 0/? [00:00<?, ?it/s]
+[1APredicting:   0%|          | 0/1 [00:00<?, ?it/s]
+/usr/local/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.
+  warn_eager_only(
+[1APredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:45<00:00,  0.02it/s]Number of failed examples: 0
+
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:45<00:00,  0.02it/s]
+[done] tnfa_l69_s930894_mpnn2  cum_gpu=187s
+
+================================================================================================
+STAGE 1 -- mouse cross-reactivity (ipSAE_min, mean of 3 diffusion samples; range in brackets)
+================================================================================================
+design                    human mean[range]     mouse mean[range]     diff(h-m)   noise floor verdict
+tnfa_l69_s930894_mpnn2    0.4994[0.0854]      0.3833[0.1368]      +0.1161     0.1368      indistinguishable
+
+================================================================================================================
+STAGE 1b -- INTERFACE DIAGNOSIS (model 0, human). ipSAE_min is the WEAKEST
+binder<->protomer pair, so a thin second-protomer contact sets it even when
+total binding is strong. These columns separate that from a genuine miss.
+================================================================================================================
+design                     ipsae_min              pairs(binder<->each)  contacts(strong/weak)  both?  pH anchors
+tnfa_l69_s930894_mpnn2        0.4994A->D:0.7516, B->D:0.7843, C->D:0.6515, D->A:0.6657, D->B:0.7267, D->C:0.538                226/105    yes          65
+
+  both?=NO means the binder touched only one protomer -- the groove was
+  not engaged, and ipSAE_min is then measuring the wrong thing.
+  pH anchors = target residues (32/65) with a binder His within 6.0 A,
+  i.e. the pre-registered rule evaluated on the Boltz model.
+
+TOTAL GPU-seconds (stage 1): 187  (= 3.1 GPU-min)   aborted=False
+wrote challenges/tnfa/crossreact-trimer-smoke.json
+RESULT: {"run_id": "tnfa_l69_s930894_mpnn2__mouse", "target_len": 468, "target_chain_lens": [156, 156, 156], "binder_len": 69, "diffusion_samples": 3, "gpu_seconds": 92.1, "ipsae_min_samples": [0.3205, 0.4573, 0.3722], "ipsae_min_mean": 0.3833, "ipsae_min_min": 0.3205, "ipsae_min_max": 0.4573, "ipsae_min_range": 0.1368, "ipsae_pairs_per_sample": [[{"a": "A", "b": "D", "n_int_a": 128, "n_int_b": 53, "d0": 5.015, "ipsae": 0.4697}, {"a": "B", "b": "D", "n_int_a": 140, "n_int_b": 57, "d0": 5.227, "ipsae": 0.5775}, {"a": "C", "b": "D", "n_int_a": 140, "n_int_b": 57, "d0": 5.227, "ipsae": 0.5574}, {"a": "D", "b": "A", "n_int_a": 53, "n_int_b": 128, "d0": 5.015, "ipsae": 0.3205}, {"a": "D", "b": "B", "n_int_a": 57, "n_int_b": 140, "d0": 5.227, "ipsae": 0.4948}, {"a": "D", "b": "C", "n_int_a": 57, "n_int_b": 140, "d0": 5.227, "ipsae": 0.4497}], [{"a": "A", "b": "D", "n_int_a": 129, "n_int_b": 59, "d0": 5.109, "ipsae": 0.5899}, {"a": "B", "b": "D", "n_int_a": 136, "n_int_b": 60, "d0": 5.214, "ipsae": 0.6663}, {"a": "C", "b": "D", "n_int_a": 135, "n_int_b": 60, "d0": 5.201, "ipsae": 0.7253}, {"a": "D", "b": "A", "n_int_a": 59, "n_int_b": 129, "d0": 5.109, "ipsae": 0.4573}, {"a": "D", "b": "B", "n_int_a": 60, "n_int_b": 136, "d0": 5.214, "ipsae": 0.5814}, {"a": "D", "b": "C", "n_int_a": 60, "n_int_b": 135, "d0": 5.201, "ipsae": 0.6566}], [{"a": "A", "b": "D", "n_int_a": 135, "n_int_b": 60, "d0": 5.201, "ipsae": 0.653}, {"a": "B", "b": "D", "n_int_a": 128, "n_int_b": 58, "d0": 5.083, "ipsae": 0.5361}, {"a": "C", "b": "D", "n_int_a": 135, "n_int_b": 60, "d0": 5.201, "ipsae": 0.622}, {"a": "D", "b": "A", "n_int_a": 60, "n_int_b": 135, "d0": 5.201, "ipsae": 0.5594}, {"a": "D", "b": "B", "n_int_a": 58, "n_int_b": 128, "d0": 5.083, "ipsae": 0.3722}, {"a": "D", "b": "C", "n_int_a": 60, "n_int_b": 135, "d0": 5.201, "ipsae": 0.4964}]], "interface_per_sample": [{"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}, "B": {"atom_pairs": 255, "n_target_residues_contacted": 19, "target_residues_contacted": [2, 4, 6, 21, 22, 25, 27, 31, 32, 33, 34, 65, 112, 114, 142, 144, 145, 146, 148]}, "C": {"atom_pairs": 130, "n_target_residues_contacted": 11, "target_residues_contacted": [72, 74, 83, 85, 86, 88, 89, 90, 91, 92, 126]}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[39.97, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[29.48, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[17.76, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[5.18, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[33.53, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[27.1, 4]]}], "ph_rule_hits": [{"his_resnum": 4, "anchor_chain": "B", "anchor_resnum": 65, "distance_A": 5.18}], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 130, "strongest_protomer_atom_pairs": 255, "ph_anchors_satisfied": [65]}, {"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}, "B": {"atom_pairs": 94, "n_target_residues_contacted": 8, "target_residues_contacted": [74, 76, 81, 85, 86, 90, 96, 126]}, "C": {"atom_pairs": 310, "n_target_residues_contacted": 20, "target_residues_contacted": [19, 20, 21, 22, 23, 24, 25, 27, 29, 31, 32, 33, 34, 65, 114, 142, 143, 144, 145, 148]}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[38.39, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[29.22, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[32.72, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[27.26, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[15.39, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[4.78, 4]]}], "ph_rule_hits": [{"his_resnum": 4, "anchor_chain": "C", "anchor_resnum": 65, "distance_A": 4.78}], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 94, "strongest_protomer_atom_pairs": 310, "ph_anchors_satisfied": [65]}, {"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 190, "n_target_residues_contacted": 15, "target_residues_contacted": [19, 21, 22, 23, 29, 31, 32, 33, 34, 65, 114, 142, 144, 145, 148]}, "B": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}, "C": {"atom_pairs": 117, "n_target_residues_contacted": 10, "target_residues_contacted": [74, 76, 81, 85, 86, 88, 89, 90, 96, 126]}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[15.91, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[5.03, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[38.62, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[29.9, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[31.6, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[27.09, 4]]}], "ph_rule_hits": [{"his_resnum": 4, "anchor_chain": "A", "anchor_resnum": 65, "distance_A": 5.03}], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 117, "strongest_protomer_atom_pairs": 190, "ph_anchors_satisfied": [65]}], "ipsae_min": 0.3833, "ipsae_pass": false, "iptm": 0.9485, "ptm": 0.9578, "complex_plddt": 0.8919, "saved_pdb": "/designs/tnfa/crossreact-trimer-smoke/mouse/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__mouse_model_0.pdb", "saved_pdbs": ["/designs/tnfa/crossreact-trimer-smoke/mouse/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__mouse_model_0.pdb", "/designs/tnfa/crossreact-trimer-smoke/mouse/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__mouse_model_1.pdb", "/designs/tnfa/crossreact-trimer-smoke/mouse/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__mouse_model_2.pdb"]}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at https://modal.com/apps/norrischarles207-commits/main/ap-WQG62L6bF2J3zFTkDSme3M

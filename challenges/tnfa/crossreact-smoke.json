@@ -1,0 +1,25 @@
+{
+  "stage": "crossreact",
+  "diffusion_samples": 1,
+  "total_gpu_seconds": 238.5,
+  "aborted": false,
+  "rows": [
+    {
+      "design": "tnfa_l69_s930894_mpnn2",
+      "human_mean": 0.2083,
+      "human_range": 0.0,
+      "human_samples": [
+        0.2083
+      ],
+      "mouse_mean": 0.1938,
+      "mouse_range": 0.0,
+      "mouse_samples": [
+        0.1938
+      ],
+      "diff": 0.0145,
+      "noise_floor": 0.0,
+      "verdict": "REAL",
+      "gpu_seconds": 238.5
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+✓ Initialized. View run at https://modal.com/apps/norrischarles207-commits/main/ap-zEErnUkIH4rtq585CQotrx
+✓ Created objects.
+├── 🔨 Created mount /Users/charlesnorris/adaptyv-2026/modal/redundancy.py
+├── 🔨 Created function crossval_boltz.
+├── 🔨 Created function download_boltz_weights.
+├── 🔨 Created function rescore_one.
+├── 🔨 Created function list_accepted.
+├── 🔨 Created function cofold_seqs.
+├── 🔨 Created function _persist_table.
+└── 🔨 Created function sc_and_contacts.
+note: human 471 aa vs mouse 468 aa -- expected for a multi-protomer target when the species differ by an indel (human TNF-alpha is 157 aa, mouse 156)
+binders 12 | human chains [157, 157, 157] | mouse chains [156, 156, 156] | samples 3 | budget 90.0 GPU-min
+tnfa_l69_s930894_mpnn2__human: target chains [157, 157, 157] (A+B+C), binder 69 aa (D), diffusion_samples=3
+running: boltz predict /tmp/tnfa_l69_s930894_mpnn2__human/tnfa_l69_s930894_mpnn2__human.yaml --out_dir /tmp/tnfa_l69_s930894_mpnn2__human/out --cache /boltz-cache --use_msa_server --write_full_pae --accelerator gpu --devices 1 --override --output_format pdb --diffusion_samples 3
