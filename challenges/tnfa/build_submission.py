@@ -20,16 +20,23 @@ SC_PASS = 0.58
 AA = set("ACDEFGHIKLMNPQRSTVWY")
 DRY = "--dry-run" in sys.argv
 
-# (name, tier, His positions the writeup relies on). Tier 1: pH anchor confirmed
-# on BOTH predictors. Tier 2: anchor on AF2 in 2/2 samples. Tier 3: clears the
-# affinity gate, no anchor within the pre-registered 6.0 A.
+# (name, tier, His positions the writeup relies on).
+# Tier 1: pH anchor satisfied on AF2 (2/2) AND on Boltz-2 at the Amendment-4
+#         bar of >=7 of 10 diffusion samples, on both species.
+# Tier 2: anchor on AF2 in 2/2 samples; Boltz-2 either not tested at n=10, or
+#         tested and below the >=7-of-10 bar (marked below).
+# Tier 3: clears the affinity gate, no anchor within the pre-registered 6.0 A.
+# Order within a tier follows the composite in methods.md. The 2026-10-12
+# reorder of the first two slots and the demotion of l91_mpnn2 are POST-HOC --
+# the >=7-of-10 bar was pre-registered (Amendment 4) but its ordering
+# consequence was not. Disclosed in submission-writeup.md.
 ORDER = [
-    ("tnfa_l69_s930894_mpnn2",  1, [4]),
-    ("tnfa_l69_s930894_mpnn1",  1, [4]),
-    ("tnfa_l91_s990274_mpnn2",  2, [15, 16]),
-    ("tnfa_l87_s136696_mpnn1",  2, [27]),
-    ("tnfa_l66_s937529_mpnn2",  2, [32]),
-    ("tnfa_l91_s990274_mpnn1",  2, [15, 16]),
+    ("tnfa_l69_s930894_mpnn1",  1, [4]),      # Boltz n=10: 10/10 human (R32), 8/10 mouse (K65)
+    ("tnfa_l69_s930894_mpnn2",  2, [4]),      # Boltz n=10: 4/10 both arms -> below the bar
+    ("tnfa_l87_s136696_mpnn1",  2, [27]),     # not tested at n=10
+    ("tnfa_l66_s937529_mpnn2",  2, [32]),     # not tested at n=10
+    ("tnfa_l91_s990274_mpnn2",  2, [15, 16]), # Boltz n=10: 3/10 human -> two-anchor premise fails
+    ("tnfa_l91_s990274_mpnn1",  2, [15, 16]), # not tested at n=10
     ("tnfa_l84_s861729_mpnn1",  3, []),
     ("tnfa_l66_s937529_mpnn1",  3, [32]),
     ("tnfa_l60_s347619_mpnn2",  3, [17]),

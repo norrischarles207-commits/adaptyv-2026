@@ -540,3 +540,93 @@ comparison reported as indeterminate exactly as currently written.
 
 Nothing in the submission depends on this run succeeding. It is upside over a
 writeup that is already complete and already honest about what it lacks.
+
+---
+
+## Amendment 4 — result (recorded 2026-10-12, after the run)
+
+Recorded here so the pre-registration file shows the outcome of its own
+prediction. This section is a **post-run record**, not a pre-registration.
+
+The run completed: 3 designs x 2 species x 10 diffusion samples, 60 folds,
+835.7 GPU-seconds (13.9 GPU-min, inside the 40 GPU-min cap), `aborted=False`.
+Full per-sample record in `crossreact-n10.json`; recomputable with
+`analyze_n10.py`.
+
+**pH rule at the pre-registered `>=7 of 10` bar:**
+
+| design | human | mouse | verdict |
+|---|---|---|---|
+| l69_mpnn1 | 10/10 (H4 -> R32, 2.55-5.68 A) | 8/10 (H4 -> K65, 4.04-5.64 A) | **passes both arms** |
+| l69_mpnn2 | 4/10 | 4/10 | fails |
+| l91_mpnn2 | 3/10 | 2/10 | fails |
+
+One confirmed, two refuted. The `>=2 of 3` result for l69_mpnn2 was a
+small-sample artefact in both directions: it passed once and failed once at
+n=3, and resolves clearly below the bar at n=10.
+
+**The anchor disagreement recorded in Amendment 1 does not survive.** At n=10
+the human arm of the passing design anchors on **R32 in 10 of 10 samples**,
+agreeing with AlphaFold2. The K65-only picture came from three samples on
+l69_mpnn2. What is real is a **species** difference in anchor: R32 in human,
+K65 in mouse.
+
+**Species comparison, pre-registered verdict form, unchanged:**
+
+| design | human mean[range] | mouse mean[range] | diff | floor | verdict |
+|---|---|---|---|---|---|
+| l69_mpnn1 | 0.5486[0.1340] | 0.2933[0.1390] | +0.2553 | 0.1390 | REAL |
+| l69_mpnn2 | 0.5192[0.0920] | 0.2673[0.1945] | +0.2519 | 0.1945 | REAL |
+| l91_mpnn2 | 0.5237[0.2027] | 0.4150[0.2357] | +0.1087 | 0.2357 | indistinguishable |
+
+Amendment 4 fixed in advance that a REAL verdict at n=10 is the *more*
+conservative reading. Two designs therefore read as a genuine human preference.
+This is **against** objective 2 and is reported as such. Per Amendment 3, the
+trimer `ipsae_min` is **not** compared to the 0.60 threshold, and it is not.
+
+**Engagement:** all 60 samples contacted exactly 2 of 3 protomers with
+`contacts_both_protomers=true`. The orientational ambiguity that prompted
+Amendment 2 is absent on the trimer.
+
+**Submission order changed post-hoc.** The `>=7 of 10` bar was pre-registered;
+its consequence for ordering was not. l69_mpnn1 was moved to slot 1, and
+l91_mpnn2 from slot 3 to slot 5 because the pre-registered rule placing it
+there -- "two anchors rank above one" -- rested on a premise this run rejected
+(3 of 10). No sequence changed. Disclosed in `submission-writeup.md`.
+
+### Post-run audit of the above (same day, before submission)
+
+`audit_n10.py` re-derives every claim from `crossreact-n10.json`. Seven
+mechanical checks are clean: anchor residue identity true in all 360 anchor
+records; every anchor exposes its full cation tip set; no pH hit sits on a
+protomer the binder does not touch; the two pH fields agree in all 60 samples;
+every hit distance is reproducible from the anchor's own nearest-His table; no
+hit exceeds 6.0 A; exactly one hit per hitting sample.
+
+Two statistical findings that **weaken claims made above**, recorded because
+they cut against us:
+
+1. **"Refuted" was too strong for l69_mpnn2.** At 4 of 10 the one-sided
+   probability under the bar's implied rate (p0 = 2/3) is 0.077 -- below our
+   bar but not a rejection. l91_mpnn2 at 3/10 (p = 0.020) and 2/10 (p = 0.003)
+   *is* rejected. And l69_mpnn1's mouse arm at 8/10 clears the bar while being
+   consistent with p0 (P(>=8) = 0.30): a weak pass, not a strong one. Only its
+   human arm at 10/10 (P(>=10) = 0.017) is strongly supported.
+2. **No reproducibility rate can be estimated from three designs.** 1 of 3
+   carries a 95% interval of 0.06-0.79. An earlier draft of the writeup said
+   the AF2 geometry "reproduces roughly one time in three"; that is withdrawn.
+3. **Our pre-registered species test is biased toward the result objective 2
+   wants.** It compares a difference of means to the range of single samples,
+   so the threshold inflates with sample size. An exact permutation test
+   (184,756 splits) gives p = 1.1e-05, 1.1e-05 and 4.4e-03 -- so l91_mpnn2,
+   the only design the pre-registered test called indistinguishable, shows a
+   species difference too. The pre-registered verdict stands as the verdict;
+   the permutation test is reported as a disclosed sensitivity analysis. We are
+   not substituting a better statistic after seeing results, and we are not
+   keeping the flattering one quietly either.
+
+`crosscheck_submission.py` now recomputes every n=10 figure in the writeup from
+the JSON -- pH proportions, ipSAE means and ranges, Wilson intervals, binomial
+tails and permutation p-values -- and exits non-zero on any mismatch. 248
+checks. Verified by injecting deliberate errors in each class and confirming
+each is caught.

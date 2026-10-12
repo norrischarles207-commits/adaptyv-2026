@@ -14,19 +14,25 @@ organisers' number, so the two cannot be confused.
 ## At a glance
 
 12 designs, 60–97 aa, all de novo. Every one clears our pre-registered affinity
-gate (shape complementarity ≥ 0.58). Six carry the pre-registered pH mechanism;
-one of those is confirmed on two independent structure predictors.
+gate (shape complementarity ≥ 0.58). Six carry the pre-registered pH mechanism
+on AlphaFold2. Three of those were then re-tested on a second, independent
+predictor against a bar fixed before the run: **one passes in 10 of 10 samples
+and is now our lead; two fail.**
 
 | | status |
 |---|---|
-| **Objective 3 — pH selectivity** (ranked 1st) | Mechanism present in 6 of 12 designs by a rule fixed in advance, on AlphaFold2 models (2 of 2 samples). A second predictor (Boltz-2) places a binder histidine against a conserved cation too — but **on a different cation, and not reproducibly**: the same design met the pre-registered ≥2-of-3 threshold in one run and failed it in another. No predictor models protonation. This is geometric availability on one predictor, with partial and unstable support from a second. |
-| **Objective 2 — mouse cross-reactivity** (ranked 2nd) | Rests on **structural**, not computational, evidence: the epitope is anchored on **7KP7**, a solved 2.65 Å structure of *human* TNFR1 bound to *mouse* TNF-α, and 30 of 32 human receptor contacts are also mouse contacts. The computational species comparison was attempted and is **indeterminate** — 4 of 12 designs completed before the MSA server failed, and 3 of those 4 exceed our own poorly-determined threshold. |
-| **Objective 1 — affinity** (ranked 3rd) | 12 designs over 8 independent backbones. Lead: SC 0.66, dG −57.7, 2144 Å² buried, 12 interface H-bonds, 9.1% unsatisfied. Better than our EGFR submission on every axis. |
+| **Objective 3 — pH selectivity** (ranked 1st) | Mechanism present in 6 of 12 designs by a rule fixed in advance, on AlphaFold2 (2 of 2 samples). Three were re-tested on an independent predictor (Boltz-2) at 10 diffusion samples against a ≥7-of-10 bar **fixed before that run** (Amendment 4): **`l69_mpnn1` passes 10/10 on human and 8/10 on mouse**; `l69_mpnn2` fails at 4/10 and `l91_mpnn2` at 3/10. The mechanism is therefore independently supported for one design and unsupported for two. We do not convert that into a reproducibility rate: three designs is too few to estimate one (1 of 3 is a 95% interval of 0.06–0.79). The nine untested designs should be read as untested, not as confirmed. No predictor models protonation. |
+| **Objective 2 — mouse cross-reactivity** (ranked 2nd) | Rests on **structural** evidence: the epitope is anchored on **7KP7**, a solved 2.65 Å structure of *human* TNFR1 bound to *mouse* TNF-α, and 30 of 32 human receptor contacts are also mouse contacts. The computational comparison, re-run at 10 samples, now goes **against** us: both `l69` designs show a real human preference (diff 0.26 / 0.25 against noise floors 0.14 / 0.19), and only `l91_mpnn2` is indistinguishable under the pre-registered test. Amendment 4 pre-committed that a REAL verdict at n=10 is the *more* conservative reading, so we report a species gap rather than noise — and we also report that the pre-registered test is biased toward the answer objective 2 wants: an exact permutation test on the same data finds a species difference for **all three** designs, `l91_mpnn2` included (p = 0.004). Objective 2 has no computational support here. The pH anchor itself is satisfied in both species for the lead; what differs is predicted interface confidence. |
+| **Objective 1 — affinity** (ranked 3rd) | 12 designs over 8 independent backbones. Lead (`l69_mpnn1`): SC 0.62, dG −61.6, 2131 Å² buried, 12 interface H-bonds, 7.8% unsatisfied — the best binding energy and the cleanest H-bond satisfaction in the set. Its sibling `l69_mpnn2` is higher on SC alone (0.66). Better than our EGFR submission on every axis. |
 
-**The honest summary:** affinity is solid, cross-reactivity is well-grounded in
-an experimental structure, and the pH mechanism is present and geometrically
-plausible but rests on predictors that cannot represent the chemistry it
-depends on.
+**The honest summary:** affinity is solid. The pH mechanism is, for one design,
+confirmed on two independent predictors by a rule and a bar both fixed in
+advance — the strongest result in this submission — while still resting on
+predictors that cannot represent protonation at all. Cross-reactivity is
+well-grounded in an experimental structure and **not** supported by our own
+computation: the design that passes the pH test shows a species gap, and the
+design that looks cross-reactive fails the pH test. We have not found one that
+does both, and we say so rather than ranking around it.
 
 ---
 
@@ -82,51 +88,106 @@ Pre-registered in `methods.md` (commit `06126db`, amended in `81839f9`):
 pH-release designs. Two anchors rank above one. Three (+K90) was recorded as a
 labelled stretch goal, not a target.
 
-### Result: the rule passes on AlphaFold2; the second predictor only partly agrees
+### Result: confirmed on two predictors for one design, not for the other two
 
 `[measured]` Six of 12 submitted designs satisfy the rule on AlphaFold2 models
 in 2 of 2 samples:
 
 | design | His | anchor | distance (Å) |
 |---|---|---|---|
-| l69_mpnn2 | H4 | R32 | 3.0, 5.4 |
 | l69_mpnn1 | H4 | R32 | 4.6, 5.7 |
+| l69_mpnn2 | H4 | R32 | 3.0, 5.4 |
 | l91_mpnn2 | H15 / H16 | R32 / K65 | 5.3–5.9 / 4.7 |
 | l91_mpnn1 | H15 | R32 | 4.8, 5.4 |
 | l66_mpnn2 | H32 | R32 | 5.6, 5.7 |
 | l87_mpnn1 | H27 | R32 | 3.8, 4.9 |
 
-`[measured]` We also ran Boltz-2 against the full human and mouse trimers.
-**l69_mpnn2** was folded twice, in two independent runs, three diffusion
-samples each:
+`[measured]` The three top-ranked designs were then co-folded with Boltz-2
+against the full human and mouse **trimers** at **10 diffusion samples** per
+species. The bar — `≥7 of 10`, the proportional translation of the
+pre-registered `≥2 of 3` — was fixed in Amendment 4 (`8a68de1`) **before any
+10-sample fold existed**, so it could not be chosen to fit the result.
 
-| run | human | mouse |
+| design | human | mouse | verdict |
+|---|---|---|---|
+| **l69_mpnn1** | **10 / 10** — H4 → R32, 2.55–5.68 Å | **8 / 10** — H4 → K65, 4.04–5.64 Å | **passes both arms** |
+| l69_mpnn2 | 4 / 10 | 4 / 10 | fails |
+| l91_mpnn2 | 3 / 10 | 2 / 10 | fails |
+
+**`l69_mpnn1` satisfies the pre-registered pH rule in every one of ten
+independent samples on human TNF-α, and in eight of ten on mouse.** It carries
+exactly one histidine, H4, so the contact is unambiguous — there is no second
+histidine that could be supplying the hit. One human sample places H4 2.55 Å
+from an R32 guanidinium nitrogen, which is hydrogen-bond distance: neutral
+imidazole at pH 7.4, and a like-charge contact at van der Waals range once
+protonated at 6.0. That is the designed mechanism, found by a predictor that
+played no part in the design.
+
+`[measured]` Two results that go the other way, reported with equal weight.
+**l69_mpnn2 fails at 4 of 10.** At n=3 it had given 2/3 (pass) then 1/3 (fail);
+ten samples resolve it decisively below the bar. The two designs differ by a
+handful of MPNN substitutions and share the same backbone and the same H4 —
+yet one positions that histidine reliably and the other does not. **l91_mpnn2
+fails at 3 of 10**, which retires the two-anchor hypothesis for it: its H15 and
+H16 do reach R32 and K65, but only in 3 of 10 samples.
+
+`[computed]` **How strong is each of these three results, exactly?** The bar is
+a proportion, so the right reading is binomial. Against the implied
+per-sample rate the bar encodes (p₀ = 2/3):
+
+| arm | hits | Wilson 95% CI | P(≤ observed \| p₀) | reading |
+|---|---|---|---|---|
+| l69_mpnn1 human | 10/10 | 0.72–1.00 | — | **strong**: P(≥10 \| p₀) = 0.017 |
+| l69_mpnn1 mouse | 8/10 | 0.49–0.94 | — | clears the bar, but P(≥8 \| p₀) = 0.30 — **weak** |
+| l69_mpnn2 human | 4/10 | 0.17–0.69 | 0.077 | below the bar, **not a rejection** |
+| l69_mpnn2 mouse | 4/10 | 0.17–0.69 | 0.077 | below the bar, **not a rejection** |
+| l91_mpnn2 human | 3/10 | 0.11–0.60 | 0.020 | below the bar, and a rejection |
+| l91_mpnn2 mouse | 2/10 | 0.06–0.51 | 0.003 | below the bar, and a rejection |
+
+Three distinctions this forces, which an earlier revision of this document
+blurred by calling all three outcomes "confirmed" or "refuted":
+
+1. **Only the human arm of `l69_mpnn1` is strongly supported.** Its mouse arm
+   clears the ≥7-of-10 bar but is statistically consistent with p₀ — passing
+   our bar is not the same as beating it. We report the pass, and we report
+   that it is a weak pass.
+2. **`l69_mpnn2` is not refuted, it is unsupported.** At 4 of 10 the
+   one-sided probability under p₀ is 0.077 — below our bar, but not a
+   rejection of the mechanism. Earlier wording that called it refuted was
+   stronger than the data.
+3. **`l91_mpnn2` is genuinely rejected**, on both arms (p = 0.020 and 0.003).
+   The two-anchor hypothesis for it does not survive.
+
+`[inferred]` We deliberately do **not** turn "1 of 3" into a reproducibility
+rate for the untested nine. One success in three designs carries a 95%
+interval of 0.06–0.79, which is no information. The honest statement is that
+six designs carry an AlphaFold2 ✓, one of them has independent support, two
+have been tested and did not get it, and nine are untested.
+
+### The anchor disagreement, and how 10 samples resolved it
+
+An earlier revision of this document reported that the two predictors anchored
+the mechanism on **different** residues — AF2 on R32, Boltz-2 on K65 — and
+treated that as an unresolved conflict. **Ten samples show that conclusion was
+an artefact of three samples on the wrong design.**
+
+| arm | anchor at n=10 | agrees with AF2? |
 |---|---|---|
-| first | K65 at 4.62, 4.46, 6.59 Å → **2 of 3** → passes | 5.18, 4.78, 5.03 Å → 3 of 3 → passes |
-| second | K65 at one sample only → **1 of 3** → **fails** | 2 of 3 → passes |
+| l69_mpnn1, human | **R32 in 10 of 10** | **yes** |
+| l69_mpnn1, mouse | K65 in 8 of 8 hits | no — switches anchor |
+| l69_mpnn2, human | mixed R32 / K65, 4 hits | n/a, below bar |
 
-**The same design, on the same input, met the pre-registered ≥2-of-3 threshold
-in one run and failed it in the other on the human arm.** In every run at least
-one sample placed a binder histidine within 6.0 Å of K65, so the geometry is
-reachable under this predictor — but it is not reproducibly reachable at the
-threshold we fixed.
+On the human arm of the design that actually passes, Boltz-2 and AlphaFold2
+**agree**: the anchor is R32, in all ten samples. The K65-only picture came
+from `l69_mpnn2` at three samples, a design that we now know does not clear the
+bar on either predictor-sample budget.
 
-We therefore do **not** claim the mechanism is independently confirmed. The
-objective-3 evidence is the AlphaFold2 geometry, which is stable across model
-pairs (2 of 2 samples for all six designs); Boltz-2 is supporting and
-unstable.
-
-### The disagreement we are not smoothing over
-
-**The two predictors anchor the mechanism on different residues.** AlphaFold2
-places H4 3.0–5.4 Å from **R32**; Boltz-2 places the same histidine 4.5–5.2 Å
-from **K65** and puts R32 13–16 Å away. Both are conserved cations in the
-epitope, and both satisfy the rule as written. But the predictors do not agree
-on *which* contact the switch acts through, and we cannot say which is right.
-
-What survives the disagreement: a binder histidine sits within 6.0 Å of *a*
-conserved cation under both models. What does not: any claim about the specific
-contact geometry.
+What remains genuinely open is the **species** switch: in mouse, the same
+histidine anchors on **K65** rather than R32, in 8 of 8 hits. Both are
+conserved cations inside our pre-registered anchor set `{R32, K65}`, and the
+rule as written does not require the same one in both species — but it means
+the switch may act through a different contact in the two orthologues. We
+record that as a finding, not a problem solved.
 
 ### What this cannot show, stated plainly
 
@@ -190,46 +251,102 @@ mature + 1, which with the indel at human T72 maps author N to human mature N
 for N ≥ 73 and N−1 below. Checked by residue identity at **148/148 residues,
 zero mismatches**.
 
-### Computational cross-reactivity
+### Computational cross-reactivity — the result goes against us
 
 `[measured]` Boltz-2, binder co-folded against the full human and mouse
-trimers, three diffusion samples each. For **l69_mpnn2**, on ipSAE restricted
-to the protomers the binder actually contacts:
+**trimers** at **10 diffusion samples** per species, on the three top-ranked
+designs. The verdict form — `|human − mouse|` against a noise floor of the
+larger per-species range — was fixed before the run, and Amendment 4
+(`8a68de1`) pre-committed the reading that at n=10 this test is *more*
+conservative than at n=3, because the observed range grows with sample size. A
+REAL verdict here is therefore harder to obtain than the one we previously
+declined to report.
 
-```
-human 0.6309    mouse 0.5092    |difference| 0.1217    noise floor 0.1317
-→ INDISTINGUISHABLE
-```
+Pre-registered `ipsae_min` (minimum over all binder↔protomer pairs):
 
-The species difference falls **inside** the sampling noise floor, computed as
-the larger of the two per-species sample ranges. We report this as
-indistinguishable, which for cross-reactivity is the desired outcome — and we
-report it against a floor rather than by eye. Interface confidence was high and
-similar in both species (iptm 0.969 human, 0.949 mouse).
+| design | human mean [range] | mouse mean [range] | diff | floor | verdict |
+|---|---|---|---|---|---|
+| l69_mpnn1 | 0.5486 [0.1340] | 0.2933 [0.1390] | +0.2553 | 0.1390 | **REAL** |
+| l69_mpnn2 | 0.5192 [0.0920] | 0.2673 [0.1945] | +0.2519 | 0.1945 | **REAL** |
+| l91_mpnn2 | 0.5237 [0.2027] | 0.4150 [0.2357] | +0.1087 | 0.2357 | indistinguishable |
 
-### The 12-design run did not complete, and what it produced is indeterminate
+Restricted to the protomers the binder actually contacts — a post-hoc
+diagnostic, not the pre-registered quantity — the same three verdicts hold
+(0.6711/0.4061 REAL; 0.6465/0.3659 REAL; 0.6717/0.5552 indistinguishable). The
+two metrics differ because on a trimer one protomer is *correctly* never
+engaged, and its pair sets the all-pairs minimum; this is the effect Amendment
+3 (`ca6393b`) anticipated when it ruled that trimer `ipsae_min` is **not** to
+be compared against our 0.60 threshold. We do not compare it.
 
-`[measured]` The same measurement was attempted across all 12 designs. It
-**failed to complete**: the ColabFold MSA server returned 48 errors and one
-fold exceeded its 1800 s timeout, stalling the run after 4 of 12 designs.
+**So we report a species gap, not cross-reactivity.** Both `l69` designs
+predict more confidently against human than mouse by a margin that clears its
+own noise floor. The one design the pre-registered test calls indistinguishable,
+`l91_mpnn2`, is also the one that fails the pH rule at 3 of 10 — and, as the
+next section shows, its indistinguishability does not survive a stronger test
+either. We did not find a design that satisfies both of the top-two objectives,
+and we are not going to present the ranking as though we had.
 
-| design | human | mouse | \|diff\| | noise floor | verdict | range > 0.15? |
-|---|---|---|---|---|---|---|
-| l69_mpnn2 | 0.627 | 0.385 | 0.242 | 0.182 | REAL diff | **yes** |
-| l69_mpnn1 | 0.673 | 0.389 | 0.284 | 0.281 | REAL diff | **yes** |
-| l91_mpnn2 | 0.636 | 0.544 | 0.092 | 0.200 | indistinguishable | **yes** |
-| l87_mpnn1 | 0.530 | 0.510 | 0.020 | 0.131 | indistinguishable | no |
+### The pre-registered test is conservative in the direction that flatters us
 
-Two designs show a human-favouring difference and two do not. But **3 of the 4
-exceed our pre-registered `sample range > 0.15 = poorly determined`
-threshold**, and l69_mpnn1's "REAL" verdict clears its own noise floor by
-0.003. The l69_mpnn2 mouse value also moved from 0.509 in the earlier run to
-0.385 here on identical input.
+`[computed]` Our pre-registered verdict compares a **difference of means**
+against the **range of single samples**. That is a heuristic, not a
+significance test, and it is underpowered: the range grows with sample size
+while the precision of a mean improves, so at n=10 the floor inflates for a
+reason unrelated to the difference being tested. Amendment 4 noted this and
+called it "more conservative". That is true, and incomplete — **it is
+conservative toward declaring no species difference, which is the answer
+objective 2 wants.** The bias runs in our favour, so we are obliged to check
+what a better test says.
 
-`[measured]` We report this as **indeterminate**, not as evidence of human
-preference. Reporting a species difference from measurements that fail our own
-determinacy criterion would be reporting noise. The objective-2 claim rests on
-the structural evidence above, which does not move between runs.
+An exact two-sided permutation test on the same 10-versus-10 samples,
+enumerating all 184,756 splits, reported as a **post-hoc sensitivity analysis
+and not as a re-gate**:
+
+| design | diff | pre-registered verdict | exact permutation p |
+|---|---|---|---|
+| l69_mpnn1 | 0.2553 | REAL | 1.1 × 10⁻⁵ |
+| l69_mpnn2 | 0.2519 | REAL | 1.1 × 10⁻⁵ |
+| l91_mpnn2 | 0.1087 | **indistinguishable** | **4.4 × 10⁻³** |
+
+**The two REAL verdicts are confirmed emphatically, and the one favourable
+verdict does not survive.** `l91_mpnn2` — the only design our pre-registered
+test called indistinguishable between species, and the design we would
+otherwise have pointed to as our cross-reactivity candidate — shows a species
+difference at p = 0.004 under an exact test.
+
+We are **not** substituting this test for the pre-registered one. The verdict
+column above is the verdict; swapping in a better statistic after seeing
+results is precisely the move this document's audit trail exists to prevent.
+But reporting only the pre-registered heuristic, while knowing that a stronger
+test on the same data contradicts its one favourable result, would be
+reporting selectively. **Under the stronger test, all three designs predict
+more confidently against human than mouse.** Objective 2 has no computational
+support in this submission, for any design we tested.
+
+`[measured]` Two things do survive on the positive side, and they are narrow:
+
+- **The pH anchor is satisfied in both species for the lead** — 10/10 human,
+  8/10 mouse. Whatever the confidence gap, the switch geometry is not
+  human-specific.
+- **Groove engagement is clean in all 60 samples.** Every sample contacted
+  exactly 2 of the 3 protomers, and `contacts_both_protomers` was true 10/10
+  for all six folds. The binder is in the inter-protomer groove, in both
+  species, every time. The orientational ambiguity that forced Amendment 2 on
+  the two-protomer target is absent on the trimer.
+
+`[measured]` **What this supersedes.** An earlier revision reported the
+3-sample comparison for `l69_mpnn2` as `human 0.6309 / mouse 0.5092`,
+indistinguishable, and reported the partial 12-design run as **indeterminate**
+on the grounds that 3 of its 4 comparisons exceeded our
+`sample range > 0.15 = poorly determined` threshold. Amendment 4 fixed in
+advance that the 0.15 threshold does **not** transfer to n=10, since a range
+over ten draws is not comparable to one over three. The n=10 measurement is the
+one we report. It is less favourable to us than the measurement it replaces.
+
+The objective-2 claim therefore rests entirely on the **structural** evidence
+above — 7KP7, and 30 of 32 human receptor contacts shared with mouse — which
+does not move between runs. Our own computation does not corroborate it for the
+lead design.
 
 ---
 
@@ -242,11 +359,11 @@ over 5 AF2 models.
 
 | design | len | i_pTM | SC | dG | dSASA | H-bonds | unsat % | pH |
 |---|---|---|---|---|---|---|---|---|
-| l69_mpnn2 | 69 | 0.86 | **0.66** | −57.7 | 2144 | 12 | 9.1 | ✓ |
-| l69_mpnn1 | 69 | 0.86 | 0.62 | **−61.6** | 2131 | 12 | **7.8** | ✓ |
-| l91_mpnn2 | 91 | 0.80 | 0.59 | −54.2 | 2224 | 15 | 23.3 | ✓ |
+| l69_mpnn1 | 69 | 0.86 | 0.62 | **−61.6** | 2131 | 12 | **7.8** | ✓✓ |
+| l69_mpnn2 | 69 | 0.86 | **0.66** | −57.7 | 2144 | 12 | 9.1 | ✗ |
 | l87_mpnn1 | 87 | 0.72 | 0.62 | −44.1 | 1883 | 6 | 7.6 | ✓ |
 | l66_mpnn2 | 66 | 0.77 | 0.61 | −53.2 | 1814 | 10 | 10.3 | ✓ |
+| l91_mpnn2 | 91 | 0.80 | 0.59 | −54.2 | 2224 | 15 | 23.3 | ✗ |
 | l91_mpnn1 | 91 | 0.80 | 0.59 | −52.0 | 2154 | 12 | 29.1 | ✓ |
 | l84_mpnn1 | 84 | 0.84 | 0.60 | −46.9 | 1910 | 11 | 24.1 | — |
 | l66_mpnn1 | 66 | 0.77 | 0.64 | −48.6 | 1695 | 8 | 7.4 | — |
@@ -255,14 +372,18 @@ over 5 AF2 models.
 | l62_mpnn20 | 62 | 0.63 | **0.68** | −38.3 | 1636 | 7 | 18.4 | — |
 | l97_mpnn2 | 97 | 0.45 | 0.64 | −41.7 | 1381 | 10 | 8.0 | — |
 
-✓ = pH rule satisfied on AlphaFold2 models, 2 of 2 samples · — = no binder
-histidine within the pre-registered 6.0 Å of R32 or K65. Boltz-2 support is
-partial and not reproducible; see Objective 3. No design is marked as
-confirmed on two predictors.
+**✓✓** = pH rule satisfied on AlphaFold2 (2 of 2) **and** on Boltz-2 at the
+pre-registered ≥7-of-10 bar, in **both** species · **✓** = AlphaFold2 2 of 2,
+not tested at n=10 · **✗** = AlphaFold2 2 of 2 but tested at n=10 and **below**
+the bar · **—** = no binder histidine within the pre-registered 6.0 Å of R32 or
+K65. Exactly one design is claimed as confirmed on two predictors; two were
+tested on the second and did not clear the bar, and nine were not tested at
+all. The strength of each result is quantified in Objective 3.
 
 For scale, our EGFR submission's best design scored SC 0.65, dG −33.5,
-dSASA 1444, 8 H-bonds. The lead here buries 50% more surface with 70% more
-binding energy at comparable shape complementarity.
+dSASA 1444, 8 H-bonds. The lead here buries 48% more surface with 84% more
+binding energy and 50% more interface H-bonds, at slightly lower shape
+complementarity (0.62 against 0.65).
 
 ### Two designs we are explicit about
 
@@ -329,8 +450,11 @@ never best-of-N.
 
 ## Corrections made during the work
 
-Four, all committed with the correction timestamped ahead of any result that
-depended on it. We list them because the audit trail is the point.
+Five. The first four were committed with the correction timestamped ahead of
+any result that depended on it. The fifth is a claim in an earlier revision of
+this document that a later measurement showed to be wrong, and we have left the
+retraction visible rather than quietly editing the claim away. We list them
+because the audit trail is the point.
 
 **1. A mismeasured distance.** The pre-registration recorded R32 and K90 as
 "13.7 Å apart in this groove". Remeasured cationic-N to cationic-N:
@@ -361,6 +485,19 @@ target multimer would then set the score for every design identically and read
 as "no binder works". Restricted to binder-involving pairs in `1850f24`;
 verified a no-op for challenge 1's single-chain target, so the EGFR
 submission's reported metrics stand as submitted.
+
+**5. We reported a predictor disagreement that was really a sampling artefact.**
+An earlier revision of this document stated that AlphaFold2 and Boltz-2
+anchored the pH mechanism on **different** residues — R32 and K65 respectively
+— and listed that as an unresolved conflict in both Objective 3 and the
+limitations. That conclusion came from three diffusion samples on `l69_mpnn2`.
+At ten samples, on `l69_mpnn1` — the design that actually clears the
+pre-registered bar — Boltz-2 places H4 against **R32 in 10 of 10 human
+samples**, which *agrees* with AlphaFold2. The disagreement was an artefact of
+too few samples on a design that does not pass. What remains is a narrower and
+real finding: the anchor differs between **species** (R32 in human, K65 in
+mouse), not between predictors. Corrected in this revision; the superseded
+numbers are quoted in place so the change is checkable.
 
 ### A threshold we did **not** change
 
@@ -410,9 +547,13 @@ geometry are not submitted. It is excluded by a rule written before we saw it.
 
 1. **No predictor used here models protonation.** Every pH claim is geometric
    availability at neutral pH, not demonstrated pH-dependent binding.
-2. **The two predictors disagree on which anchor the switch acts through**
-   (AF2: R32; Boltz-2: K65). Both are conserved cations and both satisfy the
-   pre-registered rule, but the specific geometry is unresolved.
+2. **The anchor differs between species, not between predictors.** At 10
+   samples the two predictors agree on R32 for the lead's human arm (10/10),
+   retracting a disagreement we previously reported — see correction 5. But in
+   mouse the same histidine anchors on **K65** in 8 of 8 hits. Both are
+   conserved cations inside our pre-registered anchor set and the rule does not
+   require the same one in both species, so the switch may act through
+   different contacts in the two orthologues. Unresolved.
 3. **One load-bearing histidine in five of six pH-capable designs.** Expert
    estimates for a 100–1000× window call for three titratable groups. We expect
    the geometry to be demonstrable and the magnitude not to be.
@@ -435,15 +576,19 @@ geometry are not submitted. It is excluded by a rule written before we saw it.
    sample range (0.1994) failed our own poorly-determined threshold. We
    discarded those results and re-ran against the full trimer. Reported because
    the discarded measurement would have read as a design failure.
-8. **The Boltz cross-species run did not complete and is not reproducible.**
-   48 ColabFold MSA-server errors and one 1800 s timeout stalled it after 4 of
-   12 designs. Worse, the measurement does not repeat: l69_mpnn2's mouse score
-   moved 0.509 → 0.385 and its human pH-anchor count moved 2/3 → 1/3 on
-   identical input across two runs, flipping the pre-registered verdict. Boltz
-   is deterministic without a seed, so the likely cause is differing MSAs from
-   a failing server. Three of the four completed comparisons exceed our own
-   poorly-determined threshold. We report the species comparison as
-   indeterminate.
+8. **The 3-sample Boltz protocol was not reproducible, and the 10-sample
+   replacement covers only 3 of 12 designs.** At three samples the 12-design
+   run stalled after 4 designs (48 ColabFold MSA-server errors, one 1800 s
+   timeout), and the measurement did not repeat on identical input:
+   l69_mpnn2's mouse score moved 0.509 → 0.385 and its human pH-anchor count
+   2/3 → 1/3, flipping the pre-registered verdict. Boltz is deterministic
+   without a seed, so the likely cause is differing MSAs from a failing server.
+   We replaced that protocol with 10 samples on the three top-ranked designs
+   (Amendment 4, fixed in advance), where the human arm is tight (SD
+   0.030–0.065) and the mouse arm looser (SD 0.041–0.079). The n=10 numbers are
+   what we report. **The cost is coverage: nine designs have no second-predictor
+   evidence at all**, and of the three that do, one clears the bar, one falls
+   below it without being rejected, and one is rejected.
 9. **propka is not relied upon.** The Proton-PottsMPNN authors report predicted
    pKa was not predictive of which pH bin a design fell into.
 10. **Calibration provenance.** The AUC figures underlying our metric choices
@@ -451,30 +596,60 @@ geometry are not submitted. It is excluded by a rule written before we saw it.
 11. **The challenge brief was not committed to the repository** — it was
     supplied in conversation. Objective definitions in this document are as we
     understood them.
+12. **We cannot estimate how often our AlphaFold2 pH geometry reproduces.**
+    Of the three designs re-tested on an independent predictor, one cleared the
+    pre-registered bar and two did not. An earlier revision of this document
+    turned that into "roughly one time in three"; that was an overclaim, since
+    1 of 3 carries a 95% interval of 0.06–0.79. Six designs carry an AF2 ✓, one
+    has independent support, and nine are untested — which is all we can say.
+13. **Our pre-registered species test is biased toward the answer we wanted.**
+    Comparing a difference of means to the range of single samples inflates the
+    rejection threshold as sample size grows. It is conservative toward
+    "no species difference", which is objective 2's desired outcome. An exact
+    permutation test on the same data gives p = 1.1 × 10⁻⁵, 1.1 × 10⁻⁵ and
+    4.4 × 10⁻³ for the three designs — so the one favourable pre-registered
+    verdict is not robust. We report the pre-registered verdict as the verdict
+    and the permutation test as a disclosed sensitivity analysis, because the
+    error here would be to keep the flattering statistic quietly.
+14. **The submission order was changed post-hoc.** The ≥7-of-10 bar was
+    pre-registered before the run that produced it; the decision to let that
+    result reorder slots 1, 2, 3 and 5 was made after seeing it. Disclosed
+    under "Designs submitted"; no sequence was changed.
 
 ---
 
 ## Designs submitted
 
 12 designs in `submission.csv`, in submission order. Tier reflects pH evidence;
-all 12 clear the affinity gate. Tier 1 and tier 2 are both AlphaFold2-supported
-at 2 of 2 samples; tier 1 additionally has partial, non-reproducible Boltz-2
-support and is not claimed as independently confirmed.
+all 12 clear the affinity gate. **Tier 1** is satisfied on AlphaFold2 (2 of 2)
+*and* on Boltz-2 at the pre-registered ≥7-of-10 bar in both species. **Tier 2**
+is AlphaFold2-supported at 2 of 2; where it was also tested at n=10 and fell
+below the bar, that is stated. **Tier 3** clears the affinity gate with no
+anchor inside 6.0 Å.
 
 | # | design | len | tier | pH evidence |
 |---|---|---|---|---|
-| 1 | tnfa_l69_s930894_mpnn2 | 69 | 1 | H4 → R32 (AF2 2/2); Boltz K65 partial |
-| 2 | tnfa_l69_s930894_mpnn1 | 69 | 1 | H4 → R32, AF2 2/2 |
-| 3 | tnfa_l91_s990274_mpnn2 | 91 | 2 | H15 → R32 + H16 → K65 |
-| 4 | tnfa_l87_s136696_mpnn1 | 87 | 2 | H27 → R32, AF2 2/2 |
-| 5 | tnfa_l66_s937529_mpnn2 | 66 | 2 | H32 → R32, AF2 2/2 |
-| 6 | tnfa_l91_s990274_mpnn1 | 91 | 2 | H15 → R32, AF2 2/2 |
+| 1 | tnfa_l69_s930894_mpnn1 | 69 | **1** | H4 → R32, AF2 2/2; **Boltz 10/10 human, 8/10 mouse** |
+| 2 | tnfa_l69_s930894_mpnn2 | 69 | 2 | H4 → R32, AF2 2/2; Boltz **4/10 — below bar** |
+| 3 | tnfa_l87_s136696_mpnn1 | 87 | 2 | H27 → R32, AF2 2/2; not tested at n=10 |
+| 4 | tnfa_l66_s937529_mpnn2 | 66 | 2 | H32 → R32, AF2 2/2; not tested at n=10 |
+| 5 | tnfa_l91_s990274_mpnn2 | 91 | 2 | H15 → R32 + H16 → K65, AF2 2/2; Boltz **3/10 — below bar** |
+| 6 | tnfa_l91_s990274_mpnn1 | 91 | 2 | H15 → R32, AF2 2/2; not tested at n=10 |
 | 7 | tnfa_l84_s861729_mpnn1 | 84 | 3 | none — no histidine |
 | 8 | tnfa_l66_s937529_mpnn1 | 66 | 3 | His32 present, >6.0 Å |
 | 9 | tnfa_l60_s347619_mpnn2 | 60 | 3 | His17 present, >6.0 Å |
 | 10 | tnfa_l60_s347619_mpnn1 | 60 | 3 | His17 present, >6.0 Å |
 | 11 | tnfa_l62_s149973_mpnn20 | 62 | 3 | 3 His present, all >6.0 Å |
 | 12 | tnfa_l97_s762214_mpnn2 | 97 | 3 | His72 present, >6.0 Å |
+
+**This order was changed after the n=10 run, and the change is post-hoc.** The
+≥7-of-10 bar was pre-registered; its consequence for submission order was not.
+Slots 1 and 2 were swapped because objective 3 is ranked first by the
+organisers and `l69_mpnn1` is the only design with two-predictor support for
+it. `l91_mpnn2` fell from slot 3 to slot 5 because the pre-registered rule that
+put it there — *"two anchors (R32 and K65) rank above one"*, methods.md — was
+applied on a premise that n=10 then tested and rejected (3 of 10). No sequence
+was altered; the file is byte-identical in length to the previous revision.
 
 Every sequence is taken programmatically from the BindCraft output CSVs, never
 retyped. `build_submission.py` refuses to write the file unless declared length,
@@ -498,8 +673,13 @@ they govern, and this is checkable from public history.
 | `a8715ee` | Amendment 2: ipSAE_min is stricter on a two-protomer groove; threshold unchanged |
 | `d812538` | Modal-side interface diagnosis so results are interpretable without downloading structures |
 | `ca6393b` | Amendment 3: ipSAE interface selection is over-inclusive here; trimer run scoped to objective 2 |
+| `8a68de1` | Amendment 4: diffusion sampling 3 → 10 on the top 3 designs; **≥7-of-10 pH bar and the n=10 verdict form fixed before any 10-sample fold existed** |
 
 Analysis scripts are in `challenges/tnfa/`: `tnfr_contacts.py`,
 `crossspecies_epitope.py`, `cation_anchors.py`, `groove_occupancy.py`,
 `verify_numbering.py`, `histag_geometry.py`, `parse_designs.py`,
-`build_submission.py`. Run logs for every production run are committed.
+`build_submission.py`, `analyze_n10.py`. Run logs for every production run are
+committed, including `crossreact-n10.log` and the full per-sample record in
+`crossreact-n10.json` — every ipSAE pair, every interface contact list and
+every pH-anchor distance behind the tables above, so the n=10 claims can be
+recomputed from source with `analyze_n10.py`.
