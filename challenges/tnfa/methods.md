@@ -630,3 +630,81 @@ the JSON -- pH proportions, ipSAE means and ranges, Wilson intervals, binomial
 tails and permutation p-values -- and exits non-zero on any mismatch. 248
 checks. Verified by injecting deliberate errors in each class and confirming
 each is caught.
+
+---
+
+## Amendment 5 — 2026-10-12, before the 12-design n=10 run
+
+### A factual correction first: the deadline
+
+`[measured]` We had the deadline as **Mon Oct 12, 04:59 PDT**. The competition
+site states submissions close **Sunday Oct 18, 23:59 AoE**. AoE is UTC-12, so
+that is Oct 19 11:59 UTC = **Oct 19, 04:59 PDT** -- the same clock time, seven
+days later. The time of day was right and the date was wrong by a week.
+
+Two consequences for reading this file honestly:
+
+- **Amendment 4's "time-boxed to 02:30 PDT" was set under the mistaken date.**
+  It was a real constraint as understood at the time, and the run completed
+  inside it, so no result depends on the error. A reader who wonders why a run
+  was time-boxed to the small hours now has the reason.
+- The statement under Amendment 2 that the ipSAE calibration gap "cannot be
+  quantified before the deadline" was true at a four-hour horizon and is no
+  longer obviously true. We are **not** editing that pre-registered sentence.
+  If we do quantify the gap, it will be recorded as a dated result below.
+
+`[inferred]` The submission as committed at `b088b94` is complete and
+submittable as it stands. Everything below is upside on a standing floor, not
+work the submission depends on.
+
+### The multiplicity problem, fixed before the run
+
+`[computed]` Tonight's run tested **3** designs against the `>=7 of 10` bar.
+The next run tests **12**, of which 9 have never been scored on this
+predictor. Testing many designs and promoting whichever passes is selection on
+sampling noise. For an illustrative null design with a per-sample hit rate of
+0.5, `P(>=7 of 10) = 176/1024 = 0.172`, and across 9 independent designs
+`P(at least one passes) = 1 - (1-0.172)^9 = 0.82`.
+
+That null is deliberately pessimistic -- it does not describe our designs (one
+submitted design, l84_mpnn1, contains no histidine at all, so its true rate is
+exactly 0). We quote it to size the hazard, not to model it. The remedy is not
+a corrected threshold, which we would be inventing without calibration:
+
+**Fixed now: a design that clears `>=7 of 10` for the first time in the
+12-design run is recorded as PROVISIONAL, not confirmed.** To be claimed as
+confirmed on two predictors it must clear the same bar in a **second,
+independent n=10 run**. `l69_mpnn1` has not yet met this standard either: its
+10/10 came from a single run, so the 12-design run serves as its replication
+test. If `l69_mpnn1` fails to replicate, that is reported and its tier-1
+status is withdrawn.
+
+**Run ordering is fixed now so the budget cannot choose our results.** The
+input fasta `tnfa_all12_newfirst.fasta` lists the 9 never-tested designs
+first and the 3 already-tested designs last. `crossreact` aborts before
+starting a new design once the GPU budget is exceeded, so if the run is cut
+short it loses the replication arm, never the new data. Ordering is recorded
+here before the run so it cannot be described as chosen afterwards.
+
+### The species comparison, same problem
+
+**Fixed now: for every design in the 12-design run we report the
+pre-registered verdict AND the exact permutation p, together, in the same
+table.** Tonight established that the pre-registered form (difference of means
+against the range of single samples) is biased toward "no species difference",
+which is the answer objective 2 wants, and that it called `l91_mpnn2`
+indistinguishable where an exact test gives p = 0.0044. With 9 more designs we
+expect at least one spurious "indistinguishable". **No design is claimed as
+cross-reactive on the pre-registered verdict alone**; the permutation test
+must also fail to reject. The pre-registered verdict remains the pre-registered
+verdict and is not replaced -- it is reported alongside, never instead.
+
+### Budget, flagged before spending
+
+`[computed]` Tonight: 3 designs x 2 species x 10 samples = 835.7 GPU-s
+(13.9 GPU-min) at ~$0.49. Scaling linearly, 12 designs is ~56 GPU-min, so the
+run is capped at `gpu_budget_min = 70` for headroom and expected to cost
+**~$2**. Priorities 2 (a cross-reactivity-targeted design round) and 3 (a
+multi-histidine round) are new BindCraft fan-outs, which is where this project's
+money has gone. Neither is launched until the spend to date is checked against
+the $50 Modal ceiling and a per-run estimate is written down first.

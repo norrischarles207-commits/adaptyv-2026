@@ -107,7 +107,7 @@ else:
                 for _x in _h:
                     _dist.append(_x["distance_A"]); _anch.add(_x["anchor_resnum"])
                 if _ic.get("contacts_both_protomers"): _both += 1
-            _key = (_row["design"].replace("tnfa_", "").replace("_s930894", "").replace("_s990274", ""), _sp)
+            _key = (re.sub(r"_s\d+", "", _row["design"].replace("tnfa_", "")), _sp)
             _f[_key] = dict(n=len(_raw),
                 raw_m=round(sum(_raw)/len(_raw), 4), raw_r=round(max(_raw)-min(_raw), 4),
                 raw_sd=round(_st.stdev(_raw), 4),
@@ -232,7 +232,7 @@ else:
     # exact permutation counts behind the sensitivity analysis
     _want = {"l69_mpnn1": 2, "l69_mpnn2": 2, "l91_mpnn2": 814}
     for _row in _JS["rows"]:
-        _k = _row["design"].replace("tnfa_", "").replace("_s930894", "").replace("_s990274", "")
+        _k = re.sub(r"_s\d+", "", _row["design"].replace("tnfa_", ""))
         _hs, _ms = _row["human_samples"], _row["mouse_samples"]
         _obs = abs(_sst.mean(_hs) - _sst.mean(_ms)); _pool = _hs + _ms; _n = len(_hs)
         _cnt = _tot = 0

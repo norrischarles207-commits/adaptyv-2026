@@ -1431,10 +1431,29 @@ def crossreact(
           f"| mouse chains {[len(x) for x in mouse_seq]} | samples {diffusion_samples} "
           f"| budget {gpu_budget_min} GPU-min")
 
+    import time
+
     budget_s = gpu_budget_min * 60.0
     cum_gpu = 0.0
     rows = {}
     aborted = False
+    n_failed = 0
+
+    def _checkpoint(done):
+        # A fold that raises used to propagate out of this loop, past the
+        # summary tables and past the json.dump at the end -- so a single
+        # transient failure discarded every design already paid for. Write
+        # after each design so the spend is never unrecoverable.
+        try:
+            with open(out_json + ".partial", "w") as fh:
+                json.dump(dict(stage="crossreact", complete=False,
+                               diffusion_samples=diffusion_samples,
+                               total_gpu_seconds=round(cum_gpu, 1),
+                               designs_done=done, n_failed_folds=n_failed,
+                               raw_rows=rows), fh)
+        except Exception as exc:                      # never let this kill a run
+            print(f"!! checkpoint write failed (continuing): {exc}")
+
     for name, bseq in binders:
         if cum_gpu > budget_s:
             print(f"!! GPU budget {gpu_budget_min} min exceeded (cum {cum_gpu:.0f}s) -- aborting before {name}")
@@ -1442,12 +1461,28 @@ def crossreact(
             break
         pair = {}
         for species, tseq in (("human", human_seq), ("mouse", mouse_seq)):
-            r = cofold_seqs.remote(f"{name}__{species}", tseq, bseq,
-                                   f"{save_prefix}/{species}/{name}", diffusion_samples)
-            cum_gpu += r.get("gpu_seconds", 0.0)
+            t0 = time.time()
+            try:
+                r = cofold_seqs.remote(f"{name}__{species}", tseq, bseq,
+                                       f"{save_prefix}/{species}/{name}", diffusion_samples)
+            except Exception as exc:
+                # The GPU time is billed whether or not the call returned, so
+                # charge wall time to the budget rather than nothing -- a run of
+                # timeouts must still trip the abort.
+                elapsed = time.time() - t0
+                cum_gpu += elapsed
+                n_failed += 1
+                r = {"error": f"{type(exc).__name__}: {exc}",
+                     "wall_seconds": round(elapsed, 1)}
+                print(f"!! {name}__{species} FAILED after {elapsed:.0f}s -- "
+                      f"{type(exc).__name__}: {exc}")
+            else:
+                cum_gpu += r.get("gpu_seconds", 0.0)
             pair[species] = r
         rows[name] = pair
-        print(f"[done] {name}  cum_gpu={cum_gpu:.0f}s")
+        print(f"[done] {name}  cum_gpu={cum_gpu:.0f}s"
+              + (f"  (failed folds so far: {n_failed})" if n_failed else ""))
+        _checkpoint(len(rows))
 
     print("\n" + "=" * 96)
     print("STAGE 1 -- mouse cross-reactivity (ipSAE_min, mean of %d diffusion samples; range in brackets)" % diffusion_samples)
@@ -1457,7 +1492,11 @@ def crossreact(
     for name, pair in rows.items():
         h = pair.get("human"); m = pair.get("mouse")
         if not (h and m):
-            print(f"{name:<26}INCOMPLETE"); continue
+            print(f"{name:<26}INCOMPLETE (missing arm)"); continue
+        if h.get("error") or m.get("error"):
+            print(f"{name:<26}INCOMPLETE -- human: {h.get('error', 'ok')} | "
+                  f"mouse: {m.get('error', 'ok')}")
+            continue
         hm, hr = h["ipsae_min_mean"], h["ipsae_min_range"]
         mm, mr = m["ipsae_min_mean"], m["ipsae_min_range"]
         diff = round(hm - mm, 4)
@@ -1488,7 +1527,7 @@ def crossreact(
           f"{'contacts(strong/weak)':>23}{'both?':>7}{'pH anchors':>12}")
     for name, pair in rows.items():
         h = pair.get("human")
-        if not h:
+        if not h or h.get("error"):
             continue
         ifr = (h.get("interface_per_sample") or [None])[0] or {}
         prs = (h.get("ipsae_pairs_per_sample") or [None])[0] or []
@@ -1508,11 +1547,13 @@ def crossreact(
     print("  pH anchors = target residues (32/65) with a binder His within 6.0 A,")
     print("  i.e. the pre-registered rule evaluated on the Boltz model.")
 
-    print(f"\nTOTAL GPU-seconds (stage 1): {cum_gpu:.0f}  (= {cum_gpu/60:.1f} GPU-min)   aborted={aborted}")
+    print(f"\nTOTAL GPU-seconds (stage 1): {cum_gpu:.0f}  (= {cum_gpu/60:.1f} GPU-min)   "
+          f"aborted={aborted}  failed_folds={n_failed}")
     with open(out_json, "w") as f:
-        json.dump(dict(stage="crossreact", diffusion_samples=diffusion_samples,
+        json.dump(dict(stage="crossreact", complete=True,
+                       diffusion_samples=diffusion_samples,
                        total_gpu_seconds=round(cum_gpu, 1), aborted=aborted,
-                       rows=summary), f, indent=2)
+                       n_failed_folds=n_failed, rows=summary), f, indent=2)
     print(f"wrote {out_json}")
 
 
