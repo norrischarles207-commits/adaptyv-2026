@@ -481,3 +481,62 @@ evidence rests on AlphaFold2 alone**, and the writeup will say that in those
 words. It will not describe the pH mechanism as independently confirmed, and it
 will not report the AF2 geometry without noting that a second predictor did not
 reproduce it. Recorded now, while the trimer result is unknown.
+
+---
+
+## Amendment 4 — 2026-10-11, before the 10-sample run
+
+Written after the 3-sample run proved non-reproducible and before any 10-sample
+fold exists.
+
+### Why the sampling changes
+
+`[measured]` The 3-sample protocol does not repeat. On identical input, across
+two independent runs of **l69_mpnn2**:
+
+| | run 1 | run 2 |
+|---|---|---|
+| mouse ipSAE (contacted-restricted) | 0.509 | **0.385** |
+| human pH anchors satisfied | 2 of 3 | **1 of 3** |
+| pre-registered >=2-of-3 verdict (human) | **passes** | **fails** |
+
+Three of four completed species comparisons also exceeded our own
+`sample range > 0.15 = poorly determined` threshold. Boltz is deterministic
+without a seed, so the most likely cause is differing MSAs from a ColabFold
+server that returned 48 errors during the run.
+
+The defect is **precision, not coverage**. Folding the remaining 8 designs at
+3 samples would yield twelve unreliable numbers instead of four. Raising the
+sample count on the designs that matter addresses the actual problem.
+
+### What changes, fixed now
+
+**diffusion_samples 3 -> 10**, on the three top-ranked designs only
+(l69_mpnn2, l69_mpnn1, l91_mpnn2). This is a change toward more precision; no
+threshold is being moved.
+
+**The pH rule translates as a proportion, not a count.** ">=2 of 3 samples"
+is 66.7%, so at n=10 it becomes **>=7 of 10**. Stated before results so the
+bar cannot be chosen to fit them.
+
+**The 0.15 range threshold does NOT transfer to n=10.** The observed range of a
+sample grows with sample size even from an identical distribution, so a range
+computed over 10 draws is not comparable to one computed over 3. We will:
+
+- report mean, SD and range at n=10, and the range **without** comparing it to
+  the n=3 threshold;
+- keep the species verdict in its existing form -- `|human - mouse|` against a
+  noise floor of the larger per-species range -- noting that at n=10 this is
+  **more** conservative than at n=3, because the floor grows. A REAL verdict
+  under this test at n=10 is therefore harder to obtain, not easier.
+
+### What this run cannot fix
+
+`[inferred]` If the MSA server is still degraded, a 10-sample run inherits the
+same instability at higher cost. The run is therefore capped and time-boxed: if
+it has not completed by 02:30 PDT, it is abandoned and the submission goes
+forward on the evidence already recorded, with objective 2's computational
+comparison reported as indeterminate exactly as currently written.
+
+Nothing in the submission depends on this run succeeding. It is upside over a
+writeup that is already complete and already honest about what it lacks.

@@ -19,8 +19,8 @@ one of those is confirmed on two independent structure predictors.
 
 | | status |
 |---|---|
-| **Objective 3 — pH selectivity** (ranked 1st) | Mechanism present in 6 of 12 designs by a rule fixed in advance. Confirmed on **both** AlphaFold2 and Boltz-2 for the lead — but the two predictors anchor it on **different** conserved cations. No predictor models protonation, so this is geometric availability, not demonstrated function. |
-| **Objective 2 — mouse cross-reactivity** (ranked 2nd) | Strongest-evidenced objective. The epitope is anchored on **7KP7**, a solved structure of *human* TNFR1 bound to *mouse* TNF-α. 30 of 32 human receptor contacts are also mouse contacts. Boltz human-vs-mouse difference falls inside the sampling noise floor. |
+| **Objective 3 — pH selectivity** (ranked 1st) | Mechanism present in 6 of 12 designs by a rule fixed in advance, on AlphaFold2 models (2 of 2 samples). A second predictor (Boltz-2) places a binder histidine against a conserved cation too — but **on a different cation, and not reproducibly**: the same design met the pre-registered ≥2-of-3 threshold in one run and failed it in another. No predictor models protonation. This is geometric availability on one predictor, with partial and unstable support from a second. |
+| **Objective 2 — mouse cross-reactivity** (ranked 2nd) | Rests on **structural**, not computational, evidence: the epitope is anchored on **7KP7**, a solved 2.65 Å structure of *human* TNFR1 bound to *mouse* TNF-α, and 30 of 32 human receptor contacts are also mouse contacts. The computational species comparison was attempted and is **indeterminate** — 4 of 12 designs completed before the MSA server failed, and 3 of those 4 exceed our own poorly-determined threshold. |
 | **Objective 1 — affinity** (ranked 3rd) | 12 designs over 8 independent backbones. Lead: SC 0.66, dG −57.7, 2144 Å² buried, 12 interface H-bonds, 9.1% unsatisfied. Better than our EGFR submission on every axis. |
 
 **The honest summary:** affinity is solid, cross-reactivity is well-grounded in
@@ -82,7 +82,7 @@ Pre-registered in `methods.md` (commit `06126db`, amended in `81839f9`):
 pH-release designs. Two anchors rank above one. Three (+K90) was recorded as a
 labelled stretch goal, not a target.
 
-### Result: the rule passes on two independent predictors
+### Result: the rule passes on AlphaFold2; the second predictor only partly agrees
 
 `[measured]` Six of 12 submitted designs satisfy the rule on AlphaFold2 models
 in 2 of 2 samples:
@@ -96,16 +96,25 @@ in 2 of 2 samples:
 | l66_mpnn2 | H32 | R32 | 5.6, 5.7 |
 | l87_mpnn1 | H27 | R32 | 3.8, 4.9 |
 
-`[measured]` Independently, on Boltz-2 against the full human trimer, three
-diffusion samples of **l69_mpnn2**:
+`[measured]` We also ran Boltz-2 against the full human and mouse trimers.
+**l69_mpnn2** was folded twice, in two independent runs, three diffusion
+samples each:
 
-```
-human:  K65 at 4.62, 4.46, 6.59 Å   → within 6.0 Å in 2 of 3  → PASSES
-mouse:  K65 at 5.18, 4.78, 5.03 Å   → within 6.0 Å in 3 of 3  → PASSES
-```
+| run | human | mouse |
+|---|---|---|
+| first | K65 at 4.62, 4.46, 6.59 Å → **2 of 3** → passes | 5.18, 4.78, 5.03 Å → 3 of 3 → passes |
+| second | K65 at one sample only → **1 of 3** → **fails** | 2 of 3 → passes |
 
-The pre-registered rule is satisfied on a predictor that played no part in
-generating the design.
+**The same design, on the same input, met the pre-registered ≥2-of-3 threshold
+in one run and failed it in the other on the human arm.** In every run at least
+one sample placed a binder histidine within 6.0 Å of K65, so the geometry is
+reachable under this predictor — but it is not reproducibly reachable at the
+threshold we fixed.
+
+We therefore do **not** claim the mechanism is independently confirmed. The
+objective-3 evidence is the AlphaFold2 geometry, which is stable across model
+pairs (2 of 2 samples for all six designs); Boltz-2 is supporting and
+unstable.
 
 ### The disagreement we are not smoothing over
 
@@ -198,9 +207,29 @@ indistinguishable, which for cross-reactivity is the desired outcome — and we
 report it against a floor rather than by eye. Interface confidence was high and
 similar in both species (iptm 0.969 human, 0.949 mouse).
 
-**[PENDING] The same measurement across all 12 designs is running at the time
-of writing. These numbers will be inserted or this section amended before
-submission; if the run does not complete, that will be stated.**
+### The 12-design run did not complete, and what it produced is indeterminate
+
+`[measured]` The same measurement was attempted across all 12 designs. It
+**failed to complete**: the ColabFold MSA server returned 48 errors and one
+fold exceeded its 1800 s timeout, stalling the run after 4 of 12 designs.
+
+| design | human | mouse | \|diff\| | noise floor | verdict | range > 0.15? |
+|---|---|---|---|---|---|---|
+| l69_mpnn2 | 0.627 | 0.385 | 0.242 | 0.182 | REAL diff | **yes** |
+| l69_mpnn1 | 0.673 | 0.389 | 0.284 | 0.281 | REAL diff | **yes** |
+| l91_mpnn2 | 0.636 | 0.544 | 0.092 | 0.200 | indistinguishable | **yes** |
+| l87_mpnn1 | 0.530 | 0.510 | 0.020 | 0.131 | indistinguishable | no |
+
+Two designs show a human-favouring difference and two do not. But **3 of the 4
+exceed our pre-registered `sample range > 0.15 = poorly determined`
+threshold**, and l69_mpnn1's "REAL" verdict clears its own noise floor by
+0.003. The l69_mpnn2 mouse value also moved from 0.509 in the earlier run to
+0.385 here on identical input.
+
+`[measured]` We report this as **indeterminate**, not as evidence of human
+preference. Reporting a species difference from measurements that fail our own
+determinacy criterion would be reporting noise. The objective-2 claim rests on
+the structural evidence above, which does not move between runs.
 
 ---
 
@@ -213,7 +242,7 @@ over 5 AF2 models.
 
 | design | len | i_pTM | SC | dG | dSASA | H-bonds | unsat % | pH |
 |---|---|---|---|---|---|---|---|---|
-| l69_mpnn2 | 69 | 0.86 | **0.66** | −57.7 | 2144 | 12 | 9.1 | ✓✓ |
+| l69_mpnn2 | 69 | 0.86 | **0.66** | −57.7 | 2144 | 12 | 9.1 | ✓ |
 | l69_mpnn1 | 69 | 0.86 | 0.62 | **−61.6** | 2131 | 12 | **7.8** | ✓ |
 | l91_mpnn2 | 91 | 0.80 | 0.59 | −54.2 | 2224 | 15 | 23.3 | ✓ |
 | l87_mpnn1 | 87 | 0.72 | 0.62 | −44.1 | 1883 | 6 | 7.6 | ✓ |
@@ -226,8 +255,10 @@ over 5 AF2 models.
 | l62_mpnn20 | 62 | 0.63 | **0.68** | −38.3 | 1636 | 7 | 18.4 | — |
 | l97_mpnn2 | 97 | 0.45 | 0.64 | −41.7 | 1381 | 10 | 8.0 | — |
 
-✓✓ = pH rule satisfied on both predictors · ✓ = on AlphaFold2 · — = no anchor
-within 6.0 Å
+✓ = pH rule satisfied on AlphaFold2 models, 2 of 2 samples · — = no binder
+histidine within the pre-registered 6.0 Å of R32 or K65. Boltz-2 support is
+partial and not reproducible; see Objective 3. No design is marked as
+confirmed on two predictors.
 
 For scale, our EGFR submission's best design scored SC 0.65, dG −33.5,
 dSASA 1444, 8 H-bonds. The lead here buries 50% more surface with 70% more
@@ -356,7 +387,7 @@ diagnosed rather than promoted.
 | designs clearing SC ≥ 0.58 | **12** |
 | independent backbones among those | **8** |
 | designs satisfying the pH rule (AF2, 2/2 samples) | **6** |
-| designs with the pH rule confirmed on Boltz-2 | **1** (12-design run pending) |
+| designs with the pH rule met on Boltz-2 in >=2 of 3 samples | **1 of 4 attempted** (not reproducible between runs; 8 of 12 designs never folded — MSA server failure) |
 | designs submitted | **12** |
 
 A run we withdrew: a revised hotspot set (`B32,B65,B145,C86,C87`) was tested on
@@ -404,11 +435,20 @@ geometry are not submitted. It is excluded by a rule written before we saw it.
    sample range (0.1994) failed our own poorly-determined threshold. We
    discarded those results and re-ran against the full trimer. Reported because
    the discarded measurement would have read as a design failure.
-8. **propka is not relied upon.** The Proton-PottsMPNN authors report predicted
+8. **The Boltz cross-species run did not complete and is not reproducible.**
+   48 ColabFold MSA-server errors and one 1800 s timeout stalled it after 4 of
+   12 designs. Worse, the measurement does not repeat: l69_mpnn2's mouse score
+   moved 0.509 → 0.385 and its human pH-anchor count moved 2/3 → 1/3 on
+   identical input across two runs, flipping the pre-registered verdict. Boltz
+   is deterministic without a seed, so the likely cause is differing MSAs from
+   a failing server. Three of the four completed comparisons exceed our own
+   poorly-determined threshold. We report the species comparison as
+   indeterminate.
+9. **propka is not relied upon.** The Proton-PottsMPNN authors report predicted
    pKa was not predictive of which pH bin a design fell into.
-9. **Calibration provenance.** The AUC figures underlying our metric choices
+10. **Calibration provenance.** The AUC figures underlying our metric choices
    (SC 0.68, ipSAE_min 0.615) have no recorded primary source in our notes.
-10. **The challenge brief was not committed to the repository** — it was
+11. **The challenge brief was not committed to the repository** — it was
     supplied in conversation. Objective definitions in this document are as we
     understood them.
 
@@ -417,11 +457,13 @@ geometry are not submitted. It is excluded by a rule written before we saw it.
 ## Designs submitted
 
 12 designs in `submission.csv`, in submission order. Tier reflects pH evidence;
-all 12 clear the affinity gate.
+all 12 clear the affinity gate. Tier 1 and tier 2 are both AlphaFold2-supported
+at 2 of 2 samples; tier 1 additionally has partial, non-reproducible Boltz-2
+support and is not claimed as independently confirmed.
 
 | # | design | len | tier | pH evidence |
 |---|---|---|---|---|
-| 1 | tnfa_l69_s930894_mpnn2 | 69 | 1 | H4 → cation, both predictors |
+| 1 | tnfa_l69_s930894_mpnn2 | 69 | 1 | H4 → R32 (AF2 2/2); Boltz K65 partial |
 | 2 | tnfa_l69_s930894_mpnn1 | 69 | 1 | H4 → R32, AF2 2/2 |
 | 3 | tnfa_l91_s990274_mpnn2 | 91 | 2 | H15 → R32 + H16 → K65 |
 | 4 | tnfa_l87_s136696_mpnn1 | 87 | 2 | H27 → R32, AF2 2/2 |
