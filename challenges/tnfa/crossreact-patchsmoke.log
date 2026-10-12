@@ -1,0 +1,163 @@
+✓ Initialized. View run at https://modal.com/apps/norrischarles207-commits/main/ap-1lFWzP7jkKtnp13R2P9faK
+✓ Created objects.
+├── 🔨 Created mount /Users/charlesnorris/adaptyv-2026/modal/redundancy.py
+├── 🔨 Created function list_accepted.
+├── 🔨 Created function crossval_boltz.
+├── 🔨 Created function download_boltz_weights.
+├── 🔨 Created function _persist_table.
+├── 🔨 Created function cofold_seqs.
+├── 🔨 Created function rescore_one.
+└── 🔨 Created function sc_and_contacts.
+note: human 471 aa vs mouse 468 aa -- expected for a multi-protomer target when the species differ by an indel (human TNF-alpha is 157 aa, mouse 156)
+binders 1 | human chains [157, 157, 157] | mouse chains [156, 156, 156] | samples 1 | budget 5.0 GPU-min
+tnfa_l69_s930894_mpnn2__human: target chains [157, 157, 157] (A+B+C), binder 69 aa (D), diffusion_samples=1
+running: boltz predict /tmp/tnfa_l69_s930894_mpnn2__human/tnfa_l69_s930894_mpnn2__human.yaml --out_dir /tmp/tnfa_l69_s930894_mpnn2__human/out --cache /boltz-cache --use_msa_server --write_full_pae --accelerator gpu --devices 1 --override --output_format pdb --diffusion_samples 1
+MSA server enabled: https://api.colabfold.com
+MSA server authentication: no credentials provided
+Checking input data.
+Processing 1 inputs with 1 threads.
+
+Generating MSA for /tmp/tnfa_l69_s930894_mpnn2__human/tnfa_l69_s930894_mpnn2__human.yaml with 2 protein entities.
+Calling MSA server for target tnfa_l69_s930894_mpnn2__human with 2 sequences
+MSA server URL: https://api.colabfold.com
+MSA pairing strategy: greedy
+No authentication provided for MSA server
+[1A  0%|          | 0/1 [00:00<?, ?it/s]
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:01 remaining: 00:00]
+
+[1A100%|██████████| 1/1 [00:02<00:00,  2.12s/it]100%|██████████| 1/1 [00:02<00:00,  2.12s/it]
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+Running structure prediction for 1 input.
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0
+You are using a CUDA device ('NVIDIA A100-SXM4-40GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+
+[1APredicting: |          | 0/? [00:00<?, ?it/s]
+[1APredicting:   0%|          | 0/1 [00:00<?, ?it/s]
+/usr/local/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.
+  warn_eager_only(
+[1APredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:33<00:00,  0.03it/s]Number of failed examples: 0
+
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:33<00:00,  0.03it/s]
+RESULT: {"run_id": "tnfa_l69_s930894_mpnn2__human", "target_len": 471, "target_chain_lens": [157, 157, 157], "binder_len": 69, "diffusion_samples": 1, "gpu_seconds": 101.8, "ipsae_min_samples": [0.5069], "ipsae_min_mean": 0.5069, "ipsae_min_min": 0.5069, "ipsae_min_max": 0.5069, "ipsae_min_range": 0.0, "ipsae_pairs_per_sample": [[{"a": "A", "b": "D", "n_int_a": 139, "n_int_b": 61, "d0": 5.266, "ipsae": 0.7602}, {"a": "B", "b": "D", "n_int_a": 134, "n_int_b": 59, "d0": 5.175, "ipsae": 0.6219}, {"a": "C", "b": "D", "n_int_a": 140, "n_int_b": 61, "d0": 5.278, "ipsae": 0.7125}, {"a": "D", "b": "A", "n_int_a": 61, "n_int_b": 139, "d0": 5.266, "ipsae": 0.6937}, {"a": "D", "b": "B", "n_int_a": 59, "n_int_b": 134, "d0": 5.175, "ipsae": 0.5069}, {"a": "D", "b": "C", "n_int_a": 61, "n_int_b": 140, "d0": 5.278, "ipsae": 0.6269}]], "interface_per_sample": [{"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 242, "n_target_residues_contacted": 15, "target_residues_contacted": [19, 21, 22, 23, 25, 27, 29, 31, 32, 33, 34, 145, 146, 147, 149]}, "B": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}, "C": {"atom_pairs": 126, "n_target_residues_contacted": 13, "target_residues_contacted": [73, 75, 77, 82, 84, 86, 87, 91, 92, 95, 97, 127, 137]}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[15.21, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[9.92, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[39.48, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[31.9, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[29.43, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[26.36, 4]]}], "ph_rule_hits": [], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 126, "strongest_protomer_atom_pairs": 242, "ph_anchors_satisfied": []}], "ipsae_min": 0.5069, "ipsae_pass": false, "iptm": 0.9615, "ptm": 0.9663, "complex_plddt": 0.8715, "saved_pdb": "/designs/tnfa/crossreact-patchsmoke/human/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__human_model_0.pdb", "saved_pdbs": ["/designs/tnfa/crossreact-patchsmoke/human/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__human_model_0.pdb"]}
+tnfa_l69_s930894_mpnn2__mouse: target chains [156, 156, 156] (A+B+C), binder 69 aa (D), diffusion_samples=1
+running: boltz predict /tmp/tnfa_l69_s930894_mpnn2__mouse/tnfa_l69_s930894_mpnn2__mouse.yaml --out_dir /tmp/tnfa_l69_s930894_mpnn2__mouse/out --cache /boltz-cache --use_msa_server --write_full_pae --accelerator gpu --devices 1 --override --output_format pdb --diffusion_samples 1
+MSA server enabled: https://api.colabfold.com
+MSA server authentication: no credentials provided
+Checking input data.
+Processing 1 inputs with 1 threads.
+
+Generating MSA for /tmp/tnfa_l69_s930894_mpnn2__mouse/tnfa_l69_s930894_mpnn2__mouse.yaml with 2 protein entities.
+Calling MSA server for target tnfa_l69_s930894_mpnn2__mouse with 2 sequences
+MSA server URL: https://api.colabfold.com
+MSA pairing strategy: greedy
+No authentication provided for MSA server
+[1A  0%|          | 0/1 [00:00<?, ?it/s]
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+
+[1A
+[1A  0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ASUBMIT:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE:   0%|          | 0/300 [elapsed: 00:00 remaining: ?][A
+
+[1A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00][A
+[1ACOMPLETE: 100%|██████████| 300/300 [elapsed: 00:00 remaining: 00:00]
+
+[1A100%|██████████| 1/1 [00:02<00:00,  2.41s/it]100%|██████████| 1/1 [00:02<00:00,  2.41s/it]
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+Running structure prediction for 1 input.
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/migration/utils.py:56: The loaded checkpoint was produced with Lightning v2.5.0.post0, which is newer than your current Lightning version: v2.5.0
+You are using a CUDA device ('NVIDIA A100-SXM4-40GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/site-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+
+[1APredicting: |          | 0/? [00:00<?, ?it/s]
+[1APredicting:   0%|          | 0/1 [00:00<?, ?it/s]
+/usr/local/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.11/site-packages/cuequivariance_ops_torch/triangle_attention.py:623: UserWarning: Generic kernel expects bias to be float32 so it's going to be cast to torch.float32. Check if you can change your code for maximum performance.
+  warn_eager_only(
+[1APredicting DataLoader 0:   0%|          | 0/1 [00:00<?, ?it/s]
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:31<00:00,  0.03it/s]Number of failed examples: 0
+
+[1APredicting DataLoader 0: 100%|██████████| 1/1 [00:31<00:00,  0.03it/s]
+[done] tnfa_l69_s930894_mpnn2  cum_gpu=194s
+
+================================================================================================
+STAGE 1 -- mouse cross-reactivity (ipSAE_min, mean of 1 diffusion samples; range in brackets)
+================================================================================================
+design                    human mean[range]     mouse mean[range]     diff(h-m)   noise floor verdict
+tnfa_l69_s930894_mpnn2    0.5069[0.0000]      0.2673[0.0000]      +0.2396     0.0000      n/a (1 sample: no noise floor)
+
+================================================================================================================
+STAGE 1b -- INTERFACE DIAGNOSIS (model 0, human). ipSAE_min is the WEAKEST
+binder<->protomer pair, so a thin second-protomer contact sets it even when
+total binding is strong. These columns separate that from a genuine miss.
+================================================================================================================
+design                     ipsae_min              pairs(binder<->each)  contacts(strong/weak)  both?  pH anchors
+tnfa_l69_s930894_mpnn2        0.5069A->D:0.7602, B->D:0.6219, C->D:0.7125, D->A:0.6937, D->B:0.5069, D->C:0.6269                242/126    yes           -
+
+  both?=NO means the binder touched only one protomer -- the groove was
+  not engaged, and ipSAE_min is then measuring the wrong thing.
+  pH anchors = target residues (32/65) with a binder His within 6.0 A,
+  i.e. the pre-registered rule evaluated on the Boltz model.
+
+TOTAL GPU-seconds (stage 1): 194  (= 3.2 GPU-min)   aborted=False  failed_folds=0
+wrote challenges/tnfa/crossreact-patchsmoke.json
+RESULT: {"run_id": "tnfa_l69_s930894_mpnn2__mouse", "target_len": 468, "target_chain_lens": [156, 156, 156], "binder_len": 69, "diffusion_samples": 1, "gpu_seconds": 91.9, "ipsae_min_samples": [0.2673], "ipsae_min_mean": 0.2673, "ipsae_min_min": 0.2673, "ipsae_min_max": 0.2673, "ipsae_min_range": 0.0, "ipsae_pairs_per_sample": [[{"a": "A", "b": "D", "n_int_a": 134, "n_int_b": 58, "d0": 5.162, "ipsae": 0.4879}, {"a": "B", "b": "D", "n_int_a": 125, "n_int_b": 55, "d0": 5.001, "ipsae": 0.3837}, {"a": "C", "b": "D", "n_int_a": 135, "n_int_b": 58, "d0": 5.175, "ipsae": 0.4418}, {"a": "D", "b": "A", "n_int_a": 58, "n_int_b": 134, "d0": 5.162, "ipsae": 0.4309}, {"a": "D", "b": "B", "n_int_a": 55, "n_int_b": 125, "d0": 5.001, "ipsae": 0.2673}, {"a": "D", "b": "C", "n_int_a": 58, "n_int_b": 135, "d0": 5.175, "ipsae": 0.3628}]], "interface_per_sample": [{"binder_chain": "D", "target_chains": ["A", "B", "C"], "per_chain": {"A": {"atom_pairs": 272, "n_target_residues_contacted": 16, "target_residues_contacted": [19, 21, 22, 23, 25, 27, 29, 31, 32, 33, 34, 114, 142, 144, 145, 148]}, "B": {"atom_pairs": 0, "n_target_residues_contacted": 0, "target_residues_contacted": []}, "C": {"atom_pairs": 145, "n_target_residues_contacted": 10, "target_residues_contacted": [74, 76, 81, 85, 86, 88, 90, 96, 126, 136]}}, "anchors": [{"chain": "A", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[15.98, 4]]}, {"chain": "A", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[5.46, 4]]}, {"chain": "B", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[39.48, 4]]}, {"chain": "B", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[30.58, 4]]}, {"chain": "C", "resnum": 32, "resname": "ARG", "identity_as_expected": true, "cation_atoms_present": 3, "nearest_binder_his": [[30.99, 4]]}, {"chain": "C", "resnum": 65, "resname": "LYS", "identity_as_expected": true, "cation_atoms_present": 1, "nearest_binder_his": [[26.85, 4]]}], "ph_rule_hits": [{"his_resnum": 4, "anchor_chain": "A", "anchor_resnum": 65, "distance_A": 5.46}], "n_target_chains_contacted": 2, "contacts_both_protomers": true, "weakest_protomer_atom_pairs": 145, "strongest_protomer_atom_pairs": 272, "ph_anchors_satisfied": [65]}], "ipsae_min": 0.2673, "ipsae_pass": false, "iptm": 0.943, "ptm": 0.9535, "complex_plddt": 0.8668, "saved_pdb": "/designs/tnfa/crossreact-patchsmoke/mouse/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__mouse_model_0.pdb", "saved_pdbs": ["/designs/tnfa/crossreact-patchsmoke/mouse/tnfa_l69_s930894_mpnn2/tnfa_l69_s930894_mpnn2__mouse_model_0.pdb"]}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at https://modal.com/apps/norrischarles207-commits/main/ap-1lFWzP7jkKtnp13R2P9faK

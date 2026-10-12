@@ -708,3 +708,127 @@ run is capped at `gpu_budget_min = 70` for headroom and expected to cost
 multi-histidine round) are new BindCraft fan-outs, which is where this project's
 money has gone. Neither is launched until the spend to date is checked against
 the $50 Modal ceiling and a per-run estimate is written down first.
+
+---
+
+## Amendment 6 — 2026-10-12, after the 12-design run, before any verdict was computed
+
+### Honest provenance of this rule
+
+`[measured]` This rule was **not** written blind. We found the defect by
+inspecting the completed run's checkpoint, so we had already seen that it
+affects the two 60-aa designs. What we had **not** done is compute a single
+species verdict. The rule is fixed here, before that computation, and it is a
+direct extension of a guard already in the pre-registered code rather than a
+new criterion invented for this data.
+
+### The defect
+
+`cofold_seqs` computes the mean and range over the **non-None** samples only:
+
+```
+vals = [x["ipsae_min"] for x in per_sample if x["ipsae_min"] is not None]
+mean_ipsae = round(sum(vals)/len(vals), 4) if vals else None
+```
+
+ipSAE returns None for a sample whose interface selection (PAE <= 10 A,
+pLDDT >= 70) admits no residues on one side of a pair. For small binders this
+happens often: `l60_mpnn2` yielded **1 usable sample of 10** and `l60_mpnn1`
+yielded 1 on human and **0** on mouse. The field `ipsae_min_mean` therefore
+reported a "mean" over a single draw while looking like an n=10 mean, and
+`ipsae_min_range` was 0 -- which makes the noise floor 0, so **any** nonzero
+difference would have read REAL.
+
+The code already refused a verdict at `diffusion_samples < 2` for exactly this
+reason ("With one diffusion sample the range is 0 by construction... refuse to
+render a verdict"). It simply never checked the *effective* count after
+None-filtering.
+
+### Fixed now
+
+- **No species verdict when either arm has fewer than 2 usable samples.** Such
+  a design is reported as `NOT MEASURABLE`, never as REAL or indistinguishable.
+- **Effective n is recorded and printed for every fold**, and a verdict drawn
+  from fewer than `diffusion_samples` usable samples carries that count.
+- **Suppressed verdicts are disclosed, not deleted.** What the naive
+  computation would have returned is stated alongside.
+
+### The direction of this rule's effect, stated because it favours us
+
+`[inferred]` A REAL verdict is evidence **against** cross-reactivity, which is
+objective 2's goal. Suppressing the two `l60` designs therefore **removes
+unfavourable evidence from our own record**. Specifically, `l60_mpnn2` would
+have read REAL (0.0559 vs 0.0226, floor 0) and `l60_mpnn1` would have been
+uncomputable (mouse mean None). We are recording this because a rule that
+helps the people who wrote it needs its direction on the page, not because the
+rule is wrong: a verdict built from one usable sample is meaningless whichever
+way it points, and both designs score 0/10 on the pH rule regardless.
+
+### A second finding about the pre-registered species test
+
+`[computed]` Across the 10 measurable designs the pre-registered verdict
+returned `indistinguishable` for **9**, while the exact permutation test
+rejects equality at p < 0.05 for **8**. The range-based floor is not merely
+conservative, as Amendment 4 described it -- at n=10 it almost never rejects.
+
+We are **not** replacing it. Amendment 5 already requires both to be reported
+together, and that stands. But we add one reading rule, fixed now: **neither
+test alone answers objective 2.** The permutation test detects differences as
+small as 0.04 ipSAE, which is statistically real and biologically
+uninformative. Objective 2 claims will be made on **effect size** with both
+p-values shown, and a difference below 0.10 ipSAE will not be described as a
+species preference regardless of its p-value.
+
+---
+
+## Amendment 7 — 2026-10-12, before the replication run
+
+### What is being run and why
+
+`l91_mpnn1` cleared the pH bar at 9 of 10 on its first and only test. Amendment
+5 classes a first-time pass as **PROVISIONAL** and requires a second
+independent n=10 run before it can be called confirmed. This run executes that
+requirement. Input: `tnfa_rep2.fasta`, two designs, 10 diffusion samples per
+species, budget 18 GPU-min (expected ~11.4, ~$0.40).
+
+**Independence.** Boltz's diffusion sampling is stochastic, so a repeat run
+draws fresh samples even if the MSA server returns a cached alignment. This is
+not assumed: `l69_mpnn1`'s mouse arm moved 8/10 -> 5/10 on identical input
+between runs 1 and 2, and the one-sample smoke returned values matching no
+sample from the n=10 run.
+
+### `l69_mpnn1` is included as a positive control, and the rule for it is fixed now
+
+Its human arm has already met the Amendment 5 standard (10/10 twice). It is
+re-run **only** to detect environment drift -- the MSA server returned 20
+errors on 2026-10-11 and 129 on 2026-10-12, so the environment demonstrably
+varies. Fixed before the result exists:
+
+- A third result **at or above the bar** is pooled and reported; the standard
+  remains met.
+- A third result **below the bar** does **not** erase the two runs that met the
+  standard, but it **must** be reported as "cleared the bar in 2 of 3 runs",
+  the pooled proportion stated, and the confirmation explicitly described as
+  weaker than two-for-two implied. We are not permitted to drop it as an
+  outlier.
+- Either way the control's own numbers are published alongside `l91_mpnn1`'s.
+
+`[inferred]` We note the obvious risk in running it: a third draw can only
+weaken, never strengthen, a claim already confirmed twice. We run it because a
+replication result for `l91_mpnn1` is uninterpretable without knowing whether
+the run itself behaved normally.
+
+### What we are deliberately NOT running
+
+**Near-miss designs are not being re-run.** `l66_mpnn2` and `l69_mpnn2` both
+sit at 6 of 10, one sample short of the bar. Re-running designs that narrowly
+missed, until one crosses, is the purest form of the multiplicity error
+Amendment 5 exists to prevent. Amendment 5 mandates replication **only** for
+designs that already cleared the bar. A near miss stays a miss, and this
+paragraph is here so that a later run of either design would be visibly a
+departure from a rule written in advance.
+
+### Ordering
+
+`l91_mpnn1` is first in the fasta and the control second, so a budget abort
+costs the control rather than the result the run exists to produce.

@@ -1,0 +1,424 @@
+{
+  "stage": "crossreact",
+  "complete": true,
+  "diffusion_samples": 1,
+  "total_gpu_seconds": 193.7,
+  "aborted": false,
+  "n_failed_folds": 0,
+  "rows": [
+    {
+      "design": "tnfa_l69_s930894_mpnn2",
+      "human_mean": 0.5069,
+      "human_range": 0.0,
+      "human_samples": [
+        0.5069
+      ],
+      "mouse_mean": 0.2673,
+      "mouse_range": 0.0,
+      "mouse_samples": [
+        0.2673
+      ],
+      "diff": 0.2396,
+      "noise_floor": 0.0,
+      "verdict": "n/a (1 sample: no noise floor)",
+      "human_ipsae_pairs": [
+        [
+          {
+            "a": "A",
+            "b": "D",
+            "n_int_a": 139,
+            "n_int_b": 61,
+            "d0": 5.266,
+            "ipsae": 0.7602
+          },
+          {
+            "a": "B",
+            "b": "D",
+            "n_int_a": 134,
+            "n_int_b": 59,
+            "d0": 5.175,
+            "ipsae": 0.6219
+          },
+          {
+            "a": "C",
+            "b": "D",
+            "n_int_a": 140,
+            "n_int_b": 61,
+            "d0": 5.278,
+            "ipsae": 0.7125
+          },
+          {
+            "a": "D",
+            "b": "A",
+            "n_int_a": 61,
+            "n_int_b": 139,
+            "d0": 5.266,
+            "ipsae": 0.6937
+          },
+          {
+            "a": "D",
+            "b": "B",
+            "n_int_a": 59,
+            "n_int_b": 134,
+            "d0": 5.175,
+            "ipsae": 0.5069
+          },
+          {
+            "a": "D",
+            "b": "C",
+            "n_int_a": 61,
+            "n_int_b": 140,
+            "d0": 5.278,
+            "ipsae": 0.6269
+          }
+        ]
+      ],
+      "mouse_ipsae_pairs": [
+        [
+          {
+            "a": "A",
+            "b": "D",
+            "n_int_a": 134,
+            "n_int_b": 58,
+            "d0": 5.162,
+            "ipsae": 0.4879
+          },
+          {
+            "a": "B",
+            "b": "D",
+            "n_int_a": 125,
+            "n_int_b": 55,
+            "d0": 5.001,
+            "ipsae": 0.3837
+          },
+          {
+            "a": "C",
+            "b": "D",
+            "n_int_a": 135,
+            "n_int_b": 58,
+            "d0": 5.175,
+            "ipsae": 0.4418
+          },
+          {
+            "a": "D",
+            "b": "A",
+            "n_int_a": 58,
+            "n_int_b": 134,
+            "d0": 5.162,
+            "ipsae": 0.4309
+          },
+          {
+            "a": "D",
+            "b": "B",
+            "n_int_a": 55,
+            "n_int_b": 125,
+            "d0": 5.001,
+            "ipsae": 0.2673
+          },
+          {
+            "a": "D",
+            "b": "C",
+            "n_int_a": 58,
+            "n_int_b": 135,
+            "d0": 5.175,
+            "ipsae": 0.3628
+          }
+        ]
+      ],
+      "human_interface": [
+        {
+          "binder_chain": "D",
+          "target_chains": [
+            "A",
+            "B",
+            "C"
+          ],
+          "per_chain": {
+            "A": {
+              "atom_pairs": 242,
+              "n_target_residues_contacted": 15,
+              "target_residues_contacted": [
+                19,
+                21,
+                22,
+                23,
+                25,
+                27,
+                29,
+                31,
+                32,
+                33,
+                34,
+                145,
+                146,
+                147,
+                149
+              ]
+            },
+            "B": {
+              "atom_pairs": 0,
+              "n_target_residues_contacted": 0,
+              "target_residues_contacted": []
+            },
+            "C": {
+              "atom_pairs": 126,
+              "n_target_residues_contacted": 13,
+              "target_residues_contacted": [
+                73,
+                75,
+                77,
+                82,
+                84,
+                86,
+                87,
+                91,
+                92,
+                95,
+                97,
+                127,
+                137
+              ]
+            }
+          },
+          "anchors": [
+            {
+              "chain": "A",
+              "resnum": 32,
+              "resname": "ARG",
+              "identity_as_expected": true,
+              "cation_atoms_present": 3,
+              "nearest_binder_his": [
+                [
+                  15.21,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "A",
+              "resnum": 65,
+              "resname": "LYS",
+              "identity_as_expected": true,
+              "cation_atoms_present": 1,
+              "nearest_binder_his": [
+                [
+                  9.92,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "B",
+              "resnum": 32,
+              "resname": "ARG",
+              "identity_as_expected": true,
+              "cation_atoms_present": 3,
+              "nearest_binder_his": [
+                [
+                  39.48,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "B",
+              "resnum": 65,
+              "resname": "LYS",
+              "identity_as_expected": true,
+              "cation_atoms_present": 1,
+              "nearest_binder_his": [
+                [
+                  31.9,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "C",
+              "resnum": 32,
+              "resname": "ARG",
+              "identity_as_expected": true,
+              "cation_atoms_present": 3,
+              "nearest_binder_his": [
+                [
+                  29.43,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "C",
+              "resnum": 65,
+              "resname": "LYS",
+              "identity_as_expected": true,
+              "cation_atoms_present": 1,
+              "nearest_binder_his": [
+                [
+                  26.36,
+                  4
+                ]
+              ]
+            }
+          ],
+          "ph_rule_hits": [],
+          "n_target_chains_contacted": 2,
+          "contacts_both_protomers": true,
+          "weakest_protomer_atom_pairs": 126,
+          "strongest_protomer_atom_pairs": 242,
+          "ph_anchors_satisfied": []
+        }
+      ],
+      "mouse_interface": [
+        {
+          "binder_chain": "D",
+          "target_chains": [
+            "A",
+            "B",
+            "C"
+          ],
+          "per_chain": {
+            "A": {
+              "atom_pairs": 272,
+              "n_target_residues_contacted": 16,
+              "target_residues_contacted": [
+                19,
+                21,
+                22,
+                23,
+                25,
+                27,
+                29,
+                31,
+                32,
+                33,
+                34,
+                114,
+                142,
+                144,
+                145,
+                148
+              ]
+            },
+            "B": {
+              "atom_pairs": 0,
+              "n_target_residues_contacted": 0,
+              "target_residues_contacted": []
+            },
+            "C": {
+              "atom_pairs": 145,
+              "n_target_residues_contacted": 10,
+              "target_residues_contacted": [
+                74,
+                76,
+                81,
+                85,
+                86,
+                88,
+                90,
+                96,
+                126,
+                136
+              ]
+            }
+          },
+          "anchors": [
+            {
+              "chain": "A",
+              "resnum": 32,
+              "resname": "ARG",
+              "identity_as_expected": true,
+              "cation_atoms_present": 3,
+              "nearest_binder_his": [
+                [
+                  15.98,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "A",
+              "resnum": 65,
+              "resname": "LYS",
+              "identity_as_expected": true,
+              "cation_atoms_present": 1,
+              "nearest_binder_his": [
+                [
+                  5.46,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "B",
+              "resnum": 32,
+              "resname": "ARG",
+              "identity_as_expected": true,
+              "cation_atoms_present": 3,
+              "nearest_binder_his": [
+                [
+                  39.48,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "B",
+              "resnum": 65,
+              "resname": "LYS",
+              "identity_as_expected": true,
+              "cation_atoms_present": 1,
+              "nearest_binder_his": [
+                [
+                  30.58,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "C",
+              "resnum": 32,
+              "resname": "ARG",
+              "identity_as_expected": true,
+              "cation_atoms_present": 3,
+              "nearest_binder_his": [
+                [
+                  30.99,
+                  4
+                ]
+              ]
+            },
+            {
+              "chain": "C",
+              "resnum": 65,
+              "resname": "LYS",
+              "identity_as_expected": true,
+              "cation_atoms_present": 1,
+              "nearest_binder_his": [
+                [
+                  26.85,
+                  4
+                ]
+              ]
+            }
+          ],
+          "ph_rule_hits": [
+            {
+              "his_resnum": 4,
+              "anchor_chain": "A",
+              "anchor_resnum": 65,
+              "distance_A": 5.46
+            }
+          ],
+          "n_target_chains_contacted": 2,
+          "contacts_both_protomers": true,
+          "weakest_protomer_atom_pairs": 145,
+          "strongest_protomer_atom_pairs": 272,
+          "ph_anchors_satisfied": [
+            65
+          ]
+        }
+      ],
+      "gpu_seconds": 193.7
+    }
+  ]
+}

@@ -1499,18 +1499,48 @@ def crossreact(
             continue
         hm, hr = h["ipsae_min_mean"], h["ipsae_min_range"]
         mm, mr = m["ipsae_min_mean"], m["ipsae_min_range"]
+        # EFFECTIVE sample count, not the requested one. ipSAE returns None for
+        # a sample whose interface selection (PAE <= 10 A, pLDDT >= 70) admits
+        # no residues on one side, which happens for small binders. The mean and
+        # range are computed over non-None samples only, so a fold can report a
+        # "mean" over a single draw with range 0 -- and a 0 floor makes ANY
+        # difference read REAL. Guard on effective n, not diffusion_samples.
+        hn = len([x for x in (h.get("ipsae_min_samples") or []) if x is not None])
+        mn = len([x for x in (m.get("ipsae_min_samples") or []) if x is not None])
+        # Amendment 6: fewer than 2 usable samples on EITHER arm -> no verdict
+        # and no numbers, because a mean over one draw has a zero range and
+        # would make any difference read REAL. Same treatment as all-None.
+        if (hm is None or mm is None or hr is None or mr is None
+                or min(hn, mn) < 2):
+            print(f"{name:<26}NOT MEASURABLE -- ipSAE admitted too few interface "
+                  f"residues (usable samples: human {hn}/{diffusion_samples}, "
+                  f"mouse {mn}/{diffusion_samples})")
+            summary.append(dict(design=name, human_mean=hm, mouse_mean=mm,
+                                human_range=hr, mouse_range=mr,
+                                human_samples=h.get("ipsae_min_samples"),
+                                mouse_samples=m.get("ipsae_min_samples"),
+                                human_effective_n=hn, mouse_effective_n=mn,
+                                diff=None, noise_floor=None,
+                                verdict="not measurable (no usable ipSAE samples)",
+                                human_ipsae_pairs=h.get("ipsae_pairs_per_sample"),
+                                mouse_ipsae_pairs=m.get("ipsae_pairs_per_sample"),
+                                human_interface=h.get("interface_per_sample"),
+                                mouse_interface=m.get("interface_per_sample"),
+                                gpu_seconds=round(h.get("gpu_seconds", 0)
+                                                  + m.get("gpu_seconds", 0), 1)))
+            continue
         diff = round(hm - mm, 4)
         floor = round(max(hr, mr), 4)
-        # With one diffusion sample the range is 0 by construction, so the noise
-        # floor is 0 and ANY nonzero difference would read as "REAL". That is an
-        # artefact of n=1, not a result: refuse to render a verdict instead.
         if diffusion_samples < 2:
             verdict = "n/a (1 sample: no noise floor)"
         else:
             verdict = "REAL" if abs(diff) > floor else "indistinguishable"
+            if min(hn, mn) < diffusion_samples:
+                verdict += f" [effective n {hn}/{mn}]"
         print(f"{name:<26}{hm:.4f}[{hr:.4f}]      {mm:.4f}[{mr:.4f}]      {diff:+.4f}     {floor:.4f}      {verdict}")
         summary.append(dict(design=name, human_mean=hm, human_range=hr, human_samples=h["ipsae_min_samples"],
                             mouse_mean=mm, mouse_range=mr, mouse_samples=m["ipsae_min_samples"],
+                            human_effective_n=hn, mouse_effective_n=mn,
                             diff=diff, noise_floor=floor, verdict=verdict,
                             human_ipsae_pairs=h.get("ipsae_pairs_per_sample"),
                             mouse_ipsae_pairs=m.get("ipsae_pairs_per_sample"),
@@ -1537,7 +1567,9 @@ def crossreact(
         weak = ifr.get("weakest_protomer_atom_pairs", "?")
         both = "yes" if ifr.get("contacts_both_protomers") else "NO"
         anch = ifr.get("ph_anchors_satisfied") or []
-        print(f"{name:<26}{h['ipsae_min_mean']:>10.4f}{bp:>34}"
+        _hm = h.get('ipsae_min_mean')
+        _hms = f"{_hm:.4f}" if _hm is not None else "n/a"
+        print(f"{name:<26}{_hms:>10}{bp:>34}"
               f"{str(strong) + '/' + str(weak):>23}{both:>7}"
               f"{(','.join(map(str, anch)) or '-'):>12}")
         if ifr.get("error"):
