@@ -350,6 +350,85 @@ advance that the 0.15 threshold does not transfer to n=10. The n=10 numbers
 above are the ones we report, and they are less favourable to us than the ones
 they replace.
 
+### How can the epitope be conserved and the binding still differ?
+
+`[measured]` This document asserts both that the epitope is conserved and that
+our designs predict a species gap. Those are in tension, so we checked whether
+the hotspots themselves diverge. They do not:
+
+| hotspot | human | mouse | identical? |
+|---|---|---|---|
+| R32 (anchor) | R32 | R32 | **yes** |
+| K65 (anchor) | K65 | K65 | **yes** |
+| D143 | D143 | D142 | **yes** |
+| E146 | E146 | E145 | **yes** |
+| S86 | S86 | S85 | **yes** |
+| Y87 | Y87 | Y86 | **yes** |
+| K90 | K90 | K89 | **yes** |
+
+All 7 of 7 hotspots are identical between human and mouse TNF-α (indel at human T72 accounted for).
+
+| position | human → mouse | note |
+|---|---|---|
+| 20 | P→H |  |
+| 31 | R→Q | adjacent to anchor R32 |
+| 73 | H→Y |  |
+| 85 | V→I |  |
+| 89 | T→E | near hotspot K90 |
+| 97 | I→V |  |
+
+Every hotspot, both pH anchors included, is identical in the two orthologues.
+A design round restricted to "conserved hotspots" would therefore change
+nothing — the set already is conserved. The divergence sits in the
+**neighbourhood**, and one position is suggestive: **R31 → Q is immediately
+adjacent to R32**, the anchor both confirmed designs use, so mouse loses a
+positive charge one residue away from the contact the pH switch depends on.
+
+`[computed]` **Exploratory, post-hoc, and not used to rank anything.** If the
+hotspots are conserved, a species gap has to come from a design binding the
+two orthologues *differently* rather than from the epitope differing. We
+tested that by measuring, for each design, how much its per-residue contact
+frequency changes between species (summed absolute difference over every
+contacted residue, in matched numbering):
+
+| design | species gap | contact asymmetry |
+|---|---|---|
+| l69_mpnn1 | +0.2499 | 11.60 |
+| l69_mpnn2 | +0.1874 | 7.50 |
+| l62_mpnn20 | +0.1053 | 5.00 |
+| l91_mpnn1 | +0.0853 | 4.80 |
+| l91_mpnn2 | +0.0732 | 2.90 |
+| l87_mpnn1 | +0.0568 | 4.00 |
+| l97_mpnn2 | +0.0466 | 7.80 |
+| l66_mpnn1 | +0.0014 | 3.20 |
+| l66_mpnn2 | -0.0393 | 2.50 |
+| l84_mpnn1 | -0.0609 | 5.20 |
+
+Pearson r = **0.742**, Spearman rho = **0.467**, across the 10 measurable designs. Leave-one-out: dropping **l69_mpnn1** takes r to **0.487**; no other single design moves it below 0.697.
+
+**The correlation is suggestive but fragile, and we will not lean on it.**
+The direction fits the mechanism above — `l69_mpnn1` has the most asymmetric
+binding mode in the set and the largest gap, while `l91_mpnn1` binds both
+species much more alike and sits under our 0.10 effect-size threshold — but
+three things limit it. The rank correlation (Spearman 0.467) is far weaker
+than the linear one, so the relationship is carried by magnitude at the
+extremes rather than holding consistently across the set. Dropping the single
+most extreme design takes r from 0.742 to 0.487, so one point carries much of
+it. And n is 10.
+
+**What this is not.** The metric was defined after seeing these data, and a
+correlation does not establish direction — asymmetry and gap may both be
+downstream of how well a design binds at all. An earlier draft of this section
+called the correlation "strong"; the robustness checks above show that was an
+overstatement, and the sentence was corrected before this document was
+submitted rather than after. **No design was selected, ranked, promoted or
+demoted using this metric**, and it appears here only because the tension it
+resolves would otherwise sit unexplained in this document. Its
+value is prospective: a future design round aiming at objective 2 should
+select for **cross-species contact symmetry**, which is measurable, rather
+than for conserved hotspots, which are already conserved and therefore buy
+nothing.
+
 The objective-2 claim therefore rests **entirely** on the structural evidence
 above — 7KP7, and 30 of 32 human receptor contacts shared with mouse. Our own
 computation does not corroborate it for any design, and contradicts it for the

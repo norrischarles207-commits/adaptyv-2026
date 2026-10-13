@@ -107,6 +107,87 @@ out.append("| pH-positive (6 designs) | %s | **%.2f/10** |" % (", ".join(str(x) 
 out.append("| pH-negative (6 designs) | %s | **%.2f/10** |" % (", ".join(str(x) for x in sorted(n, reverse=True)), sum(n)/len(n)))
 out.append("\nExact permutation test on the group difference: **p = %.4f** (%d of %d splits)." % (hit/c, hit, c))
 
+
+# ---- species conservation of the hotspots, and contact-pattern asymmetry ----
+def _seq(path):
+    out = ""
+    for l in open(path):
+        if not l.startswith(">"): out += l.strip()
+        elif out: break
+    return out
+_H = _seq("challenges/tnfa/fasta/tnfa_human_trimer.fasta")
+_M = _seq("challenges/tnfa/fasta/tnfa_mouse_trimer.fasta")
+def _mnum(i): return i if i <= 71 else (None if i == 72 else i-1)
+HOT = [("R32 (anchor)",32),("K65 (anchor)",65),("D143",143),("E146",146),
+       ("S86",86),("Y87",87),("K90",90)]
+out.append("\n#### Are the hotspots themselves species-conserved?\n")
+out.append("| hotspot | human | mouse | identical? |")
+out.append("|---|---|---|---|")
+_ndiv = 0
+for lab, i in HOT:
+    j = _mnum(i); h = _H[i-1]; m = _M[j-1] if j else "—"
+    same = (j is not None and h == m)
+    if not same: _ndiv += 1
+    out.append("| %s | %s%d | %s%d | %s |" % (lab, h, i, m, j, "**yes**" if same else "**NO**"))
+out.append("\nAll %d of %d hotspots are identical between human and mouse TNF-α "
+           "(indel at human T72 accounted for)." % (len(HOT)-_ndiv, len(HOT)))
+
+DIV = {20:"P→H", 31:"R→Q", 73:"H→Y", 85:"V→I", 89:"T→E", 97:"I→V"}
+out.append("\n#### Species-divergent residues inside the epitope (none are hotspots)\n")
+out.append("| position | human → mouse | note |")
+out.append("|---|---|---|")
+for pos, ch in sorted(DIV.items()):
+    note = "adjacent to anchor R32" if pos == 31 else ("near hotspot K90" if pos == 89 else "")
+    out.append("| %d | %s | %s |" % (pos, ch, note))
+
+def _prof(v, species):
+    ifa = v.get("interface_per_sample") or []
+    f = {}
+    for x in ifa:
+        seen = set()
+        for ch, d in (x.get("per_chain") or {}).items():
+            for r in (d.get("target_residues_contacted") or []): seen.add(r)
+        for r in seen:
+            k = r if species == "human" else (r if r <= 71 else r+1)
+            f[k] = f.get(k, 0) + 1
+    return f, len(ifa)
+_rows = []
+for d in R2:
+    hs = [x for x in (R2[d]["human"].get("ipsae_min_samples") or []) if x is not None]
+    ms = [x for x in (R2[d]["mouse"].get("ipsae_min_samples") or []) if x is not None]
+    if len(hs) < 2 or len(ms) < 2: continue
+    gap = sum(hs)/len(hs) - sum(ms)/len(ms)
+    fh, nh = _prof(R2[d]["human"], "human"); fm, nm = _prof(R2[d]["mouse"], "mouse")
+    asym = sum(abs(fh.get(k,0)/nh - fm.get(k,0)/nm) for k in set(fh)|set(fm))
+    _rows.append((SHORT(d), gap, asym))
+_rows.sort(key=lambda r: -r[1])
+out.append("\n#### Contact-pattern asymmetry against the species gap (exploratory)\n")
+out.append("| design | species gap | contact asymmetry |")
+out.append("|---|---|---|")
+for s_, g_, a_ in _rows:
+    out.append("| %s | %+.4f | %.2f |" % (s_, g_, a_))
+_g = [r[1] for r in _rows]; _a = [r[2] for r in _rows]
+_mg = sum(_g)/len(_g); _ma = sum(_a)/len(_a)
+_r = (sum((x-_mg)*(y-_ma) for x, y in zip(_g, _a))
+      / ((sum((x-_mg)**2 for x in _g)*sum((y-_ma)**2 for y in _a))**0.5))
+def _rank(v):
+    _s2 = sorted(range(len(v)), key=lambda i: v[i]); _o = [0]*len(v)
+    for _pos, _i in enumerate(_s2): _o[_i] = _pos+1
+    return _o
+def _pear(xs, ys):
+    _n = len(xs); _mx = sum(xs)/_n; _my = sum(ys)/_n
+    _num = sum((x-_mx)*(y-_my) for x, y in zip(xs, ys))
+    _den = (sum((x-_mx)**2 for x in xs)*sum((y-_my)**2 for y in ys))**0.5
+    return _num/_den if _den else 0.0
+_rho = _pear(_rank(_g), _rank(_a))
+_loo = sorted(((_rows[i][0], _pear([x for j, x in enumerate(_g) if j != i],
+                                   [y for j, y in enumerate(_a) if j != i]))
+               for i in range(len(_rows))), key=lambda t: t[1])
+out.append("\nPearson r = **%.3f**, Spearman rho = **%.3f**, across the %d "
+           "measurable designs. Leave-one-out: dropping **%s** takes r to "
+           "**%.3f**; no other single design moves it below %.3f."
+           % (_r, _rho, len(_rows), _loo[0][0], _loo[0][1], _loo[1][1]))
+
 txt = "\n".join(out) + "\n"
 open("challenges/tnfa/generated-tables.md", "w").write(txt)
 print(txt)

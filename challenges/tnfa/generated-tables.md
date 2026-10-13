@@ -54,3 +54,45 @@
 | pH-negative (6 designs) | 2, 0, 0, 0, 0, 0 | **0.33/10** |
 
 Exact permutation test on the group difference: **p = 0.0152** (14 of 924 splits).
+
+#### Are the hotspots themselves species-conserved?
+
+| hotspot | human | mouse | identical? |
+|---|---|---|---|
+| R32 (anchor) | R32 | R32 | **yes** |
+| K65 (anchor) | K65 | K65 | **yes** |
+| D143 | D143 | D142 | **yes** |
+| E146 | E146 | E145 | **yes** |
+| S86 | S86 | S85 | **yes** |
+| Y87 | Y87 | Y86 | **yes** |
+| K90 | K90 | K89 | **yes** |
+
+All 7 of 7 hotspots are identical between human and mouse TNF-α (indel at human T72 accounted for).
+
+#### Species-divergent residues inside the epitope (none are hotspots)
+
+| position | human → mouse | note |
+|---|---|---|
+| 20 | P→H |  |
+| 31 | R→Q | adjacent to anchor R32 |
+| 73 | H→Y |  |
+| 85 | V→I |  |
+| 89 | T→E | near hotspot K90 |
+| 97 | I→V |  |
+
+#### Contact-pattern asymmetry against the species gap (exploratory)
+
+| design | species gap | contact asymmetry |
+|---|---|---|
+| l69_mpnn1 | +0.2499 | 11.60 |
+| l69_mpnn2 | +0.1874 | 7.50 |
+| l62_mpnn20 | +0.1053 | 5.00 |
+| l91_mpnn1 | +0.0853 | 4.80 |
+| l91_mpnn2 | +0.0732 | 2.90 |
+| l87_mpnn1 | +0.0568 | 4.00 |
+| l97_mpnn2 | +0.0466 | 7.80 |
+| l66_mpnn1 | +0.0014 | 3.20 |
+| l66_mpnn2 | -0.0393 | 2.50 |
+| l84_mpnn1 | -0.0609 | 5.20 |
+
+Pearson r = **0.742**, Spearman rho = **0.467**, across the 10 measurable designs. Leave-one-out: dropping **l69_mpnn1** takes r to **0.487**; no other single design moves it below 0.697.
