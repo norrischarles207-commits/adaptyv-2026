@@ -520,12 +520,17 @@ not one of our hotspots.
 | sequence redesign | ProteinMPNN with SolubleMPNN weights |
 | re-prediction | AlphaFold2, 5 models |
 | interface scoring | PyRosetta (Lawrence–Colman shape complementarity, dG, dSASA, H-bond satisfaction) |
-| independent cross-validation | Boltz-2, 3 diffusion samples, full trimer target |
-| cross-species | Boltz-2 co-fold against human and mouse trimers |
+| independent cross-validation | Boltz-2, **10 diffusion samples**, full trimer target |
+| cross-species | Boltz-2 co-fold against human and mouse trimers, 10 samples each |
+| replication | any first-time pass re-run in a second independent n=10 run (Amendment 5) |
 | compute | Modal (A10G for design, A100-40GB for Boltz) |
 
-Target: 7KPB chains B,C. Binder length sampled 60–100 aa. Means over samples,
-never best-of-N.
+Target: 7KPB chains B,C for design; the full human and mouse trimers for
+validation. Binder length sampled 60–100 aa. Means over samples, never
+best-of-N. Totals: **4 production runs, 90 trajectories, 24 designs scored,
+12 clearing SC ≥ 0.58 over 8 independent backbones**, then 12 × 2 species ×
+10 diffusion samples on the second predictor plus two replication runs —
+**26 Boltz-2 folds, 6,448 GPU-seconds, $3.79**.
 
 ### Acceptance criteria, pre-registered
 
@@ -632,7 +637,10 @@ diagnosed rather than promoted.
 | designs clearing SC ≥ 0.58 | **12** |
 | independent backbones among those | **8** |
 | designs satisfying the pH rule (AF2, 2/2 samples) | **6** |
-| designs with the pH rule met on Boltz-2 in >=2 of 3 samples | **1 of 4 attempted** (not reproducible between runs; 8 of 12 designs never folded — MSA server failure) |
+| designs folded on Boltz-2 at n=10 against both species | **12 of 12** |
+| designs clearing ≥7 of 10 on the human arm | **2** |
+| designs confirming that in ≥2 independent runs (Amendment 5) | **2** |
+| designs clearing ≥7 of 10 on the mouse arm in every run | **0** |
 | designs submitted | **12** |
 
 A run we withdrew: a revised hotspot set (`B32,B65,B145,C86,C87`) was tested on
