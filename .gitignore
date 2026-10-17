@@ -41,3 +41,17 @@ challenges/egfr/**/*.npz
 
 # submission bundle: derived from tracked PDBs + figure, checksum in methods.md
 challenges/egfr/*.zip
+
+# BindCraft raw output trees (30M + 53M) -- regenerable, kept locally only
+challenges/tnfa/v2-core/
+challenges/tnfa/v2-core2/
+
+# editor/patch backups
+*.bak
+
+# NOTE: *.partial is deliberately NOT ignored. challenges/tnfa/
+# crossreact-all12-n10.json.partial is the PRIMARY dataset for the 12-design
+# n=10 run -- see challenges/tnfa/README.md.
+
+# redundant: the COMPLETE crossreact-patchsmoke.json is tracked alongside it
+challenges/tnfa/crossreact-patchsmoke.json.partial

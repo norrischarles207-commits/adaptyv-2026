@@ -11,6 +11,12 @@ that project produced, which this pipeline inherits.
 
 ## Challenges
 
+| # | target | submitted | designs | where it landed |
+|---|---|---|---|---|
+| 1 | EGFR — pH-conditional binding | 2026-10-05 | 5 | Two complementary leads; no single molecule meets both criteria, and the submission says so. |
+| 2 | TNF-α — pH-conditional + mouse cross-reactive | 2026-10-16 | 12 | Two designs confirmed on the pH objective under replication; neither confirmed on mouse. |
+| 3 | GLP1R — agonist (binding **and** receptor activation) | in progress | — | — |
+
 **Challenge 1 — pH-conditional EGFR binder.** Track 3, submitted 2026-10-05.
 Five de novo designs: two complementary leads plus three declared near-misses.
 The pH switch is placed on EGFR's own His409 rather than engineered into the
@@ -33,47 +39,90 @@ says so rather than picking a winner.
 - [`challenges/egfr/submission.csv`](challenges/egfr/submission.csv) — the five
   submitted sequences.
 
+**Challenge 2 — pH-conditional, cross-species TNF-α binder.** Track 3,
+submitted 2026-10-16. Twelve de novo designs, 60–97 aa, over eight independent
+backbones. The organisers **number** the objectives 1 = affinity, 2 = mouse
+cross-reactivity, 3 = pH selectivity but **rank** them in reverse; every
+document for this challenge is organised in ranked order and labelled with the
+organisers' number, so the two cannot be confused.
+
+The mechanism inverts Challenge 1. There the binder had to *acquire* an
+interaction as pH fell; here it must *lose* one. A binder histidine sits against
+a conserved cationic residue on the target — R32, with K65 as a second anchor —
+neutral and tolerated at pH 7.4, positively charged at 6.0, where the like
+charges repel. All of the pH machinery is in the binder: the conserved
+cross-species epitope contains no histidine, so a target-side switch would have
+traded objective 3 against objective 2.
+
+The result, stated as it stands: **two designs clear the pre-registered pH bar
+on the human arm under replication** — `l69_mpnn1` at 30 of 30 diffusion samples
+across three independent runs, `l91_mpnn1` at 19 of 20 across two, both anchored
+on R32 at hydrogen-bond distance. **Neither is confirmed on mouse.** The
+AlphaFold2 screen that selected them is itself validated against the second
+predictor (permutation p = 0.015). No predictor models protonation, so this is
+geometric availability, not demonstrated pH-dependent binding.
+
+Cross-reactivity is the weak objective and is reported as one. It rests on 7KP7
+— a 2.65 Å structure of human TNFR1 bound to *mouse* TNF-α, sharing 30 of 32
+receptor contacts — but our own computation does not corroborate it for any
+design and contradicts it for the lead, which carries the largest species gap in
+the set. The two properties pull apart, and the submission reports both rather
+than ranking around the problem.
+
+- [`challenges/tnfa/submission-writeup.md`](challenges/tnfa/submission-writeup.md)
+  — the submitted document: ranked-order rationale, machine-generated result
+  tables, sixteen limitations.
+- [`challenges/tnfa/methods.md`](challenges/tnfa/methods.md) — the
+  pre-registration and Amendments 1–7. Each amendment is dated and tied to the
+  commit that fixed it *before* the run it governs, including the two that
+  tightened the rules against us.
+- [`challenges/tnfa/submission.csv`](challenges/tnfa/submission.csv) — the
+  twelve submitted sequences.
+
 ## Pipeline, end to end
 
 ```
-                      ┌─────────────────────────────────────────────────┐
+                      ┌──────────────────────────────────────────────────┐
                       │ 1. Target intake      challenges/<slug>/         │
                       │    Pick a target/partner complex (the natural    │
                       │    binding partner gives you the real interface).│
-                      └─────────────────────────────────────────────────┘
+                      └──────────────────────────────────────────────────┘
                                           │
-                      ┌─────────────────────────────────────────────────┐
-                      │ 2. Hotspot picking   modal/find_hotspots.py     │
-                      │    Rank target residues by contact-count with   │
-                      │    the natural partner. Optional conservation   │
-                      │    overlay. Runs locally, no GPU/Modal needed.  │
-                      └─────────────────────────────────────────────────┘
+                      ┌──────────────────────────────────────────────────┐
+                      │ 2. Hotspot picking   modal/find_hotspots.py      │
+                      │    Rank target residues by contact-count with    │
+                      │    the natural partner. Optional conservation    │
+                      │    overlay. Runs locally, no GPU/Modal needed.   │
+                      └──────────────────────────────────────────────────┘
                                           │
-                      ┌─────────────────────────────────────────────────┐
-                      │ 3. Design            modal/run_bindcraft.py     │
-                      │    BindCraft on A10G: AlphaFold hallucination   │
-                      │    → SolubleMPNN redesign → AF2 re-prediction   │
-                      │    → BindCraft's default filter set.            │
-                      │    Fan out N attempts in parallel; one          │
-                      │    trajectory per call. Every MPNN              │
-                      │    re-prediction is logged (pass or fail).      │
-                      └─────────────────────────────────────────────────┘
+                      ┌──────────────────────────────────────────────────┐
+                      │ 3. Design            modal/run_bindcraft.py      │
+                      │    BindCraft on A10G: AlphaFold hallucination    │
+                      │    → SolubleMPNN redesign → AF2 re-prediction    │
+                      │    → filters: BindCraft's default set, or        │
+                      │      --gate-mode prereg, which nulls those and   │
+                      │      defers acceptance to our pre-registered     │
+                      │      gate downstream (used for TNF-α).           │
+                      │    Fan out N attempts in parallel; one           │
+                      │    trajectory per call. Every MPNN               │
+                      │    re-prediction is logged (pass or fail).       │
+                      └──────────────────────────────────────────────────┘
                                           │
-                      ┌─────────────────────────────────────────────────┐
-                      │ 4. Cross-validation  modal/redundancy.py        │
-                      │    Re-predict the binder-target complex with    │
-                      │    Boltz-2 (independent MSA + model), score on  │
-                      │    the calibrated metrics (see below). CPU-only │
-                      │    rescore path reuses cached Boltz outputs     │
-                      │    when thresholds change.                      │
-                      └─────────────────────────────────────────────────┘
+                      ┌──────────────────────────────────────────────────┐
+                      │ 4. Cross-validation  modal/redundancy.py         │
+                      │    Re-predict the binder-target complex with     │
+                      │    Boltz-2 (independent MSA + model), score on   │
+                      │    the calibrated metrics (see below). CPU-only  │
+                      │    rescore path reuses cached Boltz outputs      │
+                      │    when thresholds change.                       │
+                      └──────────────────────────────────────────────────┘
                                           │
-                      ┌─────────────────────────────────────────────────┐
+                      ┌──────────────────────────────────────────────────┐
                       │ 5. Selection & writeup  challenges/<slug>/       │
-                      │    Ranked candidates → the accepted shortlist.  │
-                      │    One dated entry per run in that challenge's  │
-                      │    methods.md.                                  │
-                      └─────────────────────────────────────────────────┘
+                      │    Ranked candidates → the accepted shortlist.   │
+                      │    One dated entry per run in that challenge's   │
+                      │    methods.md.                                   │
+                      └──────────────────────────────────────────────────┘
 ```
 
 ## Current selection criteria
@@ -110,8 +159,8 @@ Python 3.11 for the design/cross-val paths, `biopython` for the local
 hotspot tool.
 
 Every command below takes `--target <slug>` — pick one per challenge
-(e.g. `vegf`, `pdl1`) and use it consistently; it namespaces outputs both
-in `challenges/` and on the Modal volume.
+(`egfr` and `tnfa` are the two run so far) and use it consistently; it
+namespaces outputs both in `challenges/` and on the Modal volume.
 
 **Hotspot picking (local, no GPU):**
 ```
@@ -162,13 +211,24 @@ adaptyv-2026/
 ├── data/                    # shared, cross-challenge reference data (see data/README.md)
 ├── challenges/
 │   ├── README.md             # per-challenge layout convention
-│   └── egfr/                 # Challenge 1 — complete, submitted 2026-10-05
-│       ├── methods.md          # dated run log, including corrections to its own record
+│   ├── egfr/                 # Challenge 1 — complete, submitted 2026-10-05
+│   │   ├── methods.md          # dated run log, including corrections to its own record
+│   │   ├── submission-writeup.md  # the document submitted to Proteinbase
+│   │   ├── submission.csv      # the 5 submitted designs
+│   │   ├── lit/                # literature brief, epitope verification, sources
+│   │   ├── l93_H36E/           # the pH-switch lead, 3 Boltz models
+│   │   ├── fulllength-v3c/     # Stage 2 complexes, all 7 designs
+│   │   └── v3c-core.log        # BindCraft run log (trajectory stats live here)
+│   └── tnfa/                 # Challenge 2 — complete, submitted 2026-10-16
+│       ├── methods.md          # pre-registration + Amendments 1–7, each dated
 │       ├── submission-writeup.md  # the document submitted to Proteinbase
-│       ├── submission.csv      # the 5 submitted designs
-│       ├── l93_H36E/           # the pH-switch lead, 3 Boltz models
-│       ├── fulllength-v3c/     # Stage 2 complexes, all 7 designs
-│       └── v3c-core.log        # BindCraft run log (trajectory stats live here)
+│       ├── submission.csv      # the 12 submitted designs
+│       ├── generated-tables.md # result tables, regenerated from raw run JSON
+│       ├── make_tables.py      # generates them — no hand-transcribed numbers
+│       ├── crosscheck_submission.py  # verifies writeup ↔ CSV ↔ raw JSON agree
+│       ├── epitope-analysis.md # cross-species epitope + cation anchor picks
+│       ├── structures/         # reference PDBs (1TNF, 2TNF, 3ALQ, 7KP7, 7KPB)
+│       └── crossreact-*.json   # Boltz-2 cross-species runs (raw results)
 └── notes/
     ├── calibration.md        # LIVE thresholds + calibration sources, shared across challenges
     └── onboarding.md         # what a new collaborator reads first + role notes
@@ -187,6 +247,18 @@ Modal-side state that doesn't live in the repo, namespaced by `<slug>`:
   sharing story, fetched once via `download_boltz_weights`.
 
 ## Reading order
+
+**If you're evaluating the work** rather than joining it, the two submission
+writeups are the shortest path to what was done and how it was reported:
+[`challenges/tnfa/submission-writeup.md`](challenges/tnfa/submission-writeup.md)
+is the more developed of the two, and
+[`challenges/egfr/submission-writeup.md`](challenges/egfr/submission-writeup.md)
+is the first. Then
+[`challenges/tnfa/methods.md`](challenges/tnfa/methods.md) if you want to check
+that the rules really were fixed before the runs they govern — each amendment
+names the commit that fixed it.
+
+**If you're picking the work up:**
 
 1. This README.
 2. [`notes/calibration.md`](notes/calibration.md) — why the selection rule is what it is.
